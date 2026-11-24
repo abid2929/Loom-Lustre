@@ -29,6 +29,8 @@ function find_order(string $no): ?array { $q = db()->prepare('SELECT * FROM orde
 $a = (string)($_GET['a'] ?? '');
 $pdo = db();
 
+// Forgot the password: upload an empty file named RESET-ADMIN next to index.php; the next visit removes all admins and the file, so a new first admin can be made.
+if (is_file(LL_ROOT . '/RESET-ADMIN')) { $pdo->exec('DELETE FROM admins'); @unlink(LL_ROOT . '/RESET-ADMIN'); $_SESSION = []; }
 if ($a === 'state') out(['setup' => !admins(), 'me' => me(), 'csrf' => me() ? $_SESSION['csrf'] : null, 'roles' => array_keys(ROLES)]);
 
 if ($a === 'login') {

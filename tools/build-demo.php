@@ -60,7 +60,7 @@ put($out . '/404.html', render('site', 'missing-page'));
 // shared admin: static app + the shop data as JSON (no api.php on GitHub Pages, so it runs in demo mode)
 require $root . '/inc/admin_data.php';
 foreach (['products', 'categories', 'collections', 'reviews', 'banners', 'site', 'orders'] as $c) put($out . '/data/' . $c . '.json', json_encode(ll_get($c), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-foreach (['index.html', 'admin.css', 'admin.js', 'admin2.js', 'bn.js'] as $f) put($out . '/admin/' . $f, file_get_contents($root . '/admin/' . $f));
+foreach (['index.html', 'admin.css', 'admin.js', 'admin2.js', 'bn.js', 'pwd-eye.js'] as $f) put($out . '/admin/' . $f, file_get_contents($root . '/admin/' . $f));
 put($out . '/robots.txt', render('site', 'robots.txt'));
 put($out . '/sitemap.xml', render('site', 'sitemap.xml'));
 $views = glob($out . '/admin/*') ?: [];
