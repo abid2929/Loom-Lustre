@@ -58,7 +58,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <title><?= e($full) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
 <?php if (S('meta_keywords') !== ''): ?><meta name="keywords" content="<?= e(S('meta_keywords')) ?>">
-<?php endif; ?><meta name="theme-color" content="#b31f3a">
+<?php endif; ?><meta name="theme-color" content="#9e1b34">
 <meta property="og:title" content="<?= e($full) ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:image" content="<?= e($img) ?>">
@@ -75,12 +75,13 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <meta name="robots" content="index, follow, max-image-preview:large">
 <?php endif; if (S('gsv') !== ''): ?><meta name="google-site-verification" content="<?= e(S('gsv')) ?>">
 <?php endif; if ($route === ''): ?><script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@graph' => [
-    ['@type' => 'Organization', '@id' => abs_url() . '#org', 'name' => $name, 'url' => abs_url(), 'logo' => site_origin() . url('assets/img/icon-192.png'), 'sameAs' => array_values(array_filter([S('facebook'), S('instagram')])), 'contactPoint' => array_filter(['@type' => 'ContactPoint', 'telephone' => S('phone'), 'contactType' => 'customer service', 'areaServed' => 'BD'])],
+    ['@type' => 'Organization', '@id' => abs_url() . '#org', 'name' => $name, 'url' => abs_url(), 'logo' => site_origin() . url('assets/img/icon-512.png'), 'sameAs' => array_values(array_filter([S('facebook'), S('instagram')])), 'contactPoint' => array_filter(['@type' => 'ContactPoint', 'telephone' => S('phone'), 'contactType' => 'customer service', 'areaServed' => 'BD'])],
     ['@type' => 'WebSite', '@id' => abs_url() . '#web', 'name' => $name, 'url' => abs_url(), 'publisher' => ['@id' => abs_url() . '#org'], 'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('search') . '?q={q}', 'query-input' => 'required name=q']],
 ]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 <?php endif; ?><link rel="icon" href="<?= url('assets/img/favicon-32.png') ?>" sizes="32x32">
 <link rel="icon" href="<?= url('assets/img/icon-192.png') ?>" sizes="192x192">
 <link rel="apple-touch-icon" href="<?= url('assets/img/apple-touch-icon.png') ?>">
+<link rel="manifest" href="<?= url('assets/site.webmanifest') ?>">
 <?php if (!empty($GLOBALS['ll_preload'])): [$pa, $pb] = $GLOBALS['ll_preload']; ?><link rel="preload" as="image" href="<?= e($pa) ?>"<?php if ($pb !== $pa): ?> imagesrcset="<?= e($pa) ?> 900w, <?= e($pb) ?> 2000w" imagesizes="(max-width:860px) 75vw, 100vw"<?php endif; ?> fetchpriority="high">
 <?php endif; ?><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,6 +124,7 @@ function site_header(): void {
   </div>
   <nav class="catnav" aria-label="Categories">
     <div class="wrap catnav-in">
+      <a href="<?= url() ?>" class="<?= $a === 'home' ? 'on' : '' ?>">Home</a>
       <a href="<?= url('shop') ?>" class="<?= $a === 'shop' ? 'on' : '' ?>">All Products</a>
       <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
       <a href="<?= url('new') ?>" class="<?= $a === 'new' ? 'on' : '' ?>">New In</a>
