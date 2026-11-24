@@ -78,7 +78,18 @@ function db(): PDO {
     $oc = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
     foreach (['payment' => "TEXT DEFAULT 'cod'", 'trx_id' => "TEXT DEFAULT ''", 'courier' => "TEXT DEFAULT ''", 'tracking' => "TEXT DEFAULT ''"] as $c => $t)
         if (!in_array($c, $oc, true)) $pdo->exec("ALTER TABLE orders ADD COLUMN $c $t");
-    if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); }
+    // v1.2: shared admin (same on every shop). Extra columns + tables it needs.
+    $pc = array_column($pdo->query('PRAGMA table_info(products)')->fetchAll(), 'name');
+    if (!in_array('ext_id', $pc, true)) $pdo->exec("ALTER TABLE products ADD COLUMN ext_id TEXT DEFAULT ''");
+    $oc = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+    foreach (['paid' => 'INTEGER DEFAULT 0', 'hist' => "TEXT DEFAULT '[]'", 'courier_json' => "TEXT DEFAULT ''", 'src' => "TEXT DEFAULT 'website'"] as $c => $t)
+        if (!in_array($c, $oc, true)) $pdo->exec("ALTER TABLE orders ADD COLUMN $c $t");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS col_items (collection_id INTEGER, product_id INTEGER, PRIMARY KEY(collection_id, product_id));
+        CREATE TABLE IF NOT EXISTS audit (t INTEGER, u TEXT, w TEXT);
+        CREATE TABLE IF NOT EXISTS capi_log (t INTEGER, code INTEGER);");
+    if (!$new && (int)$pdo->query('SELECT COUNT(*) FROM col_items')->fetchColumn() === 0)
+        $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0');
+    if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }
 
@@ -166,6 +177,16 @@ function base_url(): string {
     return $b = rtrim($dir, '/') . '/';
 }
 function url(string $path = ''): string { return base_url() . ltrim($path, '/'); }
+function site_origin(): string {
+    if (defined('LL_DEMO')) return getenv('LL_DEMO_ORIGIN') ?: 'https://abid2929.github.io';
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    return ($https ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+}
+function abs_url(string $path = ''): string {
+    $u = url($path);
+    if (defined('LL_DEMO') && $path !== '' && !str_contains(basename($path), '.')) $u .= '/';
+    return site_origin() . $u;
+}
 function money($n): string { return S('currency') . number_format((int)$n); }
 function slugify(string $s): string {
     $s = mb_strtolower(trim($s));
@@ -253,8 +274,15 @@ function fill_tpl(string $t, array $o): string {
     return strtr($t, ['{name}' => $o['name'] ?? '', '{code}' => $o['code'] ?? '', '{total}' => (string)($o['total'] ?? ''), '{tracking}' => $o['tracking'] ?? '']);
 }
 /** SMS through a bulksmsbd.net style GET API. Returns true when the gateway answered OK. */
-function send_sms(string $phone, string $text): bool {
-    if (S('sms_on') !== '1' || S('sms_api_key') === '' || defined('LL_DEMO')) return false;
+function send_sms(string $phone, string $text, bool $force = false): bool {
+    if (defined('LL_DEMO') || (!$force && S('sms_on') !== '1')) return false;
+    $tpl = S('sms_tpl');   // any gateway: a link with {number} and {message}
+    if ($tpl !== '' && preg_match('~^https?://~', $tpl)) {
+        $num = norm_phone($phone); if (strlen($num) === 11) $num = '88' . $num;
+        [$code] = http_call('GET', str_replace(['{number}', '{message}'], [rawurlencode($num), rawurlencode($text)], $tpl));
+        return $code >= 200 && $code < 300;
+    }
+    if (S('sms_api_key') === '') return false;
     $q = http_build_query(['api_key' => S('sms_api_key'), 'type' => 'text', 'number' => '88' . norm_phone($phone), 'senderid' => S('sms_sender'), 'message' => $text]);
     [$code, $res] = http_call('GET', S('sms_url') . '?' . $q);
     return $code >= 200 && $code < 300;
@@ -269,7 +297,8 @@ function capi_event(string $name, string $eventId, array $custom = [], array $us
     $ev = ['event_name' => $name, 'event_time' => time(), 'event_id' => $eventId, 'action_source' => 'website', 'event_source_url' => (string)($_SERVER['HTTP_REFERER'] ?? ''), 'user_data' => $ud, 'custom_data' => $custom];
     $body = ['data' => [$ev]];
     if (S('capi_test') !== '') $body['test_event_code'] = S('capi_test');
-    http_call('POST', 'https://graph.facebook.com/v19.0/' . rawurlencode(S('pixel_id')) . '/events?access_token=' . rawurlencode(S('capi_token')), ['Content-Type: application/json'], json_encode($body), 6);
+    [$code] = http_call('POST', 'https://graph.facebook.com/v19.0/' . rawurlencode(S('pixel_id')) . '/events?access_token=' . rawurlencode(S('capi_token')), ['Content-Type: application/json'], json_encode($body), 6);
+    try { db()->prepare('INSERT INTO capi_log(t,code) VALUES(?,?)')->execute([time(), $code]); } catch (Throwable $e) {}
     $n = (int)S('capi_count'); set_setting('capi_count', (string)($n + 1));
 }
 /** Steadfast courier: create a parcel for an order. Returns [ok, message, tracking]. */
@@ -277,7 +306,7 @@ function steadfast_create(array $o): array {
     if (S('steadfast_key') === '' || S('steadfast_secret') === '') return [false, 'Steadfast API keys are missing (Settings > Courier Automation).', ''];
     $cod = ($o['payment'] ?? 'cod') === 'cod' ? (int)$o['total'] : 0;
     $body = json_encode(['invoice' => $o['code'], 'recipient_name' => $o['name'], 'recipient_phone' => norm_phone($o['phone']), 'recipient_address' => mb_substr($o['address'], 0, 250), 'cod_amount' => $cod, 'note' => $o['note'] ?? '']);
-    [$code, $res] = http_call('POST', 'https://portal.packzy.com/api/v1/create_order', ['Api-Key: ' . S('steadfast_key'), 'Secret-Key: ' . S('steadfast_secret'), 'Content-Type: application/json'], $body);
+    [$code, $res] = http_call('POST', rtrim(S('sf_base') ?: 'https://portal.packzy.com/api/v1', '/') . '/create_order', ['Api-Key: ' . S('steadfast_key'), 'Secret-Key: ' . S('steadfast_secret'), 'Content-Type: application/json'], $body);
     $j = json_decode($res, true) ?: [];
     if ($code === 200 && !empty($j['consignment']['tracking_code'])) return [true, 'Sent to Steadfast.', (string)$j['consignment']['tracking_code']];
     return [false, 'Steadfast error: ' . mb_substr((string)($j['message'] ?? $res ?: 'no answer'), 0, 160), ''];

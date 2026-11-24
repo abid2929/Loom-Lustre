@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /Loom-Lustre/admin/
+Disallow: /Loom-Lustre/api/
+
+Sitemap: https://abid2929.github.io/Loom-Lustre/sitemap.xml

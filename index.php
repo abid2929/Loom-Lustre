@@ -90,25 +90,50 @@ if ($page === 'api') {
     json_out(['error' => 'Not found'], 404);
 }
 
+/* ---------- robots.txt + sitemap.xml ---------- */
+if ($route === 'robots.txt') {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "User-agent: *\nAllow: /\nDisallow: " . url('admin/') . "\nDisallow: " . url('api/') . "\n\nSitemap: " . abs_url('sitemap.xml') . "\n";
+    exit;
+}
+if ($route === 'sitemap.xml') {
+    header('Content-Type: application/xml; charset=utf-8');
+    $u = function (string $path, string $mod = '', string $img = '', string $pri = '0.6') {
+        $x = '<url><loc>' . e(abs_url($path)) . '</loc>' . ($mod ? '<lastmod>' . substr($mod, 0, 10) . '</lastmod>' : '') . '<priority>' . $pri . '</priority>';
+        if ($img !== '') $x .= '<image:image><image:loc>' . e(preg_match('~^https?://~', $img) ? $img : site_origin() . $img) . '</image:loc></image:image>';
+        return $x . "</url>\n";
+    };
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+    echo $u('', '', '', '1.0');
+    foreach (['shop' => '0.9', 'new' => '0.7', 'sale' => '0.7', 'about' => '0.4', 'contact' => '0.4'] as $r => $pr) echo $u($r, '', '', $pr);
+    foreach (db()->query('SELECT slug FROM categories WHERE active=1') as $c) echo $u('c/' . $c['slug'], '', '', '0.8');
+    foreach (db()->query('SELECT slug FROM collections WHERE active=1') as $c) echo $u('collection/' . $c['slug'], '', '', '0.7');
+    foreach (db()->query('SELECT * FROM products WHERE active=1') as $pr) echo $u('p/' . $pr['slug'], (string)($pr['updated'] ?? $pr['created'] ?? ''), img_url(p_image($pr)), '0.8');
+    echo '</urlset>';
+    exit;
+}
+
 /* ---------- pages ---------- */
 switch ($page) {
 case '':
+    require_once LL_ROOT . '/inc/admin_data.php';
+    $slides = array_values(array_filter(ll_banners(), fn($b) => !empty($b['on']) && ($b['img'] ?? '') !== ''));
+    if ($slides) $GLOBALS['ll_preload'] = [img_small($slides[0]['img']), img_url($slides[0]['img'])];
     page_head('', '', '', 'home');
-    $slides = [];
-    for ($i = 1; $i <= 4; $i++) if (S("s{$i}_on") === '1' && S("s{$i}_img") !== '') $slides[] = $i;
     $cats = categories();
     ?>
+<h1 class="sr"><?= e(S('meta_title') !== '' ? S('meta_title') : S('shop_name') . ': beauty and cosmetics shop in Bangladesh') ?></h1>
 <section class="hero" aria-label="Offers">
   <div class="slides" data-slider>
-    <?php foreach ($slides as $n => $i): ?>
-    <a class="slide<?= $n === 0 ? ' on' : '' ?><?= S("s{$i}_dark") === '1' ? ' dark' : '' ?>" href="<?= url(S("s{$i}_link")) ?>">
-      <img src="<?= e(img_url(S("s{$i}_img"))) ?>" alt="<?= e(S("s{$i}_title")) ?>" <?= $n === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>>
-      <span class="slide-t">
-        <?php if (S("s{$i}_kicker") !== ''): ?><small><?= e(S("s{$i}_kicker")) ?></small><?php endif; ?>
-        <b><?= e(S("s{$i}_title")) ?></b>
-        <?php if (S("s{$i}_text") !== ''): ?><span><?= e(S("s{$i}_text")) ?></span><?php endif; ?>
-        <?php if (S("s{$i}_btn") !== ''): ?><i class="btn"><?= e(S("s{$i}_btn")) ?></i><?php endif; ?>
-      </span>
+    <?php foreach ($slides as $n => $sl): $lk = (string)$sl['link']; ?>
+    <a class="slide<?= $n === 0 ? ' on' : '' ?><?= !empty($sl['dark']) ? ' dark' : '' ?>" href="<?= e(preg_match('~^https?://~', $lk) ? $lk : url(ltrim($lk, '#/'))) ?>">
+      <?php $hi = $sl['img']; $hs = img_small($hi); ?><img src="<?= e($hs) ?>"<?php if ($hs !== img_url($hi)): ?> srcset="<?= e($hs) ?> 900w, <?= e(img_url($hi)) ?> 2000w" sizes="(max-width:860px) 75vw, 100vw"<?php endif; ?> alt="<?= e($sl['title'] ?: S('shop_name')) ?>" width="1600" height="900" <?= $n === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' ?>>
+      <?php if ($sl['title'] !== '' || ($sl['kicker'] ?? '') !== ''): ?><span class="slide-t">
+        <?php if (($sl['kicker'] ?? '') !== ''): ?><small><?= e($sl['kicker']) ?></small><?php endif; ?>
+        <?php if ($sl['title'] !== ''): ?><b><?= e($sl['title']) ?></b><?php endif; ?>
+        <?php if (($sl['text'] ?? '') !== ''): ?><span><?= e($sl['text']) ?></span><?php endif; ?>
+        <?php if (($sl['btn'] ?? '') !== ''): ?><i class="btn"><?= e($sl['btn']) ?></i><?php endif; ?>
+      </span><?php endif; ?>
     </a>
     <?php endforeach; ?>
   </div>
@@ -131,7 +156,7 @@ case '':
 </section>
 <?php endif; ?>
 
-<?php $flash = $on('flash') ? q('p.flash_sale=1', [], 'p.sort, p.id DESC', 10) : []; if ($flash): ?>
+<?php $flash = $on('flash') ? q('p.flash_sale=1', [], 'p.sort, p.id DESC', 8) : []; if (ctype_digit(S('deal_id'))) { $dl = q('p.id=?', [(int)S('deal_id')]); if ($dl) $flash = array_merge($dl, array_values(array_filter($flash, fn($x) => (int)$x['id'] !== (int)$dl[0]['id']))); } if (count($flash) > 4) $flash = array_slice($flash, 0, intdiv(count($flash), 4) * 4); if ($flash): ?>
 <section class="wrap sec flash-s">
   <div class="sec-h flash-h"><div><h2><?= icon('bolt', 22) ?><?= e($T('flash')) ?></h2><p><?= e($Sb('flash')) ?></p></div>
     <div class="cd" data-countdown aria-label="Time left"><span><b data-h>00</b><small>hours</small></span><i>:</i><span><b data-m>00</b><small>min</small></span><i>:</i><span><b data-s>00</b><small>sec</small></span></div></div>
@@ -217,12 +242,12 @@ case '':
 </section>
 <?php endif; ?>
 
-<?php $revs = $on('reviews') ? db()->query('SELECT r.*, p.name pn, p.slug FROM reviews r JOIN products p ON p.id=r.product_id WHERE r.approved=1 AND r.rating>=4 ORDER BY r.id DESC LIMIT 8')->fetchAll() : []; if ($revs): ?>
+<?php $revs = $on('reviews') ? db()->query('SELECT r.*, p.name pn, p.slug FROM reviews r LEFT JOIN products p ON p.id=r.product_id WHERE r.approved=1 AND r.rating>=4 ORDER BY r.id DESC LIMIT 8')->fetchAll() : []; if ($revs): ?>
 <section class="wrap sec">
   <?= section_head($T('reviews'), 'Real words from real customers') ?>
   <div class="revs-h">
     <?php foreach ($revs as $r): ?>
-    <figure class="rcard"><span class="stars" aria-label="<?= (int)$r['rating'] ?> out of 5"><?= str_repeat('★', (int)$r['rating']) ?><i><?= str_repeat('★', 5 - (int)$r['rating']) ?></i></span><blockquote><?= e($r['body']) ?></blockquote><figcaption><b><?= e($r['name']) ?></b><a href="<?= url('p/' . $r['slug']) ?>"><?= e($r['pn']) ?></a></figcaption></figure>
+    <figure class="rcard"><span class="stars" aria-label="<?= (int)$r['rating'] ?> out of 5"><?= str_repeat('★', (int)$r['rating']) ?><i><?= str_repeat('★', 5 - (int)$r['rating']) ?></i></span><blockquote><?= e($r['body']) ?></blockquote><figcaption><b><?= e($r['name']) ?></b><?php if (!empty($r['slug'])): ?><a href="<?= url('p/' . $r['slug']) ?>"><?= e($r['pn']) ?></a><?php endif; ?></figcaption></figure>
     <?php endforeach; ?>
   </div>
 </section>
@@ -250,7 +275,7 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
     } elseif ($page === 'collection') {
         $st = db()->prepare('SELECT * FROM collections WHERE slug=? AND active=1'); $st->execute([$parts[1] ?? '']); $col = $st->fetch();
         if (!$col) { not_found(); break; }
-        $where = 'p.collection_id=?'; $args = [$col['id']]; $title = $col['name']; $sub = $col['tagline']; $active = ''; $banner = $col['image'];
+        $where = 'p.id IN (SELECT product_id FROM col_items WHERE collection_id=?)'; $args = [$col['id']]; $title = $col['name']; $sub = $col['tagline']; $active = ''; $banner = $col['image'];
     } elseif ($page === 'new') { $where = 'p.is_new=1'; $title = 'New In'; $sub = 'Fresh arrivals'; $active = 'new'; }
     elseif ($page === 'sale') { $where = 'p.old_price > p.price'; $title = 'Sale'; $sub = 'Beauty at special prices'; $active = 'sale'; }
     elseif ($page === 'search') {
@@ -326,8 +351,8 @@ case 'p':
   <nav class="crumbs"><a href="<?= url() ?>">Home</a><?= icon('chev', 14) ?><a href="<?= url('c/' . $p['cat_slug']) ?>"><?= e($p['cat_name']) ?></a><?= icon('chev', 14) ?><span><?= e($p['name']) ?></span></nav>
   <div class="pdp-in">
     <div class="gallery">
-      <div class="g-main"><img id="gMain" src="<?= e(img_url($imgs[0])) ?>" alt="<?= e($p['name']) ?>" width="800" height="800" fetchpriority="high"><?php if ($off): ?><span class="badge off"><?= $off ?>% OFF</span><?php endif; ?></div>
-      <?php if (count($imgs) > 1): ?><div class="g-thumbs"><?php foreach ($imgs as $i => $im): ?><button class="<?= $i === 0 ? 'on' : '' ?>" data-img="<?= e(img_url($im)) ?>"><img src="<?= e(img_small($im)) ?>" alt="" width="80" height="80"></button><?php endforeach; ?></div><?php endif; ?>
+      <div class="g-main"><img id="gMain" src="<?= e(img_url($imgs[0])) ?>"<?php if (img_small($imgs[0]) !== img_url($imgs[0])): ?> srcset="<?= e(img_small($imgs[0])) ?> 600w, <?= e(img_url($imgs[0])) ?> 1200w" sizes="(max-width:860px) 100vw, 50vw"<?php endif; ?> alt="<?= e($p['name']) ?>" width="1200" height="1500" fetchpriority="high"><?php if ($off): ?><span class="badge off"><?= $off ?>% OFF</span><?php endif; ?></div>
+      <?php if (count($imgs) > 1): ?><div class="g-thumbs"><?php foreach ($imgs as $i => $im): ?><button class="<?= $i === 0 ? 'on' : '' ?>" data-img="<?= e(img_url($im)) ?>"><img src="<?= e(img_small($im)) ?>" alt="<?= e($p['name']) ?> photo <?= $i + 1 ?>" width="80" height="100" loading="lazy"></button><?php endforeach; ?></div><?php endif; ?>
     </div>
     <div class="info" data-product="<?= (int)$p['id'] ?>">
       <small class="info-brand"><?= e($p['brand'] ?: S('shop_name')) ?></small>
@@ -400,7 +425,7 @@ case 'p':
 </div>
 <div class="sticky-buy only-m"><div><b><?= money($p['price']) ?></b><?php if ($off): ?><s><?= money($p['old_price']) ?></s><?php endif; ?></div><?php if (!$out): ?><button class="btn ghost" data-add-pdp>Add to bag</button><button class="btn" data-buy-now>Buy now</button><?php else: ?><button class="btn" disabled>Sold out</button><?php endif; ?></div>
 <script>window.LLP={id:'<?= (int)$p['id'] ?>',name:<?= json_encode($p['name']) ?>,price:<?= (int)$p['price'] ?>};try{window.fbq&&fbq('track','ViewContent',{content_ids:[LLP.id],content_type:'product',content_name:LLP.name,value:LLP.price,currency:'BDT'})}catch(e){}</script>
-<script type="application/ld+json"><?= json_encode(array_filter(['@context' => 'https://schema.org', '@type' => 'Product', 'name' => $p['name'], 'image' => img_url($imgs[0]), 'description' => $p['short'], 'brand' => ['@type' => 'Brand', 'name' => $p['brand'] ?: S('shop_name')], 'aggregateRating' => $rn ? ['@type' => 'AggregateRating', 'ratingValue' => $ravg, 'reviewCount' => $rn] : null, 'offers' => ['@type' => 'Offer', 'priceCurrency' => 'BDT', 'price' => (int)$p['price'], 'availability' => $out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock']]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@graph' => [array_filter(['@type' => 'Product', 'name' => $p['name'], 'url' => abs_url('p/' . $p['slug']), 'sku' => 'LL-' . $p['id'], 'image' => array_map(fn($i) => preg_match('~^https?://~', img_url($i)) ? img_url($i) : site_origin() . img_url($i), $imgs), 'description' => $p['short'] ?: mb_substr(strip_tags((string)$p['description']), 0, 300), 'category' => $p['cat_name'], 'brand' => ['@type' => 'Brand', 'name' => $p['brand'] ?: S('shop_name')], 'aggregateRating' => $rn ? ['@type' => 'AggregateRating', 'ratingValue' => $ravg, 'reviewCount' => $rn] : null, 'review' => $reviews ? array_map(fn($r) => ['@type' => 'Review', 'author' => ['@type' => 'Person', 'name' => $r['name']], 'reviewRating' => ['@type' => 'Rating', 'ratingValue' => (int)$r['rating'], 'bestRating' => 5], 'reviewBody' => $r['body']], array_slice($reviews, 0, 5)) : null, 'offers' => ['@type' => 'Offer', 'url' => abs_url('p/' . $p['slug']), 'priceCurrency' => 'BDT', 'price' => (int)$p['price'], 'itemCondition' => 'https://schema.org/NewCondition', 'availability' => $out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', 'seller' => ['@type' => 'Organization', 'name' => S('shop_name')]]]), ['@type' => 'BreadcrumbList', 'itemListElement' => [['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => abs_url()], ['@type' => 'ListItem', 'position' => 2, 'name' => $p['cat_name'], 'item' => abs_url('c/' . $p['cat_slug'])], ['@type' => 'ListItem', 'position' => 3, 'name' => $p['name']]]]]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
     <?php
     page_foot();
     break;
@@ -581,7 +606,7 @@ default:
 }
 
 function not_found(): void {
-    http_response_code(404);
+    http_response_code(404); $GLOBALS['ll_noindex'] = true;
     page_head('Page not found');
     echo '<div class="wrap page narrow"><div class="empty-box">' . icon('search', 40) . '<h1>Page not found</h1><p>The page you are looking for is not here.</p><a class="btn" href="' . url() . '">Go to home</a></div></div>';
     page_foot();

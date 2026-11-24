@@ -1,6 +1,5 @@
 <?php
-const SETTING_TABS_DEMO = ['store' => 1, 'delivery' => 1, 'payment' => 1, 'courier' => 1, 'sms' => 1, 'pixel' => 1, 'seo' => 1, 'security' => 1];
-// Builds the static GitHub Pages demo into docs/ (sample data, admin without password, nothing saves).
+// Builds the static GitHub Pages demo into docs/ (sample data; the shared admin runs in demo mode, saving only in the browser).
 // Usage: php tools/build-demo.php /Loom-Lustre/
 $root = dirname(__DIR__);
 $base = $argv[1] ?? '/';
@@ -29,7 +28,7 @@ $revs = [['Nusrat J.', 5, 'The colour is exactly like the photo and it stays on 
 foreach ($revs as $i => [$n, $r, $b]) $pdo->prepare('INSERT INTO reviews(product_id,name,phone,rating,body,approved,created) VALUES(?,?,?,?,?,?,?)')->execute([(int)$P[($i * 3) % 12]['id'], $n, '', $r, $b, $i < 9 ? 1 : 0, date('Y-m-d H:i:s', strtotime('-' . ($i + 1) * 5 . ' hour'))]);
 $now = date('Y-m-d H:i:s');
 foreach (['bkash_on' => '1', 'bkash_number' => '01XXXXXXXXX', 'nagad_on' => '1', 'nagad_number' => '01XXXXXXXXX'] as $k => $v) set_setting($k, $v);
-foreach ([['owner', 'Shop Owner', 'super', 0], ['manager', 'Store Manager', 'manager', 3], ['packing', 'Packing Staff', 'staff', 26]] as [$u, $n, $r, $h]) $pdo->prepare('INSERT INTO admins(username,name,pass,role,active,last_login,created) VALUES(?,?,?,?,1,?,?)')->execute([$u, $n, 'demo', $r, date('Y-m-d H:i:s', strtotime("-$h hour")), $now]);
+foreach ([['owner', 'Shop Owner', 'super', 0], ['manager', 'Store Manager', 'manager', 3], ['packing', 'Packing Staff', 'staff', 26]] as [$u, $n, $r, $h]) $pdo->prepare('INSERT INTO admins(username,name,pass,role,active,last_login,created) VALUES(?,?,?,?,1,?,?)')->execute([$u, $n, 'demo-no-login', $r, date('Y-m-d H:i:s', strtotime("-$h hour")), $now]);
 foreach ([['owner', 1, 0], ['manager', 1, 3], ['packing', 0, 26], ['packing', 1, 26]] as [$u, $ok, $h]) $pdo->prepare('INSERT INTO logins(username,ok,ip,t) VALUES(?,?,?,?)')->execute([$u, $ok, '103.120.0.' . (10 + $h), date('Y-m-d H:i:s', strtotime("-$h hour"))]);
 $paths = ['', 'shop', 'c/lips', 'c/skincare', 'sale', 'new', 'cart', 'checkout']; foreach ($P as $p) $paths[] = 'p/' . $p['slug'];
 $refs = ['', '', '', 'facebook.com', 'facebook.com', 'm.facebook.com', 'google.com', 'instagram.com', 'l.messenger.com'];
@@ -58,20 +57,18 @@ foreach ($pdo->query('SELECT slug FROM collections WHERE active=1') as $c) $rout
 foreach ($pdo->query('SELECT slug FROM products WHERE active=1') as $p) $routes[] = 'p/' . $p['slug'];
 foreach ($routes as $r) put($out . '/' . ($r === '' ? '' : $r . '/') . 'index.html', render('site', $r));
 put($out . '/404.html', render('site', 'missing-page'));
-// admin views: each one becomes its own .html file (aurl() makes the same names)
-$views = ['' => 'index.html'];
-foreach (['products', 'product', 'categories', 'collections', 'inventory', 'orders', 'courier', 'customers', 'reviews', 'banners', 'homepage', 'reports', 'admins', 'account'] as $v) $views["v=$v"] = "$v.html";
-foreach (array_keys(SETTING_TABS_DEMO) as $t) $views["v=settings&tab=$t"] = "settings-$t.html";
-foreach ($pdo->query('SELECT id FROM orders') as $o) { $views['v=order&id=' . $o['id']] = 'order-' . $o['id'] . '.html'; $views['v=invoice&id=' . $o['id']] = 'invoice-' . $o['id'] . '.html'; }
-foreach ($pdo->query('SELECT id FROM products') as $p) $views['v=product&id=' . $p['id']] = 'product-' . $p['id'] . '.html';
-foreach (['categories', 'collections', 'admins'] as $t) foreach ($pdo->query("SELECT id FROM $t") as $r) $views["v=$t&id=" . $r['id']] = "$t-" . $r['id'] . '.html';
-foreach ($views as $q => $f) put($out . '/admin/' . $f, render('admin', $q));
+// shared admin: static app + the shop data as JSON (no api.php on GitHub Pages, so it runs in demo mode)
+require $root . '/inc/admin_data.php';
+foreach (['products', 'categories', 'collections', 'reviews', 'banners', 'site', 'orders'] as $c) put($out . '/data/' . $c . '.json', json_encode(ll_get($c), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+foreach (['index.html', 'admin.css', 'admin.js', 'admin2.js', 'bn.js'] as $f) put($out . '/admin/' . $f, file_get_contents($root . '/admin/' . $f));
+put($out . '/robots.txt', render('site', 'robots.txt'));
+put($out . '/sitemap.xml', render('site', 'sitemap.xml'));
+$views = glob($out . '/admin/*') ?: [];
 // product data for bag / wishlist in the demo
 $rows = [];
 foreach ($pdo->query('SELECT * FROM products WHERE active=1') as $r) $rows[] = ['id' => (int)$r['id'], 'name' => $r['name'], 'url' => url('p/' . $r['slug']), 'img' => img_small(p_image($r)), 'price' => (int)$r['price'], 'old' => (int)$r['old_price'], 'size' => $r['size'], 'stock' => (int)$r['stock'], 'shades' => list_csv((string)$r['shades'])];
 put($out . '/api/products.json', json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 exec('cp -r ' . escapeshellarg($root . '/assets') . ' ' . escapeshellarg($out . '/assets'));
-@mkdir($out . '/admin'); copy($root . '/admin/admin.css', $out . '/admin/admin.css'); copy($root . '/admin/admin.js', $out . '/admin/admin.js');
 copy($root . '/favicon.ico', $out . '/favicon.ico');
 touch($out . '/.nojekyll');
 echo "Demo built in docs/ (" . count($routes) . " pages, " . count($views) . " admin pages)\n";

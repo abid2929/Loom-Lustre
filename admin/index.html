@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Loom &amp; Lustre Admin</title>
+<link rel="icon" href="../assets/img/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=2.2">
+</head>
+<body>
+<div class="demo" id="demoBar" hidden>DEMO ADMIN: opens without a password and uses sample orders. Changes are saved only in this browser. On your real site (cPanel) the admin needs a login.</div>
+
+<section id="login" class="login-wrap" hidden>
+ <form class="login" id="loginForm">
+  <img src="../assets/img/logo.webp" alt="Loom &amp; Lustre" style="width:150px">
+  <h2>Loom &amp; Lustre Admin</h2>
+  <p id="loginHint">Sign in to manage your shop</p>
+  <div id="setupName" hidden><input name="name" placeholder="Your name"></div>
+  <input name="user" placeholder="Username" autocomplete="username" required>
+  <input name="pass" type="password" placeholder="Password" autocomplete="current-password" required minlength="8">
+  <button class="btn" style="width:100%">Sign in</button>
+  <div class="err" id="loginErr"></div>
+ </form>
+</section>
+
+<div id="app" class="app" hidden>
+ <aside class="side" id="side">
+  <a class="brand" href="#dashboard"><img src="../assets/img/lady.png" alt="" style="object-fit:contain;padding:4px"><span><b class="notr">Loom <em>&amp;</em> Lustre</b><small>Beauty Shop Admin Panel</small></span></a>
+  <nav id="nav"></nav>
+  <div class="me"><div><b id="meName">Admin</b><small id="meRole">Super Admin</small></div><button class="ic" title="Log out" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></button></div>
+ </aside>
+ <div class="shade" onclick="document.body.classList.remove('nav-open')"></div>
+ <div class="main">
+  <header class="topbar">
+   <button class="ic menu" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+   <h1 id="pageTitle">Dashboard</h1>
+   <button class="lang-btn" id="langBtn" onclick="setLang(PV_LANG==='bn'?'en':'bn')" title="Language">EN</button>
+   <button class="ai-btn" onclick="askAI()"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18 9.5l-4.2 1.8L12 16l-1.8-4.7L6 9.5l4.2-1.8z"/></svg>Ask AI<i></i></button>
+   <div class="bell-wrap"><button class="ic bell" onclick="toggleBell()" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg><b id="bellN" hidden>0</b></button><div class="bell-pop" id="bellPop" hidden></div></div>
+  </header>
+  <main id="view" class="view"></main>
+  <footer class="foot">© <span id="yr"></span> <b>Loom &amp; Lustre Admin</b>. All rights reserved.<span>Developed by <b>Abid Islam</b> · Boostnix Media</span></footer>
+ </div>
+</div>
+
+<nav class="tabbar" id="tabbar">
+ <a href="#dashboard" data-r="dashboard"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><span>Home</span></a>
+ <a href="#orders" data-r="orders"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/></svg><span>Orders</span><b id="tbN" hidden></b></a>
+ <a href="#product/new" class="add" data-r="product"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></a>
+ <a href="#products" data-r="products"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg><span>Products</span></a>
+ <a href="#" onclick="document.body.classList.toggle('nav-open');return false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>More</span></a>
+</nav>
+<div class="modal" id="modal" hidden><div class="modal-bg" onclick="closeModal()"></div><div class="modal-box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+<script src="bn.js?v=2.2"></script>
+<script>document.getElementById("langBtn").textContent=PV_LANG==="bn"?"EN":"বাংলা"</script>
+<script src="admin.js?v=2.2"></script>
+<script src="admin2.js?v=2.2"></script>
+</body>
+</html>

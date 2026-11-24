@@ -180,10 +180,12 @@
       if (!ps.length) { el.innerHTML = '<div class="empty-box"><svg class="ic" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg><h2>No saved items yet</h2><p>Tap the heart on any product to save it here.</p><a class="btn" href="' + B + 'shop">Browse products</a></div>'; return; }
       el.innerHTML = '<div class="grid">' + ps.map(function (p) {
         var off = p.old > p.price ? Math.round(100 - p.price * 100 / p.old) : 0;
-        return '<article class="card"><a class="card-img" href="' + p.url + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" width="400" height="400">' + (off ? '<span class="badge off">' + off + '% OFF</span>' : '') + '</a>' +
-          '<button class="wish on" data-wish="' + p.id + '" aria-label="Remove from wishlist"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></button>' +
-          '<div class="card-b"><h3><a href="' + p.url + '">' + esc(p.name) + '</a></h3><p class="card-s">' + esc(p.size) + '</p><div class="price"><b>' + money(p.price) + '</b>' + (off ? '<s>' + money(p.old) + '</s>' : '') + '</div>' +
-          (p.stock < 1 ? '<button class="btn-add" disabled>Sold out</button>' : p.shades.length ? '<a class="btn-add" href="' + p.url + '">Choose shade</a>' : '<button class="btn-add" data-add="' + p.id + '">Add to bag</button>') + '</div></article>';
+        var bag = '<svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>';
+        return '<article class="card' + (p.stock < 1 ? ' sold' : '') + '"><div class="card-m"><a class="card-img" href="' + p.url + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" width="600" height="750"></a>' +
+          (off ? '<div class="badges"><span class="badge off">-' + off + '%</span></div>' : '') + (p.stock < 1 ? '<span class="soldout">Sold out</span>' : '') +
+          '<button class="wish on" data-wish="' + p.id + '" aria-label="Remove from wishlist"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></button>' +
+          (p.stock < 1 ? '' : p.shades.length ? '<a class="quick" href="' + p.url + '">' + bag + '<span>Choose shade</span></a>' : '<button class="quick" data-add="' + p.id + '">' + bag + '<span>Add to bag</span></button>') +
+          '</div><div class="card-b"><h3><a href="' + p.url + '">' + esc(p.name) + '</a></h3><p class="card-s">' + esc(p.size) + '</p><div class="price"><b>' + money(p.price) + '</b>' + (off ? '<s>' + money(p.old) + '</s>' : '') + '</div></div></article>';
       }).join('') + '</div>';
       counts();
     });

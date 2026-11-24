@@ -41,8 +41,13 @@ function page_head(string $title, string $desc = '', string $image = '', string 
     $full = $title === '' ? (S('meta_title') !== '' ? S('meta_title') : $name . ' | ' . S('shop_sub') . ' Shop in Bangladesh') : $title . ' | ' . $name;
     track_visit((string)($GLOBALS['route'] ?? ''));
     $desc = $desc !== '' ? $desc : S('meta_desc');
+    if (mb_strlen($desc) < 100) $desc = rtrim($desc, '. ') . ($desc !== '' ? '. ' : '') . 'Original products at ' . $name . ', cash on delivery all over Bangladesh.';
     $img = $image !== '' ? $image : url('assets/img/share.jpg');
-    if (!preg_match('~^https?://~', $img)) $img = (isset($_SERVER['HTTP_HOST']) ? ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] : '') . $img;
+    if (!preg_match('~^https?://~', $img)) $img = site_origin() . $img;
+    $route = (string)($GLOBALS['route'] ?? '');
+    $canon = abs_url($GLOBALS['ll_canon'] ?? $route);
+    $first = explode('/', $route)[0];
+    $noindex = !empty($GLOBALS['ll_noindex']) || in_array($first, ['cart', 'checkout', 'wishlist', 'track', 'order', 'search'], true);
     $GLOBALS['ll_active'] = $active;
     $cssv = @filemtime(LL_ROOT . '/assets/css/site.css') ?: 1;
     ?><!doctype html>
@@ -57,13 +62,29 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <meta property="og:title" content="<?= e($full) ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:image" content="<?= e($img) ?>">
-<meta property="og:type" content="website">
-<link rel="icon" href="<?= url('assets/img/favicon-32.png') ?>" sizes="32x32">
+<meta property="og:type" content="<?= $first === 'p' ? 'product' : 'website' ?>">
+<meta property="og:url" content="<?= e($canon) ?>">
+<meta property="og:site_name" content="<?= e($name) ?>">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?= e($full) ?>">
+<meta name="twitter:description" content="<?= e($desc) ?>">
+<meta name="twitter:image" content="<?= e($img) ?>">
+<?php if ($noindex): ?><meta name="robots" content="noindex, follow">
+<?php else: ?><link rel="canonical" href="<?= e($canon) ?>">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<?php endif; if (S('gsv') !== ''): ?><meta name="google-site-verification" content="<?= e(S('gsv')) ?>">
+<?php endif; if ($route === ''): ?><script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@graph' => [
+    ['@type' => 'Organization', '@id' => abs_url() . '#org', 'name' => $name, 'url' => abs_url(), 'logo' => site_origin() . url('assets/img/icon-192.png'), 'sameAs' => array_values(array_filter([S('facebook'), S('instagram')])), 'contactPoint' => array_filter(['@type' => 'ContactPoint', 'telephone' => S('phone'), 'contactType' => 'customer service', 'areaServed' => 'BD'])],
+    ['@type' => 'WebSite', '@id' => abs_url() . '#web', 'name' => $name, 'url' => abs_url(), 'publisher' => ['@id' => abs_url() . '#org'], 'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('search') . '?q={q}', 'query-input' => 'required name=q']],
+]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<?php endif; ?><link rel="icon" href="<?= url('assets/img/favicon-32.png') ?>" sizes="32x32">
 <link rel="icon" href="<?= url('assets/img/icon-192.png') ?>" sizes="192x192">
 <link rel="apple-touch-icon" href="<?= url('assets/img/apple-touch-icon.png') ?>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<?php if (!empty($GLOBALS['ll_preload'])): [$pa, $pb] = $GLOBALS['ll_preload']; ?><link rel="preload" as="image" href="<?= e($pa) ?>"<?php if ($pb !== $pa): ?> imagesrcset="<?= e($pa) ?> 900w, <?= e($pb) ?> 2000w" imagesizes="(max-width:860px) 75vw, 100vw"<?php endif; ?> fetchpriority="high">
+<?php endif; ?><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= url('assets/css/site.css') ?>?v=<?= $cssv ?>">
 <?php if (S('pixel_id') !== ''): ?>
 <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','<?= e(S('pixel_id')) ?>');fbq('track','PageView');</script>
@@ -84,7 +105,7 @@ function brand_mark(): string {
 function site_header(): void {
     $a = $GLOBALS['ll_active'] ?? '';
     $cats = categories();
-    $msgs = array_values(array_filter(array_map('trim', explode('•', S('announce')))));
+    $msgs = S('announce_bar') !== '' ? [S('announce_bar')] : array_values(array_filter(array_map('trim', explode('•', S('announce')))));
     ?>
 <a class="skip" href="#main">Skip to content</a>
 <div class="announce" data-msgs="<?= e(json_encode($msgs, JSON_UNESCAPED_UNICODE)) ?>"><span><?= e($msgs[0] ?? '') ?></span></div>
@@ -148,7 +169,7 @@ function page_foot(): void {
 <footer class="ftr">
   <div class="wrap ftr-in">
     <div class="ftr-brand">
-      <img src="<?= url('assets/img/logo.png') ?>" alt="<?= e(S('shop_name')) ?>" width="200" height="156" loading="lazy">
+      <img src="<?= url('assets/img/logo.webp') ?>" alt="<?= e(S('shop_name')) ?>" width="200" height="156" loading="lazy">
       <p><?= e(S('about')) ?></p>
       <?php if ($social): ?><div class="social"><?php foreach ($social as $k => $u): ?><a href="<?= e($u) ?>" target="_blank" rel="noopener" aria-label="<?= $k ?>"><?= icon($k, 20) ?></a><?php endforeach; ?></div><?php endif; ?>
     </div>
@@ -182,31 +203,44 @@ function page_foot(): void {
 <?php
 }
 
+/** <img> with a sharp large copy for big / high-density screens and a small copy for phones. */
+function img_tag(string $path, string $alt, string $sizes, bool $lazy = true, string $cls = ''): string {
+    $full = img_url($path); $small = img_small($path);
+    $set = $small !== $full ? ' srcset="' . e($small) . ' 600w, ' . e($full) . ' 1200w" sizes="' . $sizes . '"' : '';
+    return '<img' . ($cls ? ' class="' . $cls . '"' : '') . ' src="' . e($small) . '"' . $set . ' alt="' . e($alt) . '" width="600" height="750"' . ($lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"') . '>';
+}
+
 function product_card(array $p, bool $lazy = true): string {
-    $img = p_image($p);
+    $imgs = p_images($p);
     $off = discount_pct($p);
     $out = (int)$p['stock'] <= 0;
-    $h = '<article class="card' . ($out ? ' sold' : '') . '">';
-    $h .= '<a class="card-img" href="' . url('p/' . $p['slug']) . '">';
-    $h .= '<img src="' . e(img_small($img)) . '" alt="' . e($p['name']) . '" width="400" height="400"' . ($lazy ? ' loading="lazy"' : '') . '>';
-    if ($off > 0) $h .= '<span class="badge off">' . $off . '% OFF</span>';
-    elseif (!empty($p['bestseller'])) $h .= '<span class="badge best">Bestseller</span>';
-    elseif (!empty($p['is_new'])) $h .= '<span class="badge new">New</span>';
-    if ($out) $h .= '<span class="soldout">Sold out</span>';
+    $url = url('p/' . $p['slug']);
+    [$ravg, $rn] = review_stats()[(int)$p['id']] ?? [0, 0];
+    $h = '<article class="card' . ($out ? ' sold' : '') . '"><div class="card-m">';
+    $h .= '<a class="card-img" href="' . $url . '" aria-label="' . e($p['name']) . '">';
+    $h .= img_tag($imgs[0] ?? '', $p['name'], '(max-width:860px) 48vw, 300px', $lazy);
+    if (isset($imgs[1])) $h .= img_tag($imgs[1], '', '(max-width:860px) 48vw, 300px', true, 'alt-img');
     $h .= '</a>';
-    $h .= '<button class="wish" data-wish="' . (int)$p['id'] . '" aria-label="Add ' . e($p['name']) . ' to wishlist">' . icon('heart', 20) . '</button>';
-    $h .= '<div class="card-b">';
-    if (!empty($p['cat_name'])) $h .= '<small class="card-cat">' . e($p['cat_name']) . '</small>';
-    $h .= '<h3><a href="' . url('p/' . $p['slug']) . '">' . e($p['name']) . '</a></h3>';
-    $h .= '<p class="card-s">' . e($p['size'] ?: $p['short']) . '</p>';
-    $h .= '<div class="price"><b>' . money($p['price']) . '</b>';
-    if ($off > 0) $h .= '<s>' . money($p['old_price']) . '</s><em>' . $off . '% off</em>';
-    $h .= '</div>';
+    $tags = '';
+    if ($off > 0) $tags .= '<span class="badge off">-' . $off . '%</span>';
+    if (!empty($p['flash_sale'])) $tags .= '<span class="badge flash">Flash</span>';
+    elseif (!empty($p['bestseller'])) $tags .= '<span class="badge best">Bestseller</span>';
+    elseif (!empty($p['is_new'])) $tags .= '<span class="badge new">New</span>';
+    if ($tags) $h .= '<div class="badges">' . $tags . '</div>';
+    if ($out) $h .= '<span class="soldout">Sold out</span>';
+    $h .= '<button class="wish" data-wish="' . (int)$p['id'] . '" aria-label="Save ' . e($p['name']) . ' to wishlist">' . icon('heart', 19) . '</button>';
     $shades = list_csv((string)$p['shades']);
-    if ($out) $h .= '<button class="btn-add" disabled>Sold out</button>';
-    elseif ($shades) $h .= '<a class="btn-add" href="' . url('p/' . $p['slug']) . '">Choose shade</a>';
-    else $h .= '<button class="btn-add" data-add="' . (int)$p['id'] . '">' . icon('bag', 18) . 'Add to bag</button>';
-    $h .= '</div></article>';
+    if (!$out) $h .= $shades || list_csv((string)($p['sizes'] ?? ''))
+        ? '<a class="quick" href="' . $url . '" aria-label="Choose shade for ' . e($p['name']) . '">' . icon('bag', 18) . '<span>Choose shade</span></a>'
+        : '<button class="quick" data-add="' . (int)$p['id'] . '" aria-label="Add ' . e($p['name']) . ' to bag">' . icon('bag', 18) . '<span>Add to bag</span></button>';
+    $h .= '</div><div class="card-b">';
+    $h .= '<small class="card-cat">' . e($p['brand'] ?: ($p['cat_name'] ?? '')) . '</small>';
+    $h .= '<h3><a href="' . $url . '">' . e($p['name']) . '</a></h3>';
+    if ($rn) $h .= '<span class="card-r"><span class="stars">' . str_repeat('★', (int)round($ravg)) . '<i>' . str_repeat('★', 5 - (int)round($ravg)) . '</i></span>(' . $rn . ')</span>';
+    elseif ($p['size'] !== '') $h .= '<p class="card-s">' . e($p['size']) . ($shades ? ' · ' . count($shades) . ' shades' : '') . '</p>';
+    $h .= '<div class="price"><b>' . money($p['price']) . '</b>';
+    if ($off > 0) $h .= '<s>' . money($p['old_price']) . '</s>';
+    $h .= '</div></div></article>';
     return $h;
 }
 
