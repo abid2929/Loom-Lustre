@@ -54,7 +54,30 @@ function db(): PDO {
         seen INTEGER DEFAULT 0, ip TEXT, created TEXT, updated TEXT);
     CREATE INDEX IF NOT EXISTS ix_ord_status ON orders(status);
     CREATE TABLE IF NOT EXISTS hits (ip TEXT, kind TEXT, t INTEGER);
+    CREATE TABLE IF NOT EXISTS reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER, name TEXT, phone TEXT DEFAULT '', rating INTEGER DEFAULT 5,
+        body TEXT DEFAULT '', approved INTEGER DEFAULT 0, ip TEXT DEFAULT '', created TEXT);
+    CREATE INDEX IF NOT EXISTS ix_rev_prod ON reviews(product_id, approved);
+    CREATE TABLE IF NOT EXISTS admins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, name TEXT DEFAULT '', pass TEXT NOT NULL,
+        role TEXT DEFAULT 'staff', active INTEGER DEFAULT 1, last_login TEXT, created TEXT);
+    CREATE TABLE IF NOT EXISTS logins (username TEXT, ok INTEGER, ip TEXT, t TEXT);
+    CREATE TABLE IF NOT EXISTS collections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, tagline TEXT DEFAULT '',
+        image TEXT DEFAULT '', sort INTEGER DEFAULT 0, active INTEGER DEFAULT 1);
+    CREATE TABLE IF NOT EXISTS visits (vid TEXT, ip TEXT, path TEXT, kind TEXT DEFAULT 'view', ref TEXT DEFAULT '', day TEXT, t INTEGER);
+    CREATE INDEX IF NOT EXISTS ix_vis_day ON visits(day);
+    CREATE INDEX IF NOT EXISTS ix_vis_t ON visits(t);
     ");
+    $pc0 = array_column($pdo->query('PRAGMA table_info(products)')->fetchAll(), 'name');
+    foreach (['collection_id' => 'INTEGER DEFAULT 0', 'sizes' => "TEXT DEFAULT ''", 'image_tags' => "TEXT DEFAULT '{}'"] as $c => $t)
+        if (!in_array($c, $pc0, true)) $pdo->exec("ALTER TABLE products ADD COLUMN $c $t");
+    // v1.1: flash sale flag, payment method + courier fields on orders
+    $pc = array_column($pdo->query('PRAGMA table_info(products)')->fetchAll(), 'name');
+    if (!in_array('flash_sale', $pc, true)) $pdo->exec('ALTER TABLE products ADD COLUMN flash_sale INTEGER DEFAULT 0');
+    $oc = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(), 'name');
+    foreach (['payment' => "TEXT DEFAULT 'cod'", 'trx_id' => "TEXT DEFAULT ''", 'courier' => "TEXT DEFAULT ''", 'tracking' => "TEXT DEFAULT ''"] as $c => $t)
+        if (!in_array($c, $oc, true)) $pdo->exec("ALTER TABLE orders ADD COLUMN $c $t");
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); }
     return $pdo;
 }
@@ -90,6 +113,34 @@ function defaults(): array {
         's2_on' => '1', 's2_img' => 'assets/img/b/moist-cream.webp', 's2_kicker' => 'SKINCARE EDIT', 's2_title' => 'Glow starts with care', 's2_text' => 'Serums, creams and oils for fresh, healthy looking skin.', 's2_btn' => 'Shop skincare', 's2_link' => 'c/skincare', 's2_dark' => '0',
         's3_on' => '1', 's3_img' => 'assets/img/b/golden-amber.webp', 's3_kicker' => 'FRAGRANCE', 's3_title' => 'Wear your signature', 's3_text' => 'Long lasting perfumes for every mood. Up to 20% off this week.', 's3_btn' => 'Find your scent', 's3_link' => 'c/fragrance', 's3_dark' => '1',
         's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'BEAUTY SALE', 's4_title' => 'Up to 30% off', 's4_text' => 'Lipsticks, nail colours and makeup kits at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
+        // delivery
+        'delivery_time_in' => '1 to 2 days', 'delivery_time_out' => '2 to 4 days',
+        // payment
+        'cod_on' => '1', 'bkash_on' => '0', 'bkash_number' => '', 'bkash_type' => 'Personal', 'nagad_on' => '0', 'nagad_number' => '', 'nagad_type' => 'Personal',
+        'pay_note' => 'Send the total amount, then write your Transaction ID below.',
+        // courier
+        'courier' => 'none', 'steadfast_key' => '', 'steadfast_secret' => '',
+        // SMS (bulksmsbd.net style API)
+        'sms_on' => '0', 'sms_url' => 'http://bulksmsbd.net/api/smsapi', 'sms_api_key' => '', 'sms_sender' => '',
+        'sms_order' => 'Dear {name}, your order {code} of Tk {total} is received. We will call you soon. - Loom & Lustre',
+        'sms_shipped' => 'Dear {name}, your order {code} is on the way. - Loom & Lustre',
+        // Meta pixel + Conversions API
+        'capi_token' => '', 'capi_test' => '',
+        // SEO
+        'meta_title' => 'Loom & Lustre | Lipstick, Skincare & Beauty Shop in Bangladesh',
+        'meta_keywords' => 'lipstick bangladesh, skincare, makeup, perfume, nail polish, cosmetics shop, loom and lustre',
+        // homepage sections (Homepage CMS)
+        'h_cats_on' => '1', 'h_cats_t' => 'Shop by category', 'h_cats_s' => 'Find exactly what your beauty routine needs',
+        'h_flash_on' => '1', 'h_flash_t' => 'Flash sale', 'h_flash_s' => 'Hurry, these prices end tonight',
+        'h_deals_on' => '1', 'h_deals_t' => 'Deals of the week', 'h_deals_s' => 'Special prices for a short time',
+        'h_promo_on' => '1',
+        'h_best_on' => '1', 'h_best_t' => 'Bestsellers', 'h_best_s' => 'What our customers love most',
+        'h_band_on' => '1', 'h_band_t' => 'Beauty you can trust',
+        'h_makeup_on' => '1', 'h_makeup_t' => 'Makeup must-haves', 'h_makeup_s' => 'Palettes, blush, mascara and more',
+        'h_skin_on' => '1', 'h_skin_t' => 'Skincare favourites', 'h_skin_s' => 'Serums and creams for a healthy glow',
+        'h_new_on' => '1', 'h_new_t' => 'New in', 'h_new_s' => 'Fresh arrivals this week',
+        'h_reviews_on' => '1', 'h_reviews_t' => 'Loved by our customers',
+        'h_help_on' => '1', 'h_help_t' => 'Not sure which shade?', 'h_help_s' => 'Send us a selfie or tell us your skin tone. We will suggest the right lipstick or foundation shade, free.',
     ];
 }
 function settings(): array {
@@ -187,3 +238,73 @@ const ORDER_STATUS_EN = [
     'new' => 'Received', 'confirmed' => 'Confirmed', 'shipped' => 'On the way',
     'delivered' => 'Delivered', 'cancelled' => 'Cancelled', 'returned' => 'Returned',
 ];
+const PAYMENTS = ['cod' => 'Cash on delivery', 'bkash' => 'bKash', 'nagad' => 'Nagad'];
+
+/* ---------- outside services (all optional, switched on from Admin > Site settings) ---------- */
+function http_call(string $method, string $url, array $headers = [], ?string $body = null, int $timeout = 12): array {
+    if (!function_exists('curl_init')) return [0, ''];
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 6, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers]);
+    if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    $res = (string)curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+    return [$code, $res];
+}
+function fill_tpl(string $t, array $o): string {
+    return strtr($t, ['{name}' => $o['name'] ?? '', '{code}' => $o['code'] ?? '', '{total}' => (string)($o['total'] ?? ''), '{tracking}' => $o['tracking'] ?? '']);
+}
+/** SMS through a bulksmsbd.net style GET API. Returns true when the gateway answered OK. */
+function send_sms(string $phone, string $text): bool {
+    if (S('sms_on') !== '1' || S('sms_api_key') === '' || defined('LL_DEMO')) return false;
+    $q = http_build_query(['api_key' => S('sms_api_key'), 'type' => 'text', 'number' => '88' . norm_phone($phone), 'senderid' => S('sms_sender'), 'message' => $text]);
+    [$code, $res] = http_call('GET', S('sms_url') . '?' . $q);
+    return $code >= 200 && $code < 300;
+}
+/** Meta Conversions API: server copy of a browser event (same event_id, so Meta counts it once). */
+function capi_event(string $name, string $eventId, array $custom = [], array $user = []): void {
+    if (S('pixel_id') === '' || S('capi_token') === '' || defined('LL_DEMO')) return;
+    $ud = ['client_ip_address' => client_ip(), 'client_user_agent' => substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 300)];
+    if (!empty($user['phone'])) $ud['ph'] = [hash('sha256', '880' . substr(norm_phone($user['phone']), 1))];
+    if (!empty($user['name'])) $ud['fn'] = [hash('sha256', mb_strtolower(trim(explode(' ', $user['name'])[0])))];
+    foreach (['fbp' => '_fbp', 'fbc' => '_fbc'] as $k => $c) if (!empty($_COOKIE[$c])) $ud[$k] = $_COOKIE[$c];
+    $ev = ['event_name' => $name, 'event_time' => time(), 'event_id' => $eventId, 'action_source' => 'website', 'event_source_url' => (string)($_SERVER['HTTP_REFERER'] ?? ''), 'user_data' => $ud, 'custom_data' => $custom];
+    $body = ['data' => [$ev]];
+    if (S('capi_test') !== '') $body['test_event_code'] = S('capi_test');
+    http_call('POST', 'https://graph.facebook.com/v19.0/' . rawurlencode(S('pixel_id')) . '/events?access_token=' . rawurlencode(S('capi_token')), ['Content-Type: application/json'], json_encode($body), 6);
+    $n = (int)S('capi_count'); set_setting('capi_count', (string)($n + 1));
+}
+/** Steadfast courier: create a parcel for an order. Returns [ok, message, tracking]. */
+function steadfast_create(array $o): array {
+    if (S('steadfast_key') === '' || S('steadfast_secret') === '') return [false, 'Steadfast API keys are missing (Settings > Courier Automation).', ''];
+    $cod = ($o['payment'] ?? 'cod') === 'cod' ? (int)$o['total'] : 0;
+    $body = json_encode(['invoice' => $o['code'], 'recipient_name' => $o['name'], 'recipient_phone' => norm_phone($o['phone']), 'recipient_address' => mb_substr($o['address'], 0, 250), 'cod_amount' => $cod, 'note' => $o['note'] ?? '']);
+    [$code, $res] = http_call('POST', 'https://portal.packzy.com/api/v1/create_order', ['Api-Key: ' . S('steadfast_key'), 'Secret-Key: ' . S('steadfast_secret'), 'Content-Type: application/json'], $body);
+    $j = json_decode($res, true) ?: [];
+    if ($code === 200 && !empty($j['consignment']['tracking_code'])) return [true, 'Sent to Steadfast.', (string)$j['consignment']['tracking_code']];
+    return [false, 'Steadfast error: ' . mb_substr((string)($j['message'] ?? $res ?: 'no answer'), 0, 160), ''];
+}
+/** Average rating and count of approved reviews for each product id. */
+function review_stats(): array {
+    static $r = null;
+    if ($r !== null) return $r;
+    $r = [];
+    foreach (db()->query('SELECT product_id, AVG(rating) a, COUNT(*) n FROM reviews WHERE approved=1 GROUP BY product_id') as $x) $r[(int)$x['product_id']] = [round((float)$x['a'], 1), (int)$x['n']];
+    return $r;
+}
+function collections(bool $activeOnly = true): array {
+    return db()->query('SELECT * FROM collections' . ($activeOnly ? ' WHERE active=1' : '') . ' ORDER BY sort, id')->fetchAll();
+}
+/** Count a storefront page view (bots skipped). Kept 90 days. */
+function track_visit(string $path, string $kind = 'view'): void {
+    if (defined('LL_DEMO') || PHP_SAPI === 'cli') return;
+    $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+    if ($ua === '' || preg_match('~bot|crawl|spider|slurp|facebookexternalhit|preview|monitor|curl|wget|python|headless~i', $ua)) return;
+    $vid = (string)($_COOKIE['llv'] ?? '');
+    if (!preg_match('/^[a-f0-9]{16}$/', $vid)) { $vid = bin2hex(random_bytes(8)); if (!headers_sent()) setcookie('llv', $vid, ['expires' => time() + 86400 * 365, 'path' => '/', 'samesite' => 'Lax']); }
+    $ref = (string)($_SERVER['HTTP_REFERER'] ?? '');
+    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+    $ref = ($ref !== '' && $host !== '' && stripos($ref, $host) === false) ? mb_substr((string)parse_url($ref, PHP_URL_HOST), 0, 80) : '';
+    try {
+        db()->prepare('INSERT INTO visits(vid,ip,path,kind,ref,day,t) VALUES(?,?,?,?,?,?,?)')->execute([$vid, client_ip(), mb_substr($path, 0, 160), $kind, $ref, date('Y-m-d'), time()]);
+        if (random_int(1, 200) === 1) db()->prepare('DELETE FROM visits WHERE t<?')->execute([time() - 86400 * 90]);
+    } catch (Throwable $e) {}
+}

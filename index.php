@@ -36,6 +36,9 @@ if ($page === 'api') {
         $addr = trim(mb_substr((string)($in['address'] ?? ''), 0, 400));
         $area = ($in['area'] ?? '') === 'out' ? 'out' : 'in';
         $note = trim(mb_substr((string)($in['note'] ?? ''), 0, 400));
+        $pay = (string)($in['payment'] ?? 'cod'); if (!isset(PAYMENTS[$pay]) || S($pay . '_on') !== '1') $pay = S('cod_on') === '1' ? 'cod' : $pay;
+        $trx = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', mb_substr((string)($in['trx'] ?? ''), 0, 30)));
+        if ($pay !== 'cod' && strlen($trx) < 6) json_out(['ok' => false, 'error' => 'Please write the Transaction ID from your ' . PAYMENTS[$pay] . ' message.'], 422);
         if ($name === '' || $addr === '') json_out(['ok' => false, 'error' => 'Please write your name and full address.'], 422);
         if (!preg_match('/^01[3-9]\d{8}$/', $phone)) json_out(['ok' => false, 'error' => 'Please give a valid 11 digit mobile number (01XXXXXXXXX).'], 422);
         $items = []; $sub = 0;
@@ -46,7 +49,8 @@ if ($page === 'api') {
             if (!$p || (int)$p['stock'] <= 0) continue;
             $qty = min($qty, (int)$p['stock']);
             $shade = trim(mb_substr((string)($it['shade'] ?? ''), 0, 40));
-            if ($shade !== '' && !in_array($shade, list_csv((string)$p['shades']), true)) $shade = '';
+            $okv = array_merge(list_csv((string)$p['shades']), list_csv((string)($p['sizes'] ?? '')));
+            if ($shade !== '' && array_diff(explode(' · ', $shade), $okv)) $shade = '';
             $items[] = ['id' => (int)$p['id'], 'name' => $p['name'], 'shade' => $shade, 'qty' => $qty, 'price' => (int)$p['price'], 'img' => p_image($p)];
             $sub += $qty * (int)$p['price'];
         }
@@ -57,8 +61,8 @@ if ($page === 'api') {
         $now = date('Y-m-d H:i:s');
         $pdo = db();
         $pdo->beginTransaction();
-        $pdo->prepare('INSERT INTO orders(code,name,phone,address,area,note,items,subtotal,delivery,total,ip,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
-            ->execute([$code, $name, $phone, $addr, $area, $note, json_encode($items, JSON_UNESCAPED_UNICODE), $sub, $del, $sub + $del, client_ip(), $now, $now]);
+        $pdo->prepare('INSERT INTO orders(code,name,phone,address,area,note,items,subtotal,delivery,total,ip,created,updated,payment,trx_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+            ->execute([$code, $name, $phone, $addr, $area, $note, json_encode($items, JSON_UNESCAPED_UNICODE), $sub, $del, $sub + $del, client_ip(), $now, $now, $pay, $pay === 'cod' ? '' : $trx]);
         $dec = $pdo->prepare('UPDATE products SET stock=MAX(0,stock-?), sold=sold+? WHERE id=?');
         foreach ($items as $it) $dec->execute([$it['qty'], $it['qty'], $it['id']]);
         $pdo->commit();
@@ -66,7 +70,22 @@ if ($page === 'api') {
             $lines = array_map(fn($i) => "- {$i['name']}" . ($i['shade'] ? " ({$i['shade']})" : '') . " x{$i['qty']} = " . $i['qty'] * $i['price'], $items);
             @mail(S('notify_email'), "New order $code - " . S('shop_name'), "Name: $name\nPhone: $phone\nAddress: $addr\n\n" . implode("\n", $lines) . "\n\nTotal: " . ($sub + $del), 'Content-Type: text/plain; charset=UTF-8');
         }
-        json_out(['ok' => true, 'code' => $code, 'url' => url('order/' . $code . '?ph=' . substr($phone, -4))]);
+        $o = ['name' => $name, 'code' => $code, 'total' => $sub + $del];
+        send_sms($phone, fill_tpl(S('sms_order'), $o));
+        $eid = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($in['event_id'] ?? '')) ?: 'order-' . $code;
+        capi_event('Purchase', $eid, ['currency' => 'BDT', 'value' => $sub + $del, 'content_ids' => array_map(fn($i) => (string)$i['id'], $items), 'content_type' => 'product', 'num_items' => array_sum(array_column($items, 'qty'))], ['phone' => $phone, 'name' => $name]);
+        json_out(['ok' => true, 'value' => $sub + $del, 'code' => $code, 'url' => url('order/' . $code . '?ph=' . substr($phone, -4))]);
+    }
+    if ($a === 'review' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $in = json_decode((string)file_get_contents('php://input'), true) ?: [];
+        if (!empty($in['website'])) json_out(['ok' => false, 'error' => 'Spam'], 400);
+        if (!rate_ok('review', 4, 3600)) json_out(['ok' => false, 'error' => 'Too many reviews from this connection. Please try later.'], 429);
+        $pid = (int)($in['product'] ?? 0); $name = trim(mb_substr((string)($in['name'] ?? ''), 0, 60)); $body = trim(mb_substr((string)($in['body'] ?? ''), 0, 1000));
+        $rating = max(1, min(5, (int)($in['rating'] ?? 5))); $phone = norm_phone((string)($in['phone'] ?? ''));
+        $ok = db()->prepare('SELECT id FROM products WHERE id=? AND active=1'); $ok->execute([$pid]);
+        if (!$ok->fetch() || $name === '' || mb_strlen($body) < 5) json_out(['ok' => false, 'error' => 'Please write your name and a few words.'], 422);
+        db()->prepare('INSERT INTO reviews(product_id,name,phone,rating,body,approved,ip,created) VALUES(?,?,?,?,?,0,?,?)')->execute([$pid, $name, $phone, $rating, $body, client_ip(), date('Y-m-d H:i:s')]);
+        json_out(['ok' => true]);
     }
     json_out(['error' => 'Not found'], 404);
 }
@@ -100,20 +119,45 @@ case '':
   <?php endif; ?>
 </section>
 
+<?php $on = fn(string $k) => S("h_{$k}_on") === '1'; $T = fn(string $k) => S("h_{$k}_t"); $Sb = fn(string $k) => S("h_{$k}_s"); ?>
+<?php if ($on('cats')): ?>
 <section class="wrap sec">
-  <?= section_head('Shop by category', 'Find exactly what your beauty routine needs') ?>
+  <?= section_head($T('cats'), $Sb('cats')) ?>
   <div class="cats">
     <?php foreach ($cats as $c): ?>
     <a class="cat" href="<?= url('c/' . $c['slug']) ?>"><span class="cat-img"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="200" height="200" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
     <?php endforeach; ?>
   </div>
 </section>
+<?php endif; ?>
 
-<section class="wrap sec">
-  <?= section_head('Deals of the week', 'Special prices for a short time', 'sale') ?>
-  <?= product_grid(q('p.old_price > p.price', [], '(p.old_price - p.price) * 1.0 / p.old_price DESC', 8), 'grid rail') ?>
+<?php $flash = $on('flash') ? q('p.flash_sale=1', [], 'p.sort, p.id DESC', 10) : []; if ($flash): ?>
+<section class="wrap sec flash-s">
+  <div class="sec-h flash-h"><div><h2><?= icon('bolt', 22) ?><?= e($T('flash')) ?></h2><p><?= e($Sb('flash')) ?></p></div>
+    <div class="cd" data-countdown aria-label="Time left"><span><b data-h>00</b><small>hours</small></span><i>:</i><span><b data-m>00</b><small>min</small></span><i>:</i><span><b data-s>00</b><small>sec</small></span></div></div>
+  <?= product_grid($flash, 'grid rail') ?>
 </section>
+<?php endif; ?>
 
+<?php if ($on('deals')): ?>
+<section class="wrap sec">
+  <?= section_head($T('deals'), $Sb('deals'), 'sale') ?>
+  <?= product_grid(q('p.featured=1 OR p.old_price > p.price', [], 'p.featured DESC, (p.old_price - p.price) * 1.0 / MAX(p.old_price,1) DESC', 8), 'grid rail') ?>
+</section>
+<?php endif; ?>
+
+<?php $colls = collections(); if ($colls): ?>
+<section class="wrap sec">
+  <?= section_head('Shop the collections', 'Hand-picked sets for every moment') ?>
+  <div class="colls">
+    <?php foreach ($colls as $c): ?>
+    <a class="coll" href="<?= url('collection/' . $c['slug']) ?>"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" loading="lazy"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small></span></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($on('promo')): ?>
 <section class="wrap duo">
   <a class="promo pink" href="<?= url('c/lips') ?>">
     <img src="<?= url('assets/img/b/rose-trio.webp') ?>" alt="" loading="lazy">
@@ -124,17 +168,21 @@ case '':
     <span><small>NAIL STUDIO</small><b>Colours that pop</b><i class="btn">Shop nails</i></span>
   </a>
 </section>
+<?php endif; ?>
 
+<?php if ($on('best')): ?>
 <section class="wrap sec">
-  <?= section_head('Bestsellers', 'What our customers love most', 'shop?sort=popular') ?>
+  <?= section_head($T('best'), $Sb('best'), 'shop?sort=popular') ?>
   <?= product_grid(q('p.bestseller=1', [], 'p.sold DESC', 8)) ?>
 </section>
+<?php endif; ?>
 
+<?php if ($on('band')): ?>
 <section class="band">
   <div class="wrap band-in">
     <div class="band-txt">
-      <small>WHY LOOM &amp; LUSTRE</small>
-      <h2>Beauty you can trust</h2>
+      <small>WHY <?= e(mb_strtoupper(S('shop_name'))) ?></small>
+      <h2><?= e($T('band')) ?></h2>
       <p><?= e(S('about')) ?></p>
       <ul>
         <li><?= icon('check', 18) ?>Only original, sealed products</li>
@@ -146,39 +194,63 @@ case '':
     <img src="<?= url('assets/img/b/pink-flat.webp') ?>" alt="Pink skincare and makeup set" loading="lazy">
   </div>
 </section>
+<?php endif; ?>
 
+<?php if ($on('makeup')): ?>
 <section class="wrap sec">
-  <?= section_head('Makeup must-haves', 'Palettes, blush, mascara and more', 'c/makeup') ?>
+  <?= section_head($T('makeup'), $Sb('makeup'), 'c/makeup') ?>
   <?= product_grid(q("c.slug='makeup'", [], 'p.featured DESC, p.sold DESC', 8), 'grid rail') ?>
 </section>
+<?php endif; ?>
 
+<?php if ($on('skin')): ?>
 <section class="wrap sec">
-  <?= section_head('Skincare favourites', 'Serums and creams for a healthy glow', 'c/skincare') ?>
+  <?= section_head($T('skin'), $Sb('skin'), 'c/skincare') ?>
   <?= product_grid(q("c.slug='skincare'", [], 'p.featured DESC, p.sort', 4)) ?>
 </section>
+<?php endif; ?>
 
+<?php if ($on('new')): ?>
 <section class="wrap sec">
-  <?= section_head('New in', 'Fresh arrivals this week', 'new') ?>
+  <?= section_head($T('new'), $Sb('new'), 'new') ?>
   <?= product_grid(q('', [], 'p.is_new DESC, p.id DESC', 8), 'grid rail') ?>
 </section>
+<?php endif; ?>
 
+<?php $revs = $on('reviews') ? db()->query('SELECT r.*, p.name pn, p.slug FROM reviews r JOIN products p ON p.id=r.product_id WHERE r.approved=1 AND r.rating>=4 ORDER BY r.id DESC LIMIT 8')->fetchAll() : []; if ($revs): ?>
+<section class="wrap sec">
+  <?= section_head($T('reviews'), 'Real words from real customers') ?>
+  <div class="revs-h">
+    <?php foreach ($revs as $r): ?>
+    <figure class="rcard"><span class="stars" aria-label="<?= (int)$r['rating'] ?> out of 5"><?= str_repeat('★', (int)$r['rating']) ?><i><?= str_repeat('★', 5 - (int)$r['rating']) ?></i></span><blockquote><?= e($r['body']) ?></blockquote><figcaption><b><?= e($r['name']) ?></b><a href="<?= url('p/' . $r['slug']) ?>"><?= e($r['pn']) ?></a></figcaption></figure>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($on('help')): ?>
 <section class="wrap help-w"><div class="help">
   <div>
-    <h2>Not sure which shade?</h2>
-    <p>Send us a selfie or tell us your skin tone. We will suggest the right lipstick or foundation shade, free.</p>
+    <h2><?= e($T('help')) ?></h2>
+    <p><?= e($Sb('help')) ?></p>
   </div>
   <a class="btn wa-btn" href="<?= e(wa_link('Hi, can you help me choose a shade?')) ?>" target="_blank" rel="noopener"><?= icon('wa', 20) ?>Ask on WhatsApp</a>
 </div></section>
+<?php endif; ?>
     <?php
     page_foot();
     break;
 
-case 'shop': case 'c': case 'new': case 'sale': case 'search':
+case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection':
     $where = ''; $args = []; $title = 'All Products'; $sub = 'Every product in our shop'; $active = 'shop'; $banner = '';
     if ($page === 'c') {
         $st = db()->prepare('SELECT * FROM categories WHERE slug=? AND active=1'); $st->execute([$parts[1] ?? '']); $cat = $st->fetch();
         if (!$cat) { not_found(); break; }
         $where = 'p.category_id=?'; $args = [$cat['id']]; $title = $cat['name']; $sub = $cat['tagline']; $active = 'c/' . $cat['slug']; $banner = $cat['image'];
+    } elseif ($page === 'collection') {
+        $st = db()->prepare('SELECT * FROM collections WHERE slug=? AND active=1'); $st->execute([$parts[1] ?? '']); $col = $st->fetch();
+        if (!$col) { not_found(); break; }
+        $where = 'p.collection_id=?'; $args = [$col['id']]; $title = $col['name']; $sub = $col['tagline']; $active = ''; $banner = $col['image'];
     } elseif ($page === 'new') { $where = 'p.is_new=1'; $title = 'New In'; $sub = 'Fresh arrivals'; $active = 'new'; }
     elseif ($page === 'sale') { $where = 'p.old_price > p.price'; $title = 'Sale'; $sub = 'Beauty at special prices'; $active = 'sale'; }
     elseif ($page === 'search') {
@@ -241,6 +313,11 @@ case 'p':
     $imgs = p_images($p) ?: [''];
     $off = discount_pct($p);
     $shades = list_csv((string)$p['shades']);
+    $sizes = list_csv((string)($p['sizes'] ?? ''));
+    $itags = json_decode((string)($p['image_tags'] ?? '{}'), true) ?: [];
+    $shadeImg = []; foreach ($itags as $im => $t) $shadeImg[$t] ??= img_url($im);
+    $rs = db()->prepare('SELECT * FROM reviews WHERE product_id=? AND approved=1 ORDER BY id DESC LIMIT 30'); $rs->execute([$p['id']]); $reviews = $rs->fetchAll();
+    [$ravg, $rn] = review_stats()[(int)$p['id']] ?? [0, 0];
     $out = (int)$p['stock'] <= 0;
     page_head($p['name'], $p['short'] ?: mb_substr($p['description'], 0, 150), img_url($imgs[0]), 'c/' . $p['cat_slug']);
     $wa = wa_link("Hi, I want to order:\n" . $p['name'] . "\nPrice: " . money($p['price']) . "\n" . (isset($_SERVER['HTTP_HOST']) ? 'https://' . $_SERVER['HTTP_HOST'] . url('p/' . $p['slug']) : ''));
@@ -255,12 +332,18 @@ case 'p':
     <div class="info" data-product="<?= (int)$p['id'] ?>">
       <small class="info-brand"><?= e($p['brand'] ?: S('shop_name')) ?></small>
       <h1><?= e($p['name']) ?></h1>
+      <?php if ($rn): ?><a class="rate-l" href="#reviews"><span class="stars"><?= str_repeat('★', (int)round($ravg)) ?><i><?= str_repeat('★', 5 - (int)round($ravg)) ?></i></span><b><?= $ravg ?></b><span>(<?= $rn ?> review<?= $rn > 1 ? 's' : '' ?>)</span></a><?php endif; ?>
       <?php if ($p['short'] !== ''): ?><p class="info-short"><?= e($p['short']) ?></p><?php endif; ?>
       <div class="price big"><b><?= money($p['price']) ?></b><?php if ($off): ?><s><?= money($p['old_price']) ?></s><em><?= $off ?>% off</em><?php endif; ?></div>
       <p class="tax">Price includes VAT. <?= $p['size'] !== '' ? 'Size: ' . e($p['size']) . '.' : '' ?></p>
       <?php if ($shades): ?>
       <div class="opt"><span>Shade: <b id="shadeName"><?= e($shades[0]) ?></b></span>
-        <div class="shades"><?php foreach ($shades as $i => $s): ?><button type="button" class="<?= $i === 0 ? 'on' : '' ?>" data-shade="<?= e($s) ?>"><?= e($s) ?></button><?php endforeach; ?></div>
+        <div class="shades"><?php foreach ($shades as $i => $s): ?><button type="button" class="<?= $i === 0 ? 'on' : '' ?>" data-shade="<?= e($s) ?>"<?= isset($shadeImg[$s]) ? ' data-img="' . e($shadeImg[$s]) . '"' : '' ?>><?= e($s) ?></button><?php endforeach; ?></div>
+      </div>
+      <?php endif; ?>
+      <?php if ($sizes): ?>
+      <div class="opt"><span>Size: <b id="sizeName"><?= e($sizes[0]) ?></b></span>
+        <div class="shades sizes"><?php foreach ($sizes as $i => $s): ?><button type="button" class="<?= $i === 0 ? 'on' : '' ?>" data-size="<?= e($s) ?>"><?= e($s) ?></button><?php endforeach; ?></div>
       </div>
       <?php endif; ?>
       <div class="opt"><span>Quantity</span>
@@ -290,12 +373,34 @@ case 'p':
       </div>
     </div>
   </div>
+  <section class="sec reviews" id="reviews">
+    <div class="sec-h"><div><h2>Customer reviews</h2><p><?= $rn ? $ravg . ' out of 5 from ' . $rn . ' review' . ($rn > 1 ? 's' : '') : 'Be the first to review this product' ?></p></div></div>
+    <div class="rv-in">
+      <div class="rv-list">
+        <?php foreach ($reviews as $r): ?>
+        <article class="rv"><div class="rv-t"><span class="av"><?= e(mb_strtoupper(mb_substr($r['name'], 0, 1))) ?></span><div><b><?= e($r['name']) ?></b><span class="stars"><?= str_repeat('★', (int)$r['rating']) ?><i><?= str_repeat('★', 5 - (int)$r['rating']) ?></i></span></div><time><?= date('d M Y', strtotime($r['created'])) ?></time></div><p><?= nl2br(e($r['body'])) ?></p></article>
+        <?php endforeach; if (!$reviews): ?><p class="muted">No reviews yet. Bought this? Tell others what you think.</p><?php endif; ?>
+      </div>
+      <form class="rv-form" id="rvForm" data-pid="<?= (int)$p['id'] ?>">
+        <h3>Write a review</h3>
+        <div class="rate-pick" role="radiogroup" aria-label="Your rating"><?php for ($i = 5; $i >= 1; $i--): ?><input type="radio" name="rating" value="<?= $i ?>" id="r<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>><label for="r<?= $i ?>" title="<?= $i ?> stars">★</label><?php endfor; ?></div>
+        <label>Your name<input name="name" required maxlength="60"></label>
+        <label>Mobile (not shown)<input name="phone" inputmode="tel" placeholder="01XXXXXXXXX"></label>
+        <label>Your review<textarea name="body" required rows="3" maxlength="1000" placeholder="How was the colour, smell or feel?"></textarea></label>
+        <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="err" role="alert" hidden></p>
+        <button class="btn block">Send review</button>
+        <small class="muted">Reviews show after the shop checks them.</small>
+      </form>
+    </div>
+  </section>
   <?php $rel = q('p.category_id=? AND p.id<>?', [$p['category_id'], $p['id']], 'p.sold DESC', 8); if ($rel): ?>
   <section class="sec"><?= section_head('You may also like', '', 'c/' . $p['cat_slug']) ?><?= product_grid($rel, 'grid rail') ?></section>
   <?php endif; ?>
 </div>
 <div class="sticky-buy only-m"><div><b><?= money($p['price']) ?></b><?php if ($off): ?><s><?= money($p['old_price']) ?></s><?php endif; ?></div><?php if (!$out): ?><button class="btn ghost" data-add-pdp>Add to bag</button><button class="btn" data-buy-now>Buy now</button><?php else: ?><button class="btn" disabled>Sold out</button><?php endif; ?></div>
-<script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@type' => 'Product', 'name' => $p['name'], 'image' => img_url($imgs[0]), 'description' => $p['short'], 'brand' => ['@type' => 'Brand', 'name' => $p['brand'] ?: S('shop_name')], 'offers' => ['@type' => 'Offer', 'priceCurrency' => 'BDT', 'price' => (int)$p['price'], 'availability' => $out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<script>window.LLP={id:'<?= (int)$p['id'] ?>',name:<?= json_encode($p['name']) ?>,price:<?= (int)$p['price'] ?>};try{window.fbq&&fbq('track','ViewContent',{content_ids:[LLP.id],content_type:'product',content_name:LLP.name,value:LLP.price,currency:'BDT'})}catch(e){}</script>
+<script type="application/ld+json"><?= json_encode(array_filter(['@context' => 'https://schema.org', '@type' => 'Product', 'name' => $p['name'], 'image' => img_url($imgs[0]), 'description' => $p['short'], 'brand' => ['@type' => 'Brand', 'name' => $p['brand'] ?: S('shop_name')], 'aggregateRating' => $rn ? ['@type' => 'AggregateRating', 'ratingValue' => $ravg, 'reviewCount' => $rn] : null, 'offers' => ['@type' => 'Offer', 'priceCurrency' => 'BDT', 'price' => (int)$p['price'], 'availability' => $out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock']]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
     <?php
     page_foot();
     break;
@@ -338,7 +443,15 @@ case 'checkout':
       </fieldset>
       <label>Note (optional)<textarea name="note" rows="2" placeholder="Shade, gift wrap or delivery time"></textarea></label>
       <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <div class="pay"><?= icon('cash', 22) ?><div><b>Cash on delivery</b><small>Pay when you receive your order.</small></div></div>
+      <fieldset class="area paym"><legend>Payment</legend>
+        <?php $pm = []; if (S('cod_on') === '1') $pm['cod'] = ['Cash on delivery', 'Pay when you receive your order.'];
+        foreach (['bkash', 'nagad'] as $k) if (S($k . '_on') === '1' && S($k . '_number') !== '') $pm[$k] = [PAYMENTS[$k], 'Send money to ' . S($k . '_number') . ' (' . S($k . '_type') . ')'];
+        if (!$pm) $pm['cod'] = ['Cash on delivery', 'Pay when you receive your order.'];
+        $first = true; foreach ($pm as $k => [$n, $d]): ?>
+        <label class="radio"><input type="radio" name="payment" value="<?= $k ?>" <?= $first ? 'checked' : '' ?>><span><b><?= e($n) ?></b><small><?= e($d) ?></small></span></label>
+        <?php $first = false; endforeach; ?>
+      </fieldset>
+      <div class="trx" id="trxBox" hidden><p><?= e(S('pay_note')) ?></p><label>Transaction ID<input name="trx" autocomplete="off" placeholder="e.g. 8N7A6XK2LM"></label></div>
       <p class="err" id="coErr" role="alert" hidden></p>
       <button class="btn block" type="submit" id="coBtn">Confirm order</button>
     </form>

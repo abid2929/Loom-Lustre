@@ -22,6 +22,8 @@ function icon(string $n, int $s = 22): string {
         'plus' => '<path d="M12 5v14M5 12h14"/>',
         'minus' => '<path d="M5 12h14"/>',
         'trash' => '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+        'bolt' => '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>',
+        'star' => '<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 3 1.1-6.2L3 9.7l6.2-.9L12 3Z"/>',
         'spark' => '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
         'leaf' => '<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 13 11"/>',
         'check' => '<path d="m5 12 5 5 9-10"/>',
@@ -36,7 +38,8 @@ function icon(string $n, int $s = 22): string {
 
 function page_head(string $title, string $desc = '', string $image = '', string $active = ''): void {
     $name = S('shop_name');
-    $full = $title === '' ? $name . ' | ' . S('shop_sub') . ' Shop in Bangladesh' : $title . ' | ' . $name;
+    $full = $title === '' ? (S('meta_title') !== '' ? S('meta_title') : $name . ' | ' . S('shop_sub') . ' Shop in Bangladesh') : $title . ' | ' . $name;
+    track_visit((string)($GLOBALS['route'] ?? ''));
     $desc = $desc !== '' ? $desc : S('meta_desc');
     $img = $image !== '' ? $image : url('assets/img/share.jpg');
     if (!preg_match('~^https?://~', $img)) $img = (isset($_SERVER['HTTP_HOST']) ? ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] : '') . $img;
@@ -49,7 +52,8 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= e($full) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
-<meta name="theme-color" content="#b31f3a">
+<?php if (S('meta_keywords') !== ''): ?><meta name="keywords" content="<?= e(S('meta_keywords')) ?>">
+<?php endif; ?><meta name="theme-color" content="#b31f3a">
 <meta property="og:title" content="<?= e($full) ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:image" content="<?= e($img) ?>">

@@ -20,7 +20,9 @@
   /* ---------- bag ---------- */
   function cart() { return load('ll_cart'); }
   function setCart(c) { save('ll_cart', c); counts(); }
+  function px(ev, d, o) { try { if (window.fbq) fbq('track', ev, d || {}, o || {}); } catch (e) {} }
   function addToCart(id, qty, shade) {
+    px('AddToCart', { content_ids: [String(id)], content_type: 'product', currency: 'BDT' });
     var c = cart(); id = +id; qty = Math.max(1, +qty || 1); shade = shade || '';
     var f = c.filter(function (i) { return i.id === id && (i.shade || '') === shade; })[0];
     if (f) f.qty = Math.min(20, f.qty + qty); else c.push({ id: id, qty: Math.min(20, qty), shade: shade });
@@ -102,12 +104,22 @@
   /* ---------- product page ---------- */
   var info = $('[data-product]');
   if (info) {
-    var pid = info.getAttribute('data-product'), qty = $('#qty'), shade = '';
-    var sb = $('.shades button.on'); if (sb) shade = sb.getAttribute('data-shade');
-    $$('.shades button').forEach(function (b) {
+    var pid = info.getAttribute('data-product'), qty = $('#qty'), shade = '', pick = { s: '', z: '' };
+    function variant() { shade = [pick.s, pick.z].filter(Boolean).join(' · '); }
+    var sb = $('.shades button.on[data-shade]'); if (sb) pick.s = sb.getAttribute('data-shade');
+    var zb = $('.sizes button.on'); if (zb) pick.z = zb.getAttribute('data-size');
+    variant();
+    $$('.shades button[data-shade]').forEach(function (b) {
       b.addEventListener('click', function () {
-        $$('.shades button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
-        shade = b.getAttribute('data-shade'); $('#shadeName').textContent = shade;
+        $$('.shades button[data-shade]').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
+        pick.s = b.getAttribute('data-shade'); $('#shadeName').textContent = pick.s; variant();
+        var im = b.getAttribute('data-img'); if (im) { $('#gMain').src = im; $$('.g-thumbs button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-img') === im); }); }
+      });
+    });
+    $$('.sizes button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        $$('.sizes button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
+        pick.z = b.getAttribute('data-size'); $('#sizeName').textContent = pick.z; variant();
       });
     });
     $$('[data-q]').forEach(function (b) {
@@ -189,9 +201,14 @@
       var free = +co.getAttribute('data-free'), del = free > 0 && sub >= free ? 0 : +co.getAttribute(area === 'out' ? 'data-out' : 'data-in');
       $('[data-sub]').textContent = money(sub); $('[data-del]').textContent = del ? money(del) : 'Free'; $('[data-total]').textContent = money(sub + del);
     };
+    var trxBox = $('#trxBox');
+    function payT() { var v = (co.querySelector('[name=payment]:checked') || {}).value; if (trxBox) trxBox.hidden = !v || v === 'cod'; }
+    $$('[name=payment]', co).forEach(function (r) { r.addEventListener('change', payT); }); payT();
     joinCart().then(function (d) {
       data = d;
       if (!d.c.length) { emptyBag($('.cart-in')); return; }
+      var v0 = 0; d.c.forEach(function (it) { v0 += d.m[it.id].price * it.qty; });
+      px('InitiateCheckout', { content_ids: d.c.map(function (it) { return String(it.id); }), content_type: 'product', num_items: d.c.length, value: v0, currency: 'BDT' });
       $('#coItems').innerHTML = d.c.map(function (it) { var p = d.m[it.id]; return '<div class="co-it"><img src="' + esc(p.img) + '" alt="" width="56" height="56"><div><b>' + esc(p.name) + '</b><small>' + (it.shade ? esc(it.shade) + ' · ' : '') + 'Qty ' + it.qty + '</small></div><span>' + money(p.price * it.qty) + '</span></div>'; }).join('');
       totals();
     });
@@ -205,9 +222,11 @@
       if (!f.name.value.trim()) bad.push(f.name);
       if (!/^01[3-9]\d{8}$/.test(phone)) bad.push(f.phone);
       if (f.address.value.trim().length < 8) bad.push(f.address);
-      if (bad.length) { bad.forEach(function (x) { x.classList.add('bad'); }); bad[0].focus(); er.textContent = 'Please fill in your name, a valid 11 digit mobile number and your full address.'; er.hidden = false; return; }
+      var pay = (co.querySelector('[name=payment]:checked') || {}).value || 'cod';
+      if (pay !== 'cod' && f.trx.value.replace(/\W/g, '').length < 6) bad.push(f.trx);
+      if (bad.length) { bad.forEach(function (x) { x.classList.add('bad'); }); bad[0].focus(); er.textContent = 'Please fill in your name, a valid 11 digit mobile number and your full address' + (pay !== 'cod' ? ', and the Transaction ID.' : '.'); er.hidden = false; return; }
       if (!data || !data.c.length) return;
-      var body = { name: f.name.value, phone: phone, address: f.address.value, area: (co.querySelector('[name=area]:checked') || {}).value, note: f.note.value, website: f.website.value, items: data.c };
+      var body = { name: f.name.value, phone: phone, address: f.address.value, area: (co.querySelector('[name=area]:checked') || {}).value, note: f.note.value, website: f.website.value, items: data.c, payment: pay, trx: f.trx ? f.trx.value : '', event_id: 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7) };
       save('ll_me', { name: body.name, phone: phone, address: body.address, area: body.area });
       btn.disabled = true; btn.textContent = 'Placing your order...';
       if (LL.demo) { // GitHub Pages preview: no server, so show a sample confirmation
@@ -219,12 +238,39 @@
       fetch(B + 'api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { return r.json(); })
         .then(function (r) {
-          if (r.ok) { try { if (window.fbq) fbq('track', 'Purchase', { currency: 'BDT', value: 0 }); } catch (x) {} localStorage.removeItem('ll_cart'); location.href = r.url; }
+          if (r.ok) { px('Purchase', { currency: 'BDT', value: r.value || 0, content_ids: body.items.map(function (it) { return String(it.id); }), content_type: 'product' }, { eventID: body.event_id }); localStorage.removeItem('ll_cart'); location.href = r.url; }
           else { er.textContent = r.error || 'Something went wrong.'; er.hidden = false; btn.disabled = false; btn.textContent = 'Confirm order'; }
         })
         .catch(function () { er.textContent = 'Network problem. Please try again, or order on WhatsApp.'; er.hidden = false; btn.disabled = false; btn.textContent = 'Confirm order'; });
     });
   }
+
+  /* ---------- flash sale countdown (ends at midnight, then starts again) ---------- */
+  var cd = $('[data-countdown]');
+  if (cd) {
+    var tick = function () {
+      var n = new Date(), end = new Date(n); end.setHours(24, 0, 0, 0);
+      var s = Math.max(0, Math.floor((end - n) / 1000)), p = function (x) { return (x < 10 ? '0' : '') + x; };
+      $('[data-h]', cd).textContent = p(Math.floor(s / 3600)); $('[data-m]', cd).textContent = p(Math.floor(s % 3600 / 60)); $('[data-s]', cd).textContent = p(s % 60);
+    };
+    tick(); setInterval(tick, 1000);
+  }
+
+  /* ---------- product review form ---------- */
+  var rv = $('#rvForm');
+  if (rv) rv.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = rv.elements, er = $('.err', rv), btn = $('button', rv);
+    var body = { product: rv.getAttribute('data-pid'), name: f.name.value.trim(), phone: f.phone.value, body: f.body.value.trim(), rating: (rv.querySelector('[name=rating]:checked') || {}).value || 5, website: f.website.value };
+    if (!body.name || body.body.length < 5) { er.textContent = 'Please write your name and a few words.'; er.hidden = false; return; }
+    var done = function () { rv.innerHTML = '<div class="done-box sm"><h3>Thank you, ' + esc(body.name) + '!</h3><p>Your review will show here after the shop checks it.</p></div>'; };
+    if (LL.demo) { done(); return; }
+    btn.disabled = true;
+    fetch(B + 'api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) { if (r.ok) done(); else { er.textContent = r.error || 'Something went wrong.'; er.hidden = false; btn.disabled = false; } })
+      .catch(function () { er.textContent = 'Network problem. Please try again.'; er.hidden = false; btn.disabled = false; });
+  });
 
   /* ---------- demo search (static preview has no server) ---------- */
   if (LL.demo && /\/search\/?$/.test(location.pathname)) {

@@ -60,4 +60,15 @@ function ll_seed(PDO $pdo): void {
         $img = json_encode(array_merge(['assets/img/p/' . $p[2] . '.webp'], $p[2] === 'silk-compact' ? ['assets/img/p/silk-compact-2.webp'] : []));
         $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre', $p[3], $p[4], $img, $p[5], $p[6], 25, $p[7], $p[8], $p[9], $p[10], $p[11], in_array($p[2], ['moon-tint','rainbow-palette','velvet-palette','lash-mascara','peach-blush','lip-balm','night-cream','argan-oil','sunset-palette','glow-highlighter'], true) ? 1 : 0, $i, $p[11] ? 60 - $i : 5, $now, $now]);
     }
+    // catalog collections (themed edits that mix categories)
+    $cols = [
+        ['Bridal Glow', 'bridal-glow', 'Everything for the wedding day look', 'assets/img/p/velvet-palette.webp', ['velvet-red-matte-lipstick', 'velvet-nude-eyeshadow-palette', 'glow-highlighter-pot', 'silk-skin-foundation', 'golden-amber-perfume', 'jewel-tone-nail-set', 'lash-length-mascara']],
+        ['Everyday Essentials', 'everyday-essentials', 'Simple picks for daily use', 'assets/img/p/nude-satin.webp', ['nude-satin-lipstick', 'daily-moisture-cream', 'shea-butter-lip-balm', 'silk-compact-powder', 'ballet-pink-nail-polish', 'soft-hands-lotion', 'vitamin-c-glow-serum']],
+        ['Gift Sets', 'gift-sets', 'Pretty boxes ready to gift', 'assets/img/p/rose-trio.webp', ['moonlight-lip-tint-set-8-shades', 'rose-trio-lipstick-set', 'skin-care-starter-kit', 'essential-makeup-kit', 'drip-colour-nail-trio', 'herbal-hair-oil-trio']],
+        ['Party Night', 'party-night', 'Bold colour and shine for evenings out', 'assets/img/p/rainbow-palette.webp', ['rainbow-eyeshadow-palette', 'sparkle-lip-gloss', 'noir-eau-de-parfum', 'sunset-eyeshadow-palette', 'coral-bloom-cream-lipstick']],
+    ];
+    $cc = $pdo->prepare('INSERT INTO collections(name,slug,tagline,image,sort) VALUES(?,?,?,?,?)');
+    $up = $pdo->prepare('UPDATE products SET collection_id=? WHERE slug=?');
+    foreach ($cols as $i => $c) { $cc->execute([$c[0], $c[1], $c[2], $c[3], $i + 1]); $cid = (int)$pdo->lastInsertId(); foreach ($c[4] as $s) $up->execute([$cid, $s]); }
+    $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('velvet-red-matte-lipstick','peach-glow-blush','vitamin-c-glow-serum','drip-colour-nail-trio','lash-length-mascara','rainbow-eyeshadow-palette')");
 }
