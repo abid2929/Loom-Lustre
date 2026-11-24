@@ -521,7 +521,7 @@ h1,h2,h3{font-family:var(--fh);font-weight:500;line-height:1.12;margin:0;letter-
   .ftr-in{grid-template-columns:1fr 1fr;gap:28px 20px}
   .ftr-brand{grid-column:1/-1}
   .ftr-in>div:last-child{grid-column:1/-1}
-  .ftr-b{flex-direction:column;margin-top:32px}
+  .ftr-b{flex-direction:column;align-items:center;text-align:center;margin-top:32px}
   .list-h{padding:30px 0 28px}
   .list-h h1{font-size:38px}
   .chips{justify-content:flex-start;margin:0 -16px;padding:18px 16px 4px}
@@ -608,5 +608,6 @@ h1,h2,h3{font-family:var(--fh);font-weight:500;line-height:1.12;margin:0;letter-
 .credit .cr i{font-style:normal;display:grid;place-items:center;width:18px;height:18px;border-radius:4px;color:#fff;font-family:Arial,sans-serif;font-weight:700;font-size:11px;line-height:1}
 .credit .cr-in{background:#0a66c2}
 .credit{letter-spacing:normal}.cr-g{display:inline-flex;gap:12px;white-space:nowrap}
-@media(min-width:861px){.ftr-b .credit{margin-right:70px}}
+.ftr-b .credit{flex:1 0 100%;justify-content:center;text-align:center;border-top:1px solid #2c2220;padding-top:16px;margin-top:8px;font-size:11.5px}
+.ftr-b .credit .cr i{width:16px;height:16px;font-size:10px}
 .credit .cr-b{background:linear-gradient(135deg,#ff8a3d,#e8590c)}
