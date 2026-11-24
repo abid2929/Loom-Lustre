@@ -1,0 +1,32 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>সেটিংস | অ্যাডমিন</title>
+<link rel="icon" href="/Loom-Lustre/assets/img/favicon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/Loom-Lustre/admin/admin.css?v=1795540831">
+</head><body>
+<div class="demo-bar">এটা ডেমো অ্যাডমিন। এখানে কিছু সেভ হবে না। আসল সাইটে পাসওয়ার্ড দিয়ে ঢুকতে হবে।</div><header class="top"><a class="logo" href="/Loom-Lustre/admin/"><img src="/Loom-Lustre/assets/img/lady.png" alt=""><b>Loom &amp; Lustre</b></a>
+<a class="site" href="/Loom-Lustre/" target="_blank">সাইট দেখুন ↗</a><a class="out" href="/Loom-Lustre/admin/">লগআউট</a></header>
+<nav class="side"><a href="/Loom-Lustre/admin/" class="">ড্যাশবোর্ড</a><a href="/Loom-Lustre/admin/orders.html" class="">অর্ডার<i>২</i></a><a href="/Loom-Lustre/admin/products.html" class="">প্রোডাক্ট</a><a href="/Loom-Lustre/admin/cats.html" class="">ক্যাটাগরি</a><a href="/Loom-Lustre/admin/slider.html" class="">হোম স্লাইডার</a><a href="/Loom-Lustre/admin/settings.html" class="on">সেটিংস</a></nav>
+<main class="main">
+<h1>সেটিংস</h1>
+<form method="post" class="card form">
+  <input type="hidden" name="csrf" value="8c0d8be98195c4026b8e27fed3083795"><input type="hidden" name="act" value="settings">
+  <h2>দোকান</h2>
+  <div class="g2"><label>দোকানের নাম<input type="text" name="shop_name" value="Loom &amp; Lustre"></label><label>নামের নিচের লেখা<input type="text" name="shop_sub" value="Fashion &amp; Beauty"></label></div>
+  <label>উপরের লাল লাইনের লেখা <small>• দিয়ে আলাদা করলে একটার পর একটা ঘুরবে</small><input type="text" name="announce" value="Cash on delivery all over Bangladesh  •  100% original products  •  Free delivery on orders over ৳3,000"></label>  <label>আমাদের সম্পর্কে<textarea name="about" rows="3">Loom &amp; Lustre brings you hand-picked lipsticks, skincare, fragrance and nail colours that are original, gentle on skin and fairly priced. Every order is checked by hand before it leaves our hands.</textarea></label>  <h2>যোগাযোগ</h2>
+  <div class="g2"><label>ফোন নম্বর<input type="text" name="phone" value="01XXXXXXXXX"></label><label>হোয়াটসঅ্যাপ নম্বর <small>খালি রাখলে ফোন নম্বরই ব্যবহার হবে</small><input type="text" name="whatsapp" value=""></label><label>ইমেইল<input type="email" name="email" value=""></label><label>ঠিকানা<input type="text" name="address" value="Dhaka, Bangladesh"></label></div>
+  <div class="g2"><label>Facebook পেজের লিংক<input type="url" name="facebook" value=""></label><label>Instagram লিংক<input type="url" name="instagram" value=""></label><label>TikTok লিংক<input type="url" name="tiktok" value=""></label><label>YouTube লিংক<input type="url" name="youtube" value=""></label></div>
+  <h2>ডেলিভারি চার্জ</h2>
+  <div class="g2"><label>এলাকা ১ এর নাম<input type="text" name="delivery_in_label" value="Inside Dhaka"></label><label>এলাকা ১ চার্জ (৳)<input type="number" name="delivery_in" value="70"></label><label>এলাকা ২ এর নাম<input type="text" name="delivery_out_label" value="Outside Dhaka"></label><label>এলাকা ২ চার্জ (৳)<input type="number" name="delivery_out" value="130"></label></div>
+  <label>এত টাকার বেশি অর্ডারে ফ্রি ডেলিভারি (৳) <small>০ দিলে ফ্রি ডেলিভারি বন্ধ</small><input type="number" name="free_over" value="3000"></label>  <h2>অন্যান্য</h2>
+  <label>হোয়াটসঅ্যাপ বাটনের লেখা<input type="text" name="wa_popup" value="Need help choosing a shade? Ask us on WhatsApp."></label><label>গুগলে দেখানোর বর্ণনা<textarea name="meta_desc" rows="3">Loom &amp; Lustre: original lipstick, skincare, perfume, nail polish and makeup in Bangladesh. Cash on delivery all over the country.</textarea></label>  <div class="g2"><label>নতুন অর্ডারের ইমেইল যাবে<input type="email" name="notify_email" value=""></label><label>Facebook Pixel ID<input type="text" name="pixel_id" value=""></label><label>Google Analytics ID<input type="text" name="ga_id" value=""></label></div>
+  <button class="btn big">সেটিংস সেভ করুন</button>
+</form>
+<form method="post" class="card form">
+  <input type="hidden" name="csrf" value="8c0d8be98195c4026b8e27fed3083795"><input type="hidden" name="act" value="password">
+  <h2>পাসওয়ার্ড বদলান</h2>
+  <div class="g3"><label>পুরনো পাসওয়ার্ড<input type="password" name="old" required></label><label>নতুন পাসওয়ার্ড<input type="password" name="p1" required minlength="6"></label><label>আবার লিখুন<input type="password" name="p2" required minlength="6"></label></div>
+  <button class="btn">পাসওয়ার্ড বদলান</button>
+</form>
+<p class="muted small">ভার্সন 1.0.0 · ডেটা ফোল্ডার: /tmp/claude-0/ll-demo-1578-1795541137</p>
+<script>document.addEventListener("submit",function(e){e.preventDefault();alert("ডেমো: এখানে কিছু সেভ হয় না। আসল সাইটে সেভ হবে।")},true)</script></main><script src="/Loom-Lustre/admin/admin.js?v=1795540831"></script></body></html>

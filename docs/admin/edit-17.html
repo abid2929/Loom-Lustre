@@ -1,0 +1,44 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>এডিট: Rainbow Eyeshadow Palette | অ্যাডমিন</title>
+<link rel="icon" href="/Loom-Lustre/assets/img/favicon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/Loom-Lustre/admin/admin.css?v=1795540831">
+</head><body>
+<div class="demo-bar">এটা ডেমো অ্যাডমিন। এখানে কিছু সেভ হবে না। আসল সাইটে পাসওয়ার্ড দিয়ে ঢুকতে হবে।</div><header class="top"><a class="logo" href="/Loom-Lustre/admin/"><img src="/Loom-Lustre/assets/img/lady.png" alt=""><b>Loom &amp; Lustre</b></a>
+<a class="site" href="/Loom-Lustre/" target="_blank">সাইট দেখুন ↗</a><a class="out" href="/Loom-Lustre/admin/">লগআউট</a></header>
+<nav class="side"><a href="/Loom-Lustre/admin/" class="">ড্যাশবোর্ড</a><a href="/Loom-Lustre/admin/orders.html" class="">অর্ডার<i>২</i></a><a href="/Loom-Lustre/admin/products.html" class="on">প্রোডাক্ট</a><a href="/Loom-Lustre/admin/cats.html" class="">ক্যাটাগরি</a><a href="/Loom-Lustre/admin/slider.html" class="">হোম স্লাইডার</a><a href="/Loom-Lustre/admin/settings.html" class="">সেটিংস</a></nav>
+<main class="main">
+<a class="back" href="/Loom-Lustre/admin/products.html">← সব প্রোডাক্ট</a>
+<div class="h-row"><h1>প্রোডাক্ট এডিট</h1><a class="btn ghost sm" href="/Loom-Lustre/p/rainbow-eyeshadow-palette" target="_blank">সাইটে দেখুন ↗</a></div>
+<form method="post" enctype="multipart/form-data" class="card form">
+  <input type="hidden" name="csrf" value="9cd0276230dccf472d5e02af6ed89546"><input type="hidden" name="act" value="product"><input type="hidden" name="id" value="17">
+  <label>প্রোডাক্টের নাম *<input name="name" required value="Rainbow Eyeshadow Palette" placeholder="যেমন: Velvet Red Matte Lipstick"></label>
+  <div class="g3">
+    <label>ক্যাটাগরি<select name="category_id"><option value="1" >Lips</option><option value="2" >Skincare</option><option value="3" selected>Makeup</option><option value="4" >Fragrance</option><option value="5" >Nails</option><option value="6" >Body &amp; Hair</option></select></label>
+    <label>বিক্রির দাম (৳) *<input type="number" name="price" required min="0" value="1290"></label>
+    <label>আগের দাম (৳) <small>ছাড় দেখাতে</small><input type="number" name="old_price" min="0" value="1590"></label>
+  </div>
+  <div class="g3">
+    <label>স্টক (কয়টা আছে)<input type="number" name="stock" min="0" value="25"></label>
+    <label>সাইজ / পরিমাণ<input name="size" value="35 shades" placeholder="যেমন: 30 ml, 3.8 g"></label>
+    <label>ব্র্যান্ড<input name="brand" value="Loom &amp; Lustre"></label>
+  </div>
+  <label>শেড / রং <small>কমা দিয়ে আলাদা করুন। না থাকলে খালি রাখুন।</small><input name="shades" value="" placeholder="Classic Red, Ruby, Nude"></label>
+  <div class="photos">
+    <span class="lbl">ছবি <small>প্রথম ছবিটাই প্রধান ছবি। ছবিতে চাপ দিয়ে টেনে সাজাতে পারবেন।</small></span>
+    <div class="ph-list" id="phList"><div class="ph" draggable="true"><img src="/Loom-Lustre/assets/img/p/rainbow-palette-s.webp" alt=""><input type="hidden" name="keep[]" value="assets/img/p/rainbow-palette.webp"><button type="button" class="ph-x" aria-label="ছবি সরান">×</button></div>      <label class="ph-add">+ ছবি যোগ<input type="file" name="photos[]" accept="image/*" multiple hidden></label></div>
+    <div class="ph-new" id="phNew"></div>
+  </div>
+  <label>ছোট বর্ণনা (এক লাইনে)<input name="short" value="Bright, blendable shades for bold eye looks." maxlength="140"></label>
+  <label>পুরো বর্ণনা<textarea name="description" rows="5">Thirty-five rich shadows in matte and shimmer finishes, from soft nudes to bright party colours. Smooth, easy to blend and long lasting.</textarea></label>
+  <label>কীভাবে ব্যবহার করবেন<textarea name="how_to" rows="2">Use a flat brush to pat colour on the lid, then blend the edges with a fluffy brush.</textarea></label>
+  <label>সার্চ ট্যাগ <small>কাস্টমার যা লিখে খুঁজতে পারে</small><input name="tags" value="" placeholder="lipstick, red, matte, লিপস্টিক"></label>
+  <div class="checks">
+    <label class="chk"><input type="checkbox" name="active" checked>সাইটে দেখাবে</label>
+    <label class="chk"><input type="checkbox" name="featured" checked>সামনে রাখুন</label>
+    <label class="chk"><input type="checkbox" name="bestseller" checked>বেস্টসেলার</label>
+    <label class="chk"><input type="checkbox" name="is_new" checked>নতুন</label>
+  </div>
+  <button class="btn big">সেভ করুন</button>
+</form>
+<form method="post" class="danger" data-confirm="এই প্রোডাক্টটা মুছে ফেলবেন?"><input type="hidden" name="csrf" value="9cd0276230dccf472d5e02af6ed89546"><input type="hidden" name="act" value="product_del"><input type="hidden" name="id" value="17"><button>প্রোডাক্ট মুছে ফেলুন</button></form><script>document.addEventListener("submit",function(e){e.preventDefault();alert("ডেমো: এখানে কিছু সেভ হয় না। আসল সাইটে সেভ হবে।")},true)</script></main><script src="/Loom-Lustre/admin/admin.js?v=1795540831"></script></body></html>
