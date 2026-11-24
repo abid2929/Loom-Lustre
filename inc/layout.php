@@ -184,7 +184,7 @@ function page_foot(): void {
   </div>
   <div class="ftr-b wrap">
     <span>© <?= date('Y') ?> <?= e(S('shop_name')) ?>. All rights reserved.</span>
-    <span class="credit">Developed by <b>Abid Islam</b> · <a href="https://boostnixmedia.com" target="_blank" rel="noopener">Boostnix Media</a></span>
+    <span class="credit">Designed &amp; developed by <span class="cr-g"><a class="cr" href="https://www.linkedin.com/in/abid-islam-a926ab2b5/" target="_blank" rel="noopener"><i class="cr-in" aria-hidden="true">in</i>Abid Islam</a> <a class="cr" href="https://boostnixmedia.com" target="_blank" rel="noopener"><i class="cr-b" aria-hidden="true">B</i>Boostnix Media</a></span></span>
   </div>
 </footer>
 <nav class="tabbar" aria-label="Quick links">

@@ -602,4 +602,11 @@ h1,h2,h3{font-family:var(--fh);font-weight:500;line-height:1.12;margin:0;letter-
 .look .cat:nth-child(4){animation-delay:.66s}.look .cat:nth-child(5){animation-delay:.73s}.look .cat:nth-child(6){animation-delay:.8s}
 .look .cat:hover{transform:translateY(-4px)}
 
-.credit b{font-weight:500}
+.credit{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
+.credit .cr{display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:600;letter-spacing:normal;text-decoration:none}
+.credit .cr:hover{color:var(--gold-l)}
+.credit .cr i{font-style:normal;display:grid;place-items:center;width:18px;height:18px;border-radius:4px;color:#fff;font-family:Arial,sans-serif;font-weight:700;font-size:11px;line-height:1}
+.credit .cr-in{background:#0a66c2}
+.credit{letter-spacing:normal}.cr-g{display:inline-flex;gap:12px;white-space:nowrap}
+@media(min-width:861px){.ftr-b .credit{margin-right:70px}}
+.credit .cr-b{background:linear-gradient(135deg,#ff8a3d,#e8590c)}
