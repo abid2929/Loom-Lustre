@@ -1,36 +1,90 @@
-# Loom & Lustre: Fashion & Beauty shop
+<div align="center">
 
-An online cosmetics shop for Bangladesh: lipstick, skincare, makeup, fragrance, nails, body and hair care.
+<img src="assets/img/logo.png" alt="Loom & Lustre" height="96">
 
-**Live demo:** https://abid2929.github.io/Loom-Lustre/
-**Demo admin panel (no password, changes stay only in your browser):** https://abid2929.github.io/Loom-Lustre/admin/
+# Loom & Lustre
 
-## What it has
+### Fashion & Beauty online shop for Bangladesh
 
-- Home page with an auto-sliding offer banner, category circles, deals, bestsellers, makeup and skincare sections
-- 6 categories and 38 products with shades, sizes, discounts and stock
-- Product page with shade picker, quantity, Add to bag, Buy now and Order on WhatsApp
-- Shopping bag, wishlist, checkout with cash on delivery (Inside / Outside Dhaka delivery charge), order tracking
-- Search, sort and price filter
-- Phone layout with a bottom tab bar and a sticky Buy bar
-- Premium look: Cormorant Garamond + Jost type, full-width photo banners, arch category tiles, sharp 4:5 product photos (1200 px with 600 px phone copies)
-- Admin panel at `/admin`, the same shared panel used by every shop (base: PetVerse). **Bangla by default** with an EN button:
-  - Dashboard: welcome card, quick buttons, visitors, live activity, sales chart, status donut, recent orders
-  - Products (sizes, shades, gallery with a shade tag per photo, AI copywriter), Categories, Collections, Inventory & Stock
-  - Orders (status tabs, manual orders, invoice, CSV), Courier Hub (Steadfast), Customers, Reviews, Hero Banners, Homepage CMS (top bar, deal, sections on/off), Reports
-  - Admins & Roles (Super Admin, Manager, Staff), Site Settings (store, delivery, payment, courier, SMS, Meta Pixel + CAPI, SEO + Gemini key, password)
-  - Phone: app-style bottom tab bar
-- SEO: sitemap.xml, robots.txt, canonical links, Open Graph and Twitter cards, Product + Breadcrumb + Organization structured data
-- Storefront extras: flash sale with countdown, collections, product reviews, size options, bKash/Nagad with Transaction ID
+Lipstick, skincare, makeup, fragrance, nails, body and hair care, with cash on delivery all over Bangladesh.
 
-## Tech
+[![Live demo](https://img.shields.io/badge/Live%20demo-open%20shop-9e1b34?style=for-the-badge)](https://abid2929.github.io/Loom-Lustre/)
+[![Admin demo](https://img.shields.io/badge/Admin%20panel-demo-17130f?style=for-the-badge)](https://abid2929.github.io/Loom-Lustre/admin/)
 
-PHP 8 + SQLite. No MySQL, no Node.js. Upload the files to `public_html` on any cPanel host and open `/admin` to create the first admin username and password. The database is created by itself on first visit (in `~/loomlustre-data`, outside the public folder, when the host allows it).
+![PHP 8](https://img.shields.io/badge/PHP-8.1%2B-777bb4?logo=php&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-no%20MySQL%20needed-003b57?logo=sqlite&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.2-c9a063)
+![Phone ready](https://img.shields.io/badge/phone%20%2B%20PC-ready-2e7d32)
 
-`docs/` is a static copy of the site for GitHub Pages, built with `php tools/build-demo.php /Loom-Lustre/`. On GitHub Pages there is no PHP, so the admin runs in demo mode with the shop's sample data.
+<br>
 
-Product photos are from [Unsplash](https://unsplash.com) (free to use). The shop owner should replace them with real product photos from the admin panel.
+<img src=".github/screens/pc-home.webp" alt="Loom & Lustre home page" width="900">
+
+</div>
 
 ---
 
-Designed & developed by Abid Islam & [Boostnix Media](https://boostnixmedia.com).
+## Screens
+
+<table>
+<tr>
+<td width="68%"><img src=".github/screens/pc-cards.webp" alt="Flash sale product cards"><br><sub>Flash sale with countdown, discount badges and shades</sub></td>
+<td width="32%"><img src=".github/screens/ph-home.webp" alt="Home on phone"><br><sub>Home on phone</sub></td>
+</tr>
+<tr>
+<td><img src=".github/screens/pc-product.webp" alt="Product page"><br><sub>Product page: big photo, shade picker, Add to bag, Order on WhatsApp</sub></td>
+<td><img src=".github/screens/ph-product.webp" alt="Product page on phone"><br><sub>Product page on phone</sub></td>
+</tr>
+</table>
+
+### Admin panel (Bangla, with an EN button)
+
+<table>
+<tr>
+<td><img src=".github/screens/pc-admin.webp" alt="Admin dashboard"><br><sub>Dashboard: sales, orders, visitors, low stock</sub></td>
+<td><img src=".github/screens/pc-admin-products.webp" alt="Admin products"><br><sub>Products: search, edit, price and stock</sub></td>
+</tr>
+</table>
+
+---
+
+## Features
+
+| Shop | Admin |
+|---|---|
+| Wide auto-sliding offer banner. The "Up to X% off" pill is worked out from real prices | Bangla by default, EN button, the same shared panel as every shop |
+| "What are you looking for?" colourful category tiles | Dashboard with sales chart, live activity and recent orders |
+| 6 categories and 38 sample products with shades, sizes and stock | Products: sizes, shades, photo gallery, AI copywriter |
+| Product page: shade picker, Add to bag, Buy now, Order on WhatsApp | Categories, collections, inventory and stock |
+| Bag, wishlist, checkout with cash on delivery | Orders: status tabs, manual orders, invoice, CSV, courier (Steadfast) |
+| Inside / Outside Dhaka delivery charge, optional bKash and Nagad | Reviews, hero banners, homepage sections on/off |
+| Order tracking by order number and phone | Admins and roles (Super Admin, Manager, Staff) |
+| Search, sort and price filter | Settings: store, delivery, payment, SMS, Meta Pixel + CAPI, SEO |
+| Phone layout with a bottom tab bar and smooth entrance animation | Phone layout with an app-style bottom bar |
+| SEO: sitemap, robots, canonical, Open Graph, Product structured data | Login lock after wrong passwords, show/hide password |
+
+## Tech
+
+- **PHP 8.1+ and SQLite.** No MySQL, no Node.js, no build step.
+- The database creates itself on the first visit, in `~/loomlustre-data` outside the public folder when the host allows it.
+- Fonts: Cormorant Garamond and Jost. Photos are sharp 4:5 WebP (1200 px, with 600 px phone copies).
+- `docs/` is a static copy for GitHub Pages, built with `php tools/build-demo.php /Loom-Lustre/`. Pages has no PHP, so the admin there runs in demo mode with sample data, and changes stay in your browser only.
+
+## Set up on your own hosting
+
+1. Upload all files (everything except `docs/`) to `public_html` on any cPanel host with PHP 8.1 or newer.
+2. Open `yourdomain.com/admin`. The first visit asks you to create the admin username and password.
+3. Go to **সাইট সেটিং** (Site settings) and add the shop phone, WhatsApp, Facebook link and delivery charges.
+4. Replace the sample products with your own from **প্রোডাক্ট ম্যানেজমেন্ট** (Products).
+
+**Forgot the admin login?** Upload an empty file named `reset-admin.txt` to `public_html`, then open `/admin` and set a new username and password. The file deletes itself.
+
+## Credits
+
+Product photos are from [Unsplash](https://unsplash.com) (free to use). Replace them with real product photos from the admin panel.
+
+<div align="center">
+
+Designed and developed by **Abid Islam** and **[Boostnix Media](https://boostnixmedia.com)**
+
+</div>
