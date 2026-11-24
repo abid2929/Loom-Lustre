@@ -94,7 +94,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <?php endif; ?>
 </head>
 <body<?= defined('LL_DEMO') ? ' class="demo"' : '' ?>>
-<?php if (defined('LL_DEMO')): ?><div class="demo-bar">Demo preview: products and orders here are samples. <a href="<?= url('admin/') ?>">Open the demo admin panel →</a></div><?php endif; ?>
+
 <?php site_header();
 }
 
@@ -105,10 +105,8 @@ function brand_mark(): string {
 function site_header(): void {
     $a = $GLOBALS['ll_active'] ?? '';
     $cats = categories();
-    $msgs = S('announce_bar') !== '' ? [S('announce_bar')] : array_values(array_filter(array_map('trim', explode('•', S('announce')))));
     ?>
 <a class="skip" href="#main">Skip to content</a>
-<div class="announce" data-msgs="<?= e(json_encode($msgs, JSON_UNESCAPED_UNICODE)) ?>"><span><?= e($msgs[0] ?? '') ?></span></div>
 <header class="hdr">
   <div class="hdr-in wrap">
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>

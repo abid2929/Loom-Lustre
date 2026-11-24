@@ -566,3 +566,21 @@ h1,h2,h3{font-family:var(--fh);font-weight:500;line-height:1.12;margin:0;letter-
 @media(hover:none){.quick{transform:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* first-screen entrance: header, banner and tiles glide in */
+@keyframes llUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes llDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes llZoom{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.hdr-in,.catnav{animation:llDown .7s cubic-bezier(.2,.7,.2,1) backwards}
+.hero .slides{animation:llZoom .9s cubic-bezier(.2,.7,.2,1) .05s backwards}
+.slide.on .slide-t>*{animation:llUp .8s cubic-bezier(.2,.7,.2,1) backwards}
+.slide.on .slide-t>:nth-child(1){animation-delay:.25s}
+.slide.on .slide-t>:nth-child(2){animation-delay:.35s}
+.slide.on .slide-t>:nth-child(3){animation-delay:.45s}
+.slide.on .slide-t>:nth-child(4){animation-delay:.55s}
+.slide.on .slide-t>:nth-child(5){animation-delay:.65s}
+.look-h{animation:llUp .8s cubic-bezier(.2,.7,.2,1) .35s backwards}
+.look .cat{animation:llUp .8s cubic-bezier(.2,.7,.2,1) backwards}
+.look .cat:nth-child(1){animation-delay:.45s}.look .cat:nth-child(2){animation-delay:.52s}.look .cat:nth-child(3){animation-delay:.59s}
+.look .cat:nth-child(4){animation-delay:.66s}.look .cat:nth-child(5){animation-delay:.73s}.look .cat:nth-child(6){animation-delay:.8s}
+.look .cat:hover{transform:translateY(-4px)}
