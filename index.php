@@ -123,17 +123,28 @@ case '':
     $cats = categories();
     ?>
 <h1 class="sr"><?= e(S('meta_title') !== '' ? S('meta_title') : S('shop_name') . ': beauty and cosmetics shop in Bangladesh') ?></h1>
+<?php
+    // biggest real discount behind each banner link (c/<slug>, sale, shop) for the offer pill
+    $offFor = function (string $lk): int {
+        $w = 'p.active=1 AND p.old_price > p.price'; $a = [];
+        if (preg_match('~^c/([a-z0-9-]+)~', ltrim($lk, '#/'), $m)) { $w .= ' AND p.category_id=(SELECT id FROM categories WHERE slug=?)'; $a[] = $m[1]; }
+        elseif (!preg_match('~^(sale|shop)~', ltrim($lk, '#/'))) return 0;
+        $st = db()->prepare("SELECT MAX((p.old_price - p.price) * 100 / p.old_price) FROM products p WHERE $w"); $st->execute($a);
+        return (int)$st->fetchColumn();
+    };
+?>
 <section class="hero" aria-label="Offers">
   <div class="slides" data-slider>
-    <?php foreach ($slides as $n => $sl): $lk = (string)$sl['link']; ?>
-    <a class="slide<?= $n === 0 ? ' on' : '' ?><?= !empty($sl['dark']) ? ' dark' : '' ?>" href="<?= e(preg_match('~^https?://~', $lk) ? $lk : url(ltrim($lk, '#/'))) ?>">
-      <?php $hi = $sl['img']; $hs = img_small($hi); ?><img src="<?= e($hs) ?>"<?php if ($hs !== img_url($hi)): ?> srcset="<?= e($hs) ?> 900w, <?= e(img_url($hi)) ?> 2000w" sizes="(max-width:860px) 75vw, 100vw"<?php endif; ?> alt="<?= e($sl['title'] ?: S('shop_name')) ?>" width="1600" height="900" <?= $n === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' ?>>
-      <?php if ($sl['title'] !== '' || ($sl['kicker'] ?? '') !== ''): ?><span class="slide-t">
+    <?php foreach ($slides as $n => $sl): $lk = (string)$sl['link']; $off = $offFor($lk); ?>
+    <a class="slide g<?= $n % 4 ?><?= $n === 0 ? ' on' : '' ?>" href="<?= e(preg_match('~^https?://~', $lk) ? $lk : url(ltrim($lk, '#/'))) ?>">
+      <?php $hi = $sl['img']; $hs = img_small($hi); ?><span class="slide-p"><img src="<?= e($hs) ?>"<?php if ($hs !== img_url($hi)): ?> srcset="<?= e($hs) ?> 900w, <?= e(img_url($hi)) ?> 2000w" sizes="(max-width:860px) 60vw, 60vw"<?php endif; ?> alt="<?= e($sl['title'] ?: S('shop_name')) ?>" width="1600" height="900" <?= $n === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' ?>></span>
+      <span class="slide-t">
         <?php if (($sl['kicker'] ?? '') !== ''): ?><small><?= e($sl['kicker']) ?></small><?php endif; ?>
         <?php if ($sl['title'] !== ''): ?><b><?= e($sl['title']) ?></b><?php endif; ?>
+        <?php if ($off >= 5): ?><em class="pill">Up to <?= $off ?>% off</em><?php endif; ?>
         <?php if (($sl['text'] ?? '') !== ''): ?><span><?= e($sl['text']) ?></span><?php endif; ?>
-        <?php if (($sl['btn'] ?? '') !== ''): ?><i class="btn"><?= e($sl['btn']) ?></i><?php endif; ?>
-      </span><?php endif; ?>
+        <i class="go"><?= e(($sl['btn'] ?? '') !== '' ? $sl['btn'] : 'Shop now') ?> <?= icon('chev', 16) ?></i>
+      </span>
     </a>
     <?php endforeach; ?>
   </div>
@@ -146,11 +157,11 @@ case '':
 
 <?php $on = fn(string $k) => S("h_{$k}_on") === '1'; $T = fn(string $k) => S("h_{$k}_t"); $Sb = fn(string $k) => S("h_{$k}_s"); ?>
 <?php if ($on('cats')): ?>
-<section class="wrap sec">
-  <?= section_head($T('cats'), $Sb('cats')) ?>
+<section class="wrap look">
+  <div class="look-h"><h2><?= e($T('cats') !== '' ? $T('cats') : 'What are you looking for?') ?></h2><?php if ($Sb('cats') !== ''): ?><p><?= e($Sb('cats')) ?></p><?php endif; ?></div>
   <div class="cats">
-    <?php foreach ($cats as $c): ?>
-    <a class="cat" href="<?= url('c/' . $c['slug']) ?>"><span class="cat-img"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="200" height="200" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
+    <?php foreach ($cats as $k => $c): ?>
+    <a class="cat t<?= $k % 6 ?>" href="<?= url('c/' . $c['slug']) ?>"><span class="cat-img"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="300" height="375" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
     <?php endforeach; ?>
   </div>
 </section>

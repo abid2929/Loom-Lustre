@@ -89,6 +89,7 @@ function db(): PDO {
         CREATE TABLE IF NOT EXISTS capi_log (t INTEGER, code INTEGER);");
     if (!$new && (int)$pdo->query('SELECT COUNT(*) FROM col_items')->fetchColumn() === 0)
         $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0');
+    $pdo->exec("UPDATE settings SET v='What are you looking for?' WHERE k='h_cats_t' AND v='Shop by category'");
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }
@@ -122,8 +123,8 @@ function defaults(): array {
         // Home slider: 4 slides, each with image, small line, big title, text, button, link
         's1_on' => '1', 's1_img' => 'assets/img/b/owner-lip.webp', 's1_kicker' => 'NEW IN', 's1_title' => 'Moonlight Lip Tint Set', 's1_text' => '8 rich shades in one cute box. Soft matte finish that stays all day.', 's1_btn' => 'Shop lips', 's1_link' => 'c/lips', 's1_dark' => '0',
         's2_on' => '1', 's2_img' => 'assets/img/b/moist-cream.webp', 's2_kicker' => 'SKINCARE EDIT', 's2_title' => 'Glow starts with care', 's2_text' => 'Serums, creams and oils for fresh, healthy looking skin.', 's2_btn' => 'Shop skincare', 's2_link' => 'c/skincare', 's2_dark' => '0',
-        's3_on' => '1', 's3_img' => 'assets/img/b/golden-amber.webp', 's3_kicker' => 'FRAGRANCE', 's3_title' => 'Wear your signature', 's3_text' => 'Long lasting perfumes for every mood. Up to 20% off this week.', 's3_btn' => 'Find your scent', 's3_link' => 'c/fragrance', 's3_dark' => '1',
-        's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'BEAUTY SALE', 's4_title' => 'Up to 30% off', 's4_text' => 'Lipsticks, nail colours and makeup kits at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
+        's3_on' => '1', 's3_img' => 'assets/img/b/golden-amber.webp', 's3_kicker' => 'FRAGRANCE', 's3_title' => 'Wear your signature', 's3_text' => 'Long lasting perfumes for every mood.', 's3_btn' => 'Find your scent', 's3_link' => 'c/fragrance', 's3_dark' => '1',
+        's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'BEAUTY SALE', 's4_title' => 'The big beauty sale', 's4_text' => 'Lipsticks, nail colours and makeup kits at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
         // delivery
         'delivery_time_in' => '1 to 2 days', 'delivery_time_out' => '2 to 4 days',
         // payment
@@ -141,7 +142,7 @@ function defaults(): array {
         'meta_title' => 'Loom & Lustre | Lipstick, Skincare & Beauty Shop in Bangladesh',
         'meta_keywords' => 'lipstick bangladesh, skincare, makeup, perfume, nail polish, cosmetics shop, loom and lustre',
         // homepage sections (Homepage CMS)
-        'h_cats_on' => '1', 'h_cats_t' => 'Shop by category', 'h_cats_s' => 'Find exactly what your beauty routine needs',
+        'h_cats_on' => '1', 'h_cats_t' => 'What are you looking for?', 'h_cats_s' => '',
         'h_flash_on' => '1', 'h_flash_t' => 'Flash sale', 'h_flash_s' => 'Hurry, these prices end tonight',
         'h_deals_on' => '1', 'h_deals_t' => 'Deals of the week', 'h_deals_s' => 'Special prices for a short time',
         'h_promo_on' => '1',
