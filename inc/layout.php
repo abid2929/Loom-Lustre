@@ -182,7 +182,7 @@ function page_foot(): void {
   </div>
   <div class="ftr-b wrap">
     <span>© <?= date('Y') ?> <?= e(S('shop_name')) ?>. All rights reserved.</span>
-    <span>Designed &amp; developed by <a href="https://boostnixmedia.com" target="_blank" rel="noopener">Boostnix Media</a></span>
+    <span class="credit">Developed by <b>Abid Islam</b> · <a href="https://boostnixmedia.com" target="_blank" rel="noopener">Boostnix Media</a></span>
   </div>
 </footer>
 <nav class="tabbar" aria-label="Quick links">
