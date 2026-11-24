@@ -30,7 +30,7 @@ $a = (string)($_GET['a'] ?? '');
 $pdo = db();
 
 // Forgot the password: upload an empty file named reset-admin.txt next to index.php; the next visit removes all admins and the file, so a new first admin can be made.
-foreach (['reset-admin.txt', 'RESET-ADMIN'] as $rf) if (is_file(LL_ROOT . '/' . $rf)) { $pdo->exec('DELETE FROM admins'); @unlink(LL_ROOT . '/' . $rf); $_SESSION = []; }
+foreach (['reset-admin.txt', 'RESET-ADMIN'] as $rf) if (is_file(LL_ROOT . '/' . $rf)) { $pdo->exec('DELETE FROM admins'); $pdo->exec('DELETE FROM logins WHERE ok=0'); @unlink(LL_ROOT . '/' . $rf); $_SESSION = []; }
 if ($a === 'state') out(['setup' => !admins(), 'me' => me(), 'csrf' => me() ? $_SESSION['csrf'] : null, 'roles' => array_keys(ROLES)]);
 
 if ($a === 'login') {
