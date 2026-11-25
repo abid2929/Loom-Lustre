@@ -6,14 +6,14 @@
 
 ### Fashion & Beauty online shop for Bangladesh
 
-Lipstick, skincare, makeup, fragrance, nails, body and hair care, with cash on delivery all over Bangladesh.
+Sarees and kurtis, westernwear, menswear, footwear, bags, jewellery, sunglasses, kids, activewear and sneakers, plus lipstick, skincare, makeup, fragrance, nails and body care, with cash on delivery all over Bangladesh.
 
 [![Live demo](https://img.shields.io/badge/Live%20demo-open%20shop-9e1b34?style=for-the-badge)](https://abid2929.github.io/Loom-Lustre/)
 [![Admin demo](https://img.shields.io/badge/Admin%20panel-demo-17130f?style=for-the-badge)](https://abid2929.github.io/Loom-Lustre/admin/)
 
 ![PHP 8](https://img.shields.io/badge/PHP-8.1%2B-777bb4?logo=php&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-no%20MySQL%20needed-003b57?logo=sqlite&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.2-c9a063)
+![Version](https://img.shields.io/badge/version-1.3-c9a063)
 ![Phone ready](https://img.shields.io/badge/phone%20%2B%20PC-ready-2e7d32)
 
 <br>
@@ -53,8 +53,8 @@ Lipstick, skincare, makeup, fragrance, nails, body and hair care, with cash on d
 | Shop | Admin |
 |---|---|
 | Wide auto-sliding offer banner. The "Up to X% off" pill is worked out from real prices | Bangla by default, EN button, the same shared panel as every shop |
-| "What are you looking for?" colourful category tiles | Dashboard with sales chart, live activity and recent orders |
-| 6 categories and 38 sample products with shades, sizes and stock | Products: sizes, shades, photo gallery, AI copywriter |
+| "What are you looking for?" colourful category tiles, "In the spotlight" offers, occasion edits, Stylists' picks, Luxe Edit and round category circles | Dashboard with sales chart, live activity and recent orders |
+| 16 categories and 97 sample products with colours, shades, sizes and stock | Products: sizes, shades, photo gallery, AI copywriter |
 | Product page: shade picker, Add to bag, Buy now, Order on WhatsApp | Categories, collections, inventory and stock |
 | Bag, wishlist, checkout with cash on delivery | Orders: status tabs, manual orders, invoice, CSV, courier (Steadfast) |
 | Inside / Outside Dhaka delivery charge, optional bKash and Nagad | Reviews, hero banners, homepage sections on/off |

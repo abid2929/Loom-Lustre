@@ -90,6 +90,11 @@ function db(): PDO {
     if (!$new && (int)$pdo->query('SELECT COUNT(*) FROM col_items')->fetchColumn() === 0)
         $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0');
     $pdo->exec("UPDATE settings SET v='What are you looking for?' WHERE k='h_cats_t' AND v='Shop by category'");
+    // v1.3: fashion categories. Added once, and only to a shop that still has the demo products.
+    if (!$pdo->query("SELECT 1 FROM settings WHERE k='v13_fashion'")->fetchColumn()) {
+        $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v13_fashion','1')");
+        if (!$new && $pdo->query("SELECT 1 FROM products WHERE slug='velvet-red-matte-lipstick'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_fashion($pdo); }
+    }
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }
@@ -114,17 +119,17 @@ function defaults(): array {
         'delivery_out_label' => 'Outside Dhaka',
         'free_over' => '3000',
         'currency' => '৳',
-        'about' => 'Loom & Lustre brings you hand-picked lipsticks, skincare, fragrance and nail colours that are original, gentle on skin and fairly priced. Every order is checked by hand before it leaves our hands.',
-        'meta_desc' => 'Loom & Lustre: original lipstick, skincare, perfume, nail polish and makeup in Bangladesh. Cash on delivery all over the country.',
+        'about' => 'Loom & Lustre brings you hand-picked sarees, kurtis, westernwear, shoes, bags, jewellery and beauty that are original, well made and fairly priced. Every order is checked by hand before it leaves our hands.',
+        'meta_desc' => 'Loom & Lustre: sarees, kurtis, westernwear, shoes, bags, jewellery, lipstick and skincare in Bangladesh. Cash on delivery all over the country.',
         'wa_popup' => 'Need help choosing a shade? Ask us on WhatsApp.',
         'pixel_id' => '',
         'ga_id' => '',
         'notify_email' => '',
         // Home slider: 4 slides, each with image, small line, big title, text, button, link
-        's1_on' => '1', 's1_img' => 'assets/img/b/owner-lip.webp', 's1_kicker' => 'NEW IN', 's1_title' => 'Moonlight Lip Tint Set', 's1_text' => '8 rich shades in one cute box. Soft matte finish that stays all day.', 's1_btn' => 'Shop lips', 's1_link' => 'c/lips', 's1_dark' => '0',
-        's2_on' => '1', 's2_img' => 'assets/img/b/moist-cream.webp', 's2_kicker' => 'SKINCARE EDIT', 's2_title' => 'Glow starts with care', 's2_text' => 'Serums, creams and oils for fresh, healthy looking skin.', 's2_btn' => 'Shop skincare', 's2_link' => 'c/skincare', 's2_dark' => '0',
-        's3_on' => '1', 's3_img' => 'assets/img/b/golden-amber.webp', 's3_kicker' => 'FRAGRANCE', 's3_title' => 'Wear your signature', 's3_text' => 'Long lasting perfumes for every mood.', 's3_btn' => 'Find your scent', 's3_link' => 'c/fragrance', 's3_dark' => '1',
-        's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'BEAUTY SALE', 's4_title' => 'The big beauty sale', 's4_text' => 'Lipsticks, nail colours and makeup kits at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
+        's1_on' => '1', 's1_img' => 'assets/img/b/ethnic-festive.webp', 's1_kicker' => 'ETHNIC WEAR FESTIVAL', 's1_title' => 'Sarees & kurtis for every celebration', 's1_text' => 'Banarasi, katan and soft silk sarees, block print kurtis and festive salwar sets.', 's1_btn' => 'Shop ethnic wear', 's1_link' => 'c/ethnic', 's1_dark' => '0',
+        's2_on' => '1', 's2_img' => 'assets/img/b/owner-lip.webp', 's2_kicker' => 'NEW IN', 's2_title' => 'Moonlight Lip Tint Set', 's2_text' => '8 rich shades in one cute box. Soft matte finish that stays all day.', 's2_btn' => 'Shop lips', 's2_link' => 'c/lips', 's2_dark' => '0',
+        's3_on' => '1', 's3_img' => 'assets/img/b/western-edit.webp', 's3_kicker' => 'WESTERNWEAR', 's3_title' => 'Fresh styles, easy days', 's3_text' => 'Shirt dresses, co-ord sets and party gowns.', 's3_btn' => 'Shop westernwear', 's3_link' => 'c/westernwear', 's3_dark' => '0',
+        's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'THE BIG SALE', 's4_title' => 'Fashion & beauty sale', 's4_text' => 'Sarees, heels, bags and makeup at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
         // delivery
         'delivery_time_in' => '1 to 2 days', 'delivery_time_out' => '2 to 4 days',
         // payment
@@ -139,15 +144,20 @@ function defaults(): array {
         // Meta pixel + Conversions API
         'capi_token' => '', 'capi_test' => '',
         // SEO
-        'meta_title' => 'Loom & Lustre | Lipstick, Skincare & Beauty Shop in Bangladesh',
+        'meta_title' => 'Loom & Lustre | Fashion & Beauty Shop in Bangladesh',
         'meta_keywords' => 'lipstick bangladesh, skincare, makeup, perfume, nail polish, cosmetics shop, loom and lustre',
         // homepage sections (Homepage CMS)
         'h_cats_on' => '1', 'h_cats_t' => 'What are you looking for?', 'h_cats_s' => '',
         'h_flash_on' => '1', 'h_flash_t' => 'Flash sale', 'h_flash_s' => 'Hurry, these prices end tonight',
+        'h_spot_on' => '1', 'h_spot_t' => 'In the spotlight', 'h_spot_s' => 'The biggest offers in every department',
+        'h_styles_on' => '1', 'h_styles_t' => 'Styles to celebrate in', 'h_styles_s' => 'Ready-made edits for every occasion',
+        'h_picks_on' => '1', 'h_picks_t' => "Stylists' picks", 'h_picks_s' => 'CHOSEN BY OUR STYLISTS THIS WEEK',
+        'h_luxe_on' => '1', 'h_luxe_t' => 'The Luxe Edit', 'h_luxe_s' => 'Silk, gold and fine finishes for the moments that matter.',
+        'h_circles_on' => '1', 'h_circles_t' => 'Find everything for your every need', 'h_circles_s' => 'Fashion, beauty and accessories in one place',
         'h_deals_on' => '1', 'h_deals_t' => 'Deals of the week', 'h_deals_s' => 'Special prices for a short time',
-        'h_promo_on' => '1',
+        'h_promo_on' => '0',
         'h_best_on' => '1', 'h_best_t' => 'Bestsellers', 'h_best_s' => 'What our customers love most',
-        'h_band_on' => '1', 'h_band_t' => 'Beauty you can trust',
+        'h_band_on' => '1', 'h_band_t' => 'Fashion & beauty you can trust',
         'h_makeup_on' => '1', 'h_makeup_t' => 'Makeup must-haves', 'h_makeup_s' => 'Palettes, blush, mascara and more',
         'h_skin_on' => '1', 'h_skin_t' => 'Skincare favourites', 'h_skin_s' => 'Serums and creams for a healthy glow',
         'h_new_on' => '1', 'h_new_t' => 'New in', 'h_new_s' => 'Fresh arrivals this week',

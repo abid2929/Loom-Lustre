@@ -286,7 +286,7 @@
 
   /* ---------- demo: nothing found on search ---------- */
   if (LL.demo && /\/search\/?$/.test(location.pathname) && typeof shown !== 'undefined' && shown === 0 && qs) {
-    var g = $('.grid'); if (g) g.insertAdjacentHTML('beforebegin', '<div class="empty-box"><h3>Nothing found for "' + esc(qs) + '"</h3><p>Try another word, like lipstick, serum or perfume.</p><a class="btn" href="' + B + 'shop/">See all products</a></div>');
+    var g = $('.grid'); if (g) g.insertAdjacentHTML('beforebegin', '<div class="empty-box"><h3>Nothing found for "' + esc(qs) + '"</h3><p>Try another word, like saree, heels or lipstick.</p><a class="btn" href="' + B + 'shop/">See all products</a></div>');
   }
 
   /* ---------- demo: order tracking (orders placed in this browser) ---------- */
@@ -304,3 +304,5 @@
 
   counts();
 })();
+/* close the "More" category menu when clicking elsewhere */
+document.addEventListener('click', function (e) { var d = document.querySelector('.nav-more[open]'); if (d && !d.contains(e.target)) d.removeAttribute('open'); });

@@ -114,7 +114,7 @@ function site_header(): void {
     <?= brand_mark() ?>
     <form class="search" action="<?= url('search') ?>" role="search">
       <?= icon('search', 19) ?>
-      <input type="search" name="q" placeholder="Search lipstick, serum, perfume..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
+      <input type="search" name="q" placeholder="Search sarees, heels, lipstick..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
     </form>
     <nav class="hdr-act">
       <a class="icon-btn only-d" href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><?= icon('wa') ?><span>Help</span></a>
@@ -126,7 +126,8 @@ function site_header(): void {
     <div class="wrap catnav-in">
       <a href="<?= url() ?>" class="<?= $a === 'home' ? 'on' : '' ?>">Home</a>
       <a href="<?= url('shop') ?>" class="<?= $a === 'shop' ? 'on' : '' ?>">All Products</a>
-      <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
+      <?php $nv = count($cats) > 9 ? 7 : count($cats); foreach (array_slice($cats, 0, $nv) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
+      <?php if (count($cats) > $nv): $rest = array_slice($cats, $nv); ?><details class="nav-more"><summary class="<?= in_array($a, array_map(fn($c) => 'c/' . $c['slug'], $rest), true) ? 'on' : '' ?>">More <?= icon('chev', 13) ?></summary><div class="nav-more-m"><?php foreach ($rest as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div></details><?php endif; ?>
       <a href="<?= url('new') ?>" class="<?= $a === 'new' ? 'on' : '' ?>">New In</a>
       <a href="<?= url('sale') ?>" class="sale <?= $a === 'sale' ? 'on' : '' ?>">Sale</a>
     </div>
@@ -173,7 +174,7 @@ function page_foot(): void {
       <p><?= e(S('about')) ?></p>
       <?php if ($social): ?><div class="social"><?php foreach ($social as $k => $u): ?><a href="<?= e($u) ?>" target="_blank" rel="noopener" aria-label="<?= $k ?>"><?= icon($k, 20) ?></a><?php endforeach; ?></div><?php endif; ?>
     </div>
-    <div><h4>Shop</h4><?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?><a href="<?= url('sale') ?>">Sale</a></div>
+    <div><h4>Shop</h4><?php foreach (array_slice($cats, 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?><a href="<?= url('shop') ?>">All products</a><a href="<?= url('sale') ?>">Sale</a></div>
     <div><h4>Help</h4><a href="<?= url('track') ?>">Track order</a><a href="<?= url('about') ?>#delivery">Delivery &amp; payment</a><a href="<?= url('about') ?>#exchange">Exchange policy</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></div>
     <div><h4>Contact</h4>
       <a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 17) ?><?= e(S('phone')) ?></a>

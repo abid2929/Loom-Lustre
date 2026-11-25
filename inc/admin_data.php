@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 const LL_ST_TO_ADMIN = ['new' => 'pending', 'confirmed' => 'processing', 'shipped' => 'shipped', 'delivered' => 'delivered', 'cancelled' => 'cancelled', 'returned' => 'returned'];
-const LL_SECTIONS = ['cats' => 'What are you looking for?', 'flash' => 'Flash sale', 'deals' => 'Deals of the week', 'promo' => 'Two promo banners', 'best' => 'Bestsellers', 'band' => 'Why us band', 'makeup' => 'Makeup row', 'skin' => 'Skincare row', 'new' => 'New in', 'reviews' => 'Customer reviews', 'help' => 'Shade help box'];
+const LL_SECTIONS = ['cats' => 'What are you looking for?', 'flash' => 'Flash sale', 'spot' => 'In the spotlight (offers by category)', 'styles' => 'Styles to celebrate (collections)', 'deals' => 'Deals of the week', 'promo' => 'Two promo banners', 'picks' => "Stylists' picks (dark band)", 'best' => 'Bestsellers', 'luxe' => 'Luxe edit', 'band' => 'Why us band', 'makeup' => 'Makeup row', 'skin' => 'Skincare row', 'new' => 'New in', 'circles' => 'Round category circles', 'reviews' => 'Customer reviews', 'help' => 'Shade help box'];
 
 function ll_status_db(string $s): string { $f = array_flip(LL_ST_TO_ADMIN); return $f[$s] ?? 'new'; }
 function ll_is_local(string $s): bool { return (bool)preg_match('~^(assets|uploads)/[a-z0-9_\-/.]+\.(jpe?g|png|webp|gif)$~i', $s) && !str_contains($s, '..'); }

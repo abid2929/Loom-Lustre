@@ -122,7 +122,7 @@ case '':
     page_head('', '', '', 'home');
     $cats = categories();
     ?>
-<h1 class="sr"><?= e(S('meta_title') !== '' ? S('meta_title') : S('shop_name') . ': beauty and cosmetics shop in Bangladesh') ?></h1>
+<h1 class="sr"><?= e(S('meta_title') !== '' ? S('meta_title') : S('shop_name') . ': fashion and beauty shop in Bangladesh') ?></h1>
 <?php
     // biggest real discount behind each banner link (c/<slug>, sale, shop) for the offer pill
     $offFor = function (string $lk): int {
@@ -159,7 +159,7 @@ case '':
 <?php if ($on('cats')): ?>
 <section class="wrap look">
   <div class="look-h"><h2><?= e($T('cats') !== '' ? $T('cats') : 'What are you looking for?') ?></h2><?php if ($Sb('cats') !== ''): ?><p><?= e($Sb('cats')) ?></p><?php endif; ?></div>
-  <div class="cats">
+  <div class="cats<?= count($cats) > 6 ? " many" : "" ?>">
     <?php foreach ($cats as $k => $c): ?>
     <a class="cat t<?= $k % 6 ?>" href="<?= url('c/' . $c['slug']) ?>"><span class="cat-img"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="300" height="375" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
     <?php endforeach; ?>
@@ -175,6 +175,28 @@ case '':
 </section>
 <?php endif; ?>
 
+<?php if ($on('spot')): $spot = db()->query("SELECT c.slug, c.name, c.image, MAX((p.old_price - p.price) * 100 / p.old_price) off, COUNT(p.id) n FROM categories c JOIN products p ON p.category_id=c.id AND p.active=1 WHERE c.active=1 GROUP BY c.id HAVING n > 0 ORDER BY off DESC, c.sort LIMIT 8")->fetchAll(); if (count($spot) >= 4): $spot = array_slice($spot, 0, intdiv(count($spot), 4) * 4); ?>
+<section class="wrap sec spot-s">
+  <?= section_head($T('spot'), $Sb('spot'), 'sale', 'All offers') ?>
+  <div class="spot">
+    <?php foreach ($spot as $k => $c): $o = (int)$c['off']; ?>
+    <a class="spot-c" href="<?= url('c/' . $c['slug']) ?>"><span class="spot-p"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" width="600" height="750" loading="lazy"></span><span class="spot-t"><b><?= e($c['name']) ?></b><em><?= $o >= 5 ? 'Up to ' . $o . '% off' : 'New styles inside' ?></em></span></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; endif; ?>
+
+<?php $colls = $on('styles') ? array_values(array_filter(collections(), fn($c) => !in_array($c['slug'], ['stylists-picks', 'luxe-edit'], true))) : []; if ($colls): ?>
+<section class="wrap sec">
+  <?= section_head($T('styles'), $Sb('styles')) ?>
+  <div class="colls">
+    <?php foreach ($colls as $c): ?>
+    <a class="coll" href="<?= url('collection/' . $c['slug']) ?>"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" width="600" height="800" loading="lazy"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small><i>Shop now <?= icon('chev', 14) ?></i></span></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php if ($on('deals')): ?>
 <section class="wrap sec">
   <?= section_head($T('deals'), $Sb('deals'), 'sale') ?>
@@ -182,13 +204,16 @@ case '':
 </section>
 <?php endif; ?>
 
-<?php $colls = collections(); if ($colls): ?>
-<section class="wrap sec">
-  <?= section_head('Shop the collections', 'Hand-picked sets for every moment') ?>
-  <div class="colls">
-    <?php foreach ($colls as $c): ?>
-    <a class="coll" href="<?= url('collection/' . $c['slug']) ?>"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" loading="lazy"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small></span></a>
-    <?php endforeach; ?>
+<?php $pk = $on('picks') ? db()->query("SELECT * FROM collections WHERE slug='stylists-picks' AND active=1")->fetch() : null; $pkp = $pk ? q('p.id IN (SELECT product_id FROM col_items WHERE collection_id=?)', [(int)$pk['id']], 'p.featured DESC, p.sort', 4) : []; if (count($pkp) >= 2): ?>
+<section class="picks-band">
+  <div class="wrap">
+    <div class="picks-h"><small><?= e($Sb('picks') !== '' ? $Sb('picks') : $pk['tagline']) ?></small><h2><?= e($T('picks') !== '' ? $T('picks') : $pk['name']) ?></h2></div>
+    <div class="picks">
+      <?php foreach ($pkp as $p): $po = discount_pct($p); ?>
+      <a class="pick" href="<?= url('p/' . $p['slug']) ?>"><span class="pick-p"><img src="<?= e(img_small(p_image($p))) ?>" alt="<?= e($p['name']) ?>" width="600" height="750" loading="lazy"><?php if ($po): ?><em><?= $po ?>% off</em><?php endif; ?></span><b><?= e($p['name']) ?></b><span class="pick-m"><?= money($p['price']) ?><i>Shop the look <?= icon('chev', 14) ?></i></span></a>
+      <?php endforeach; ?>
+    </div>
+    <a class="btn gold" href="<?= url('collection/stylists-picks') ?>">See all picks</a>
   </div>
 </section>
 <?php endif; ?>
@@ -239,6 +264,25 @@ case '':
 </section>
 <?php endif; ?>
 
+<?php $lx = $on('luxe') ? db()->query("SELECT * FROM collections WHERE slug='luxe-edit' AND active=1")->fetch() : null; $lxp = $lx ? q('p.id IN (SELECT product_id FROM col_items WHERE collection_id=?) AND p.images NOT LIKE ?', [(int)$lx['id'], '%' . (string)$lx['image'] . '%'], 'p.price DESC', 3) : []; if ($lx && $lxp): ?>
+<section class="wrap sec luxe-s">
+  <div class="luxe">
+    <a class="luxe-img" href="<?= url('collection/luxe-edit') ?>"><img src="<?= e(img_url((string)$lx['image'])) ?>" alt="<?= e($lx['name']) ?>" width="1200" height="1500" loading="lazy"></a>
+    <div class="luxe-t">
+      <small>LUXE EDIT</small>
+      <h2><?= e($T('luxe') !== '' ? $T('luxe') : $lx['name']) ?></h2>
+      <p><?= e($Sb('luxe') !== '' ? $Sb('luxe') : $lx['tagline']) ?></p>
+      <div class="luxe-ps">
+        <?php foreach ($lxp as $p): ?>
+        <a href="<?= url('p/' . $p['slug']) ?>"><img src="<?= e(img_small(p_image($p))) ?>" alt="" width="600" height="750" loading="lazy"><b><?= e($p['name']) ?></b><span><?= money($p['price']) ?></span></a>
+        <?php endforeach; ?>
+      </div>
+      <a class="btn gold" href="<?= url('collection/luxe-edit') ?>">Explore the edit</a>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php if ($on('skin')): ?>
 <section class="wrap sec">
   <?= section_head($T('skin'), $Sb('skin'), 'c/skincare') ?>
@@ -250,6 +294,17 @@ case '':
 <section class="wrap sec">
   <?= section_head($T('new'), $Sb('new'), 'new') ?>
   <?= product_grid(q('', [], 'p.is_new DESC, p.id DESC', 8), 'grid rail') ?>
+</section>
+<?php endif; ?>
+
+<?php if ($on('circles') && count($cats) > 3): ?>
+<section class="wrap sec circ-s">
+  <?= section_head($T('circles'), $Sb('circles'), 'shop', 'Shop all') ?>
+  <div class="circles">
+    <?php foreach ($cats as $c): ?>
+    <a href="<?= url('c/' . $c['slug']) ?>"><span><img src="<?= e(img_small($c['image'])) ?>" alt="" width="160" height="160" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
+    <?php endforeach; ?>
+  </div>
 </section>
 <?php endif; ?>
 
@@ -333,7 +388,7 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
     </label>
   </form>
   <?php if ($page === 'search' && !$list): ?>
-    <div class="empty-box"><?= icon('search', 40) ?><h2>Nothing found</h2><p>Try another word, like lipstick, serum or perfume.</p><a class="btn" href="<?= url('shop') ?>">See all products</a></div>
+    <div class="empty-box"><?= icon('search', 40) ?><h2>Nothing found</h2><p>Try another word, like saree, heels or lipstick.</p><a class="btn" href="<?= url('shop') ?>">See all products</a></div>
   <?php else: ?>
     <?= product_grid($list) ?>
   <?php endif; ?>
@@ -373,7 +428,7 @@ case 'p':
       <div class="price big"><b><?= money($p['price']) ?></b><?php if ($off): ?><s><?= money($p['old_price']) ?></s><em><?= $off ?>% off</em><?php endif; ?></div>
       <p class="tax">Price includes VAT. <?= $p['size'] !== '' ? 'Size: ' . e($p['size']) . '.' : '' ?></p>
       <?php if ($shades): ?>
-      <div class="opt"><span>Shade: <b id="shadeName"><?= e($shades[0]) ?></b></span>
+      <div class="opt"><span><?= in_array($p['cat_slug'], ['lips', 'skincare', 'makeup', 'fragrance', 'nails', 'body'], true) ? 'Shade' : 'Colour' ?>: <b id="shadeName"><?= e($shades[0]) ?></b></span>
         <div class="shades"><?php foreach ($shades as $i => $s): ?><button type="button" class="<?= $i === 0 ? 'on' : '' ?>" data-shade="<?= e($s) ?>"<?= isset($shadeImg[$s]) ? ' data-img="' . e($shadeImg[$s]) . '"' : '' ?>><?= e($s) ?></button><?php endforeach; ?></div>
       </div>
       <?php endif; ?>

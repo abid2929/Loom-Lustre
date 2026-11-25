@@ -71,4 +71,114 @@ function ll_seed(PDO $pdo): void {
     $up = $pdo->prepare('UPDATE products SET collection_id=? WHERE slug=?');
     foreach ($cols as $i => $c) { $cc->execute([$c[0], $c[1], $c[2], $c[3], $i + 1]); $cid = (int)$pdo->lastInsertId(); foreach ($c[4] as $s) $up->execute([$cid, $s]); }
     $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('velvet-red-matte-lipstick','peach-glow-blush','vitamin-c-glow-serum','drip-colour-nail-trio','lash-length-mascara','rainbow-eyeshadow-palette')");
+    ll_seed_fashion($pdo);
+}
+
+// v1.3 fashion range (Nykaa-style category row). Added once to fresh installs and to untouched demo shops.
+function ll_seed_fashion(PDO $pdo): void {
+    $now = date('Y-m-d H:i:s');
+    if ((int)$pdo->query("SELECT COUNT(*) FROM categories WHERE slug='ethnic'")->fetchColumn()) return;
+    $cats = [
+        ['Ethnic Wear', 'ethnic', 'Sarees, kurtis and salwar kameez', 'eth-red-saree'],
+        ['Westernwear', 'westernwear', 'Dresses, tops and co-ord sets', 'wst-shirt-dress'],
+        ['Men', 'men', 'Shirts, suits and jackets', 'men-navy-suit'],
+        ['Footwear', 'footwear', 'Heels, loafers and boots', 'fw-floral-heels'],
+        ['Bags', 'bags', 'Handbags, totes and slings', 'bag-red-top'],
+        ['Jewellery', 'jewellery', 'Gold-tone sets, earrings and pendants', 'jw-bridal-set'],
+        ['Sunglasses', 'eyewear', 'UV400 frames for sunny days', 'sg-gold-round'],
+        ['Kids', 'kids', 'Party dresses and everyday sets', 'kd-unicorn-dress'],
+        ['Activewear', 'activewear', 'Leggings and training sets', 'act-lilac-set'],
+        ['Sneakers', 'sneakers', 'Everyday and chunky sneakers', 'snk-colour-pop'],
+    ];
+    // fashion goes first in the menu, beauty after it
+    $pdo->exec('UPDATE categories SET sort = sort + 20');
+    $ci = $pdo->prepare('INSERT INTO categories(name,slug,tagline,image,sort) VALUES(?,?,?,?,?)');
+    $ids = [];
+    foreach ($cats as $i => $c) { $ci->execute([$c[0], $c[1], $c[2], 'assets/img/p/' . $c[3] . '.webp', $i + 1]); $ids[$c[1]] = (int)$pdo->lastInsertId(); }
+    $W = 'S, M, L, XL'; $F = '36, 37, 38, 39, 40'; $M = '40, 41, 42, 43, 44'; $K = '2-3 Y, 4-5 Y, 6-7 Y';
+    // name, cat, img, price, old, colours, sizes, short, description, featured, bestseller, new
+    $P = [
+        ['Rose Gold Banarasi Silk Saree', 'ethnic', 'eth-banarasi-saree', 6490, 8990, 'Rose Pink, Magenta', '', 'Soft Banarasi silk with a rich zari border.', "A glowing rose-pink Banarasi silk saree with a woven gold zari border and pallu. Light enough for a long wedding day and comes with an unstitched blouse piece.\n\nLength 6.3 m including blouse piece.", 1, 1, 0],
+        ['Royal Purple Katan Saree', 'ethnic', 'eth-purple-saree', 5890, 7490, 'Purple, Wine', '', 'A regal katan weave in deep purple and gold.', "Deep purple katan silk with an all-over gold motif and a heavy border. Made for receptions, Eid dinners and family weddings.\n\nLength 6.3 m including blouse piece.", 1, 0, 1],
+        ['Sage Green Soft Silk Saree', 'ethnic', 'eth-sage-saree', 4990, 6290, 'Sage Green, Mint', '', 'Calm sage silk that pairs beautifully with gold.', "A soft silk saree in a fresh sage green with a fine woven border. Drapes easily and looks lovely with gold or kundan jewellery.\n\nLength 6.3 m including blouse piece.", 0, 1, 0],
+        ['Red Bridal Kanjivaram Saree', 'ethnic', 'eth-red-saree', 8990, 11990, 'Bridal Red', '', 'Classic bridal red with a broad gold border.', "A rich red Kanjivaram-style silk saree with a broad gold temple border. The timeless choice for a bride or the bride's sister.\n\nLength 6.3 m including blouse piece.", 1, 1, 0],
+        ['Pink Block Print Kurti Set', 'ethnic', 'eth-pink-kurti', 1890, 2490, 'Pink', $W, 'Breezy cotton kurti with matching pants.', "A soft cotton kurti with hand block print florals, paired with matching straight pants. Cool and comfortable for Bangladesh summers.", 1, 1, 0],
+        ['Ivory Floral Kurti Set', 'ethnic', 'eth-white-kurti', 1790, 2290, 'Ivory', $W, 'Fresh ivory kurti with printed florals.', "An ivory cotton kurti set with printed florals and lace detail at the neckline. Easy to wear for office, campus or a day out.", 0, 0, 1],
+        ['Marigold Embroidered Kurti', 'ethnic', 'eth-yellow-kurti', 1450, 1890, 'Marigold Yellow', $W, 'Sunny yellow kurti with a colourful yoke.', "A tiered marigold kurti with colourful thread embroidery on the yoke. Perfect for Gaye Holud and Pohela Boishakh.", 0, 1, 0],
+        ['Indigo Paisley Anarkali Kurti', 'ethnic', 'eth-navy-kurti', 1690, 2190, 'Indigo', $W, 'Flowing anarkali with a paisley print.', "A flared indigo anarkali kurti with a classic paisley print and three-quarter sleeves. Pairs with leggings or palazzos.", 0, 0, 0],
+        ['Red Salwar Kameez with Dupatta', 'ethnic', 'eth-red-salwar', 2650, 3390, 'Red', $W, 'Festive red three-piece with a printed dupatta.', "A three-piece salwar kameez in festive red with a printed dupatta. Ready to wear for Eid and family dawats.", 1, 0, 1],
+        ['Terracotta Belted Shirt Dress', 'westernwear', 'wst-shirt-dress', 2450, 3290, 'Terracotta, Olive, Black', $W, 'Easy button-down dress with a tie waist.', "A soft cotton-blend shirt dress with short sleeves, front buttons and a tie belt. Dress it up with heels or down with sneakers.", 1, 1, 0],
+        ['Cloud Ruffle Blouse', 'westernwear', 'wst-ruffle-blouse', 1650, 2190, 'White', $W, 'Statement blouse with soft textured ruffles.', "A white blouse with puffed sleeves and a textured ruffle finish. Tuck it into a skirt or jeans for an instant style lift.", 0, 0, 1],
+        ['Pink Blossom Co-ord Set', 'westernwear', 'wst-floral-coord', 2850, 3790, 'Blossom Pink', $W, 'Printed shirt and wide pants, ready to go.', "A relaxed shirt and wide-leg pants in a pretty blossom print. Light fabric, easy fit and very photo friendly.", 1, 0, 1],
+        ['Plum Satin Evening Gown', 'westernwear', 'wst-satin-gown', 5990, 7990, 'Plum, Emerald', $W, 'A floor-length satin gown for big nights.', "A rich plum satin gown with a fitted bodice and flowing skirt. Made for receptions, parties and award nights.", 0, 0, 0],
+        ['Mustard Knit Sweater', 'westernwear', 'wst-mustard-knit', 1390, 1790, 'Mustard, Cream', $W, 'Soft knit sweater for winter evenings.', "A cosy, soft knit sweater in warm mustard. Relaxed fit that looks great with jeans.", 0, 1, 0],
+        ['Red Polka Dot Midi Dress', 'westernwear', 'wst-polka-midi', 1990, 2590, 'Red', $W, 'A playful polka dot midi with a V neck.', "A flattering red midi dress with white polka dots and a soft V neckline. Light, breezy and easy to style.", 0, 0, 0],
+        ['Indigo Linen Shirt', 'men', 'men-linen-shirt', 1390, 1790, 'Indigo, White', $M, 'Breathable linen shirt for hot days.', "A relaxed linen-blend shirt in washed indigo. Stays cool in humid weather and looks smart with chinos.", 1, 1, 0],
+        ['Navy Slim Fit Suit', 'men', 'men-navy-suit', 8990, 11490, 'Navy', $M, 'Two-piece slim fit suit for weddings and office.', "A sharp two-piece navy suit with a slim cut jacket and matching trousers. Wear it to weddings, interviews and formal events.", 1, 0, 0],
+        ['Tan Suede Jacket', 'men', 'men-suede-jacket', 4490, 5990, 'Tan', $M, 'Soft faux suede jacket with a classic collar.', "A tan faux suede jacket with a classic collar and front buttons. The easy winter layer over a tee or shirt.", 0, 0, 1],
+        ['Crisp White Formal Shirt', 'men', 'men-white-shirt', 1290, 1590, 'White, Sky Blue', $M, 'Wrinkle-resistant shirt for every day.', "A crisp, wrinkle-resistant white shirt with a neat collar. The one shirt every wardrobe needs.", 0, 1, 0],
+        ['Mustard Check Overshirt', 'men', 'men-check-shirt', 1490, 1890, 'Mustard Check', $M, 'Brushed cotton check shirt to wear open.', "A brushed cotton overshirt in a mustard and black check. Wear it open over a tee for an easy weekend look.", 0, 0, 0],
+        ['Essential White Tee', 'men', 'men-white-tee', 590, 790, 'White, Black, Grey', $M, 'Soft cotton tee with a clean crew neck.', "A soft, thick cotton t-shirt with a clean crew neck. Keeps its shape wash after wash.", 0, 1, 0],
+        ['Ivory Pointed Pumps', 'footwear', 'fw-white-pumps', 2290, 2990, 'Ivory', $F, 'Elegant pointed pumps with a slim heel.', "Ivory pointed-toe pumps with a 9 cm slim heel and a cushioned insole. Pairs with sarees and gowns alike.", 1, 0, 0],
+        ['Blue Garden Floral Heels', 'footwear', 'fw-floral-heels', 2590, 3290, 'Blue Floral', $F, 'Statement heels in a bright floral print.', "Almond-toe stilettos covered in a blue and pink garden print. The pair everyone asks about.", 1, 1, 1],
+        ['Hot Pink Patent Stilettos', 'footwear', 'fw-pink-stilettos', 2490, 3190, 'Hot Pink', $F, 'Glossy pink stilettos for party nights.', "High-shine patent stilettos in hot pink with a pointed toe. Made for parties and photos.", 0, 0, 0],
+        ['Classic Black Pumps', 'footwear', 'fw-black-pumps', 1990, 2590, 'Black', $F, 'The everyday black heel, office to evening.', "Simple black pumps with a comfortable 8 cm heel. Smart for the office and right for the evening.", 0, 1, 0],
+        ['Walnut Leather Brogues', 'footwear', 'fw-brogues', 3490, 4490, 'Walnut Brown', $M, 'Polished leather brogues for formal days.', "Genuine leather brogues in a polished walnut brown with classic punch detail. The finishing touch for suits.", 1, 0, 0],
+        ['Tan Brogue Boots', 'footwear', 'fw-boots', 4290, 5490, 'Tan', $M, 'Lace-up leather boots with brogue detail.', "Lace-up tan leather boots with brogue detailing and a sturdy sole. Warm, smart and long lasting.", 0, 0, 1],
+        ['Black Penny Loafers', 'footwear', 'fw-loafers', 2890, 3590, 'Black', $M, 'Glossy slip-on loafers with a chunky sole.', "Shiny black slip-on loafers with a chunky sole. Smart with trousers, cool with jeans.", 0, 1, 0],
+        ['Colour Pop Chunky Sneakers', 'sneakers', 'snk-colour-pop', 2990, 3990, 'Multi', $F, 'Bold chunky sneakers with colour blocking.', "Chunky sneakers with mint, purple and red colour blocking and a cushioned sole. Light and comfy for all-day walking.", 1, 1, 1],
+        ['Red Canvas Sneakers', 'sneakers', 'snk-red-canvas', 1490, 1990, 'Red, Navy', $F, 'Classic lace-up canvas sneakers.', "Classic low-top canvas sneakers with a white rubber toe cap and cushioned insole. Easy to wear with jeans, dresses or kurtis.", 0, 1, 1],
+        ['Everyday White Sneakers', 'sneakers', 'snk-white-classic', 2290, 2890, 'White', $F, 'Minimal leather-look sneakers for daily wear.', "Minimal white sneakers with a leather-look upper and comfortable sole. Wipe clean and go.", 0, 0, 0],
+        ['Cherry Top Handle Bag', 'bags', 'bag-red-top', 3290, 4290, 'Cherry Red, Black', '', 'Structured top handle bag with a shoulder strap.', "A structured cherry red bag with a top handle, silver clasp and detachable shoulder strap. Fits a phone, wallet and lipstick.", 1, 1, 0],
+        ['Tan Wicker Handbag', 'bags', 'bag-wicker', 2890, 3690, 'Tan', '', 'Woven wicker base with a leather-look top.', "A charming handbag with a woven wicker base and a smooth tan top. Perfect for brunches and holidays.", 0, 0, 1],
+        ['Woven Chain Tote', 'bags', 'bag-woven-tote', 3990, 4990, 'Cognac', '', 'Roomy woven tote with a gold chain strap.', "A soft, roomy woven tote in cognac brown with a gold chain detail. Big enough for a laptop.", 1, 0, 0],
+        ['Cognac Crossbody Sling', 'bags', 'bag-sling', 1890, 2490, 'Cognac, Black', '', 'A neat everyday sling with an adjustable strap.', "A compact crossbody sling with a fold-over flap and adjustable strap. Hands free and always neat.", 0, 1, 0],
+        ['Grey Buckle Satchel', 'bags', 'bag-satchel', 2490, 3190, 'Grey', '', 'Classic satchel with twin buckles.', "A classic satchel with twin buckles, top handle and a shoulder strap. Great for office and campus.", 0, 0, 0],
+        ['Black Structured Tote', 'bags', 'bag-black-tote', 3490, 4490, 'Black', '', 'Clean black tote for work days.', "A clean, structured black tote with long handles and a roomy inside. Your everyday work bag.", 0, 1, 0],
+        ['Black Mini Duffle Bag', 'bags', 'bag-duffle', 2190, 2790, 'Black', '', 'Compact duffle with buckle straps.', "A compact barrel duffle with buckle straps and twin handles. Cute for weekends and short trips.", 0, 0, 1],
+        ['Kundan Gold Bridal Necklace Set', 'jewellery', 'jw-bridal-set', 4990, 6990, '', '', 'Gold-tone necklace with matching earrings.', "A grand gold-tone necklace with ruby-pink stones and matching earrings. Made for brides and wedding guests.\n\nGold-plated brass. Keep away from water and perfume.", 1, 1, 0],
+        ['Gold Plated Bangle Set', 'jewellery', 'jw-bangles', 1490, 1990, '', '2.4, 2.6, 2.8', 'Set of six twisted gold-tone bangles.', "Six twisted gold-tone bangles that shine with sarees and kurtis.\n\nGold-plated brass.", 0, 1, 0],
+        ['Sapphire Drop Earrings', 'jewellery', 'jw-sapphire-drops', 1290, 1690, '', '', 'Crystal drops with a deep blue stone.', "Statement drop earrings with sparkling crystals around a deep blue stone. Perfect for evenings.", 0, 0, 1],
+        ['Twisted Gold Hoops', 'jewellery', 'jw-twist-hoops', 890, 1190, '', '', 'Chunky twisted hoops for every day.', "Chunky twisted hoops in a warm gold tone. Light on the ear and easy to wear daily.", 0, 1, 0],
+        ['Crystal Huggie Hoops', 'jewellery', 'jw-huggies', 790, 990, '', '', 'Small hoops lined with crystals.', "Small huggie hoops lined with clear crystals. A tiny sparkle for every day.", 0, 0, 0],
+        ['Golden Shell Earrings', 'jewellery', 'jw-shell-earrings', 690, 890, '', '', 'Playful gold-tone seashell drops.', "Playful seashell drop earrings in polished gold tone. A fun summer piece.", 0, 0, 1],
+        ['Oval Pendant Chain', 'jewellery', 'jw-oval-pendant', 990, 1290, '', '', 'Minimal oval pendant on a snake chain.', "A minimal open oval pendant on a smooth snake chain. Layers well with other chains.", 1, 0, 0],
+        ['Pearl Drop Pendant', 'jewellery', 'jw-pearl-pendant', 1190, 1490, '', '', 'A single pearl in a gold-tone frame.', "A single freshwater-style pearl in a fine gold-tone frame on a delicate chain. Gift ready.", 0, 1, 0],
+        ['Crystal Stud Earrings', 'jewellery', 'jw-studs', 590, 790, '', '', 'Round crystal studs set in gold tone.', "Round crystal studs in a gold-tone setting. Simple, bright and right for every day.", 0, 0, 0],
+
+
+        ['Gold Round Sunglasses', 'eyewear', 'sg-gold-round', 1290, 1690, 'Gold / Green', '', 'Thin gold frame with green lenses.', "Round sunglasses with a thin gold metal frame and green-tinted UV400 lenses. Comes with a case.", 1, 1, 0],
+        ['Clear Frame Sunglasses', 'eyewear', 'sg-clear-frame', 1190, 1490, 'Clear / Brown', '', 'Light clear frames with warm brown lenses.', "Lightweight clear frames with warm brown UV400 lenses. Fresh and summery.", 0, 0, 0],
+        ['Black Browline Sunglasses', 'eyewear', 'sg-browline', 1090, 1390, 'Black', '', 'Classic browline shape in black.', "A classic browline frame in black with dark UV400 lenses. Suits most face shapes.", 0, 1, 0],
+        ['Amber Tint Sunglasses', 'eyewear', 'sg-amber', 1190, 1490, 'Amber', '', 'Oversized frames with amber lenses.', "Oversized frames with soft amber lenses for a retro look. UV400 protection.", 0, 0, 1],
+        ['Little Gent Cardigan Set', 'kids', 'kd-gent-set', 1490, 1890, 'Navy / Blue', $K, 'Cardigan, shirt and shorts with a bow tie.', "A smart little set with a navy cardigan, shirt, blue shorts and a bow tie. Made for weddings and birthday parties.", 1, 0, 0],
+        ['Unicorn Tulle Party Dress', 'kids', 'kd-unicorn-dress', 1690, 2190, 'Navy Blue', $K, 'Sparkly tulle dress with a unicorn print.', "A party dress with a unicorn print top and layered ombre tulle skirt. Soft cotton lining so it never itches.", 1, 1, 1],
+        ['Baby Cotton Tee & Hat Set', 'kids', 'kd-tee-hat', 790, 990, 'White / Olive', '0-6 M, 6-12 M, 1-2 Y', 'Soft tee with a cute knit hat.', "A soft cotton tee with a cosy knit hat. Gentle on baby skin.", 0, 0, 0],
+        ['Baby Romper Pack', 'kids', 'kd-romper-pack', 1290, 1690, 'Pastel Mix', '0-6 M, 6-12 M, 1-2 Y', 'Three soft cotton rompers in pastel shades.', "A pack of three soft cotton rompers in pastel colours with snap buttons for easy changes.", 0, 1, 0],
+        ['Girls Polka Frill Dress', 'kids', 'kd-polka-frill', 1190, 1490, 'Yellow Polka', $K, 'Twirly frill dress in a happy polka print.', "A twirly cotton frill dress in a bright yellow polka print. Comfortable for play and pretty for photos.", 0, 0, 1],
+        ['Sculpt High-Rise Leggings', 'activewear', 'act-leggings', 1290, 1690, 'Lilac, Mustard, Sky, Beige', 'XS, S, M, L, XL', 'Squat-proof leggings with a high waist.', "Soft, stretchy high-rise leggings that stay put during yoga, gym or running. Quick dry and squat proof.", 1, 1, 0],
+        ['Lilac Training Set', 'activewear', 'act-lilac-set', 2490, 3190, 'Lilac, Teal, Black', 'XS, S, M, L, XL', 'Matching top and leggings for the gym.', "A matching training set with a supportive top and high-rise leggings. Sweat wicking and super comfy.", 0, 1, 1],
+        ['Navy Track Set', 'activewear', 'act-navy-set', 2790, 3490, 'Navy', 'XS, S, M, L, XL', 'Zip jacket and joggers for travel and training.', "A navy zip jacket with matching joggers. Smart enough for travel, comfy enough for training.", 0, 0, 0],
+    ];
+    $pi = $pdo->prepare('INSERT INTO products(name,slug,category_id,brand,price,old_price,images,shades,sizes,size,stock,short,description,how_to,featured,bestseller,is_new,sort,sold,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $base = 100;
+    foreach ($P as $i => $p) {
+        $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre', $p[3], $p[4], json_encode(['assets/img/p/' . $p[2] . '.webp']), $p[5], $p[6], '', 20, $p[7], $p[8], '', $p[9], $p[10], $p[11], $base + $i, $p[10] ? 55 - ($i % 30) : 4, $now, $now]);
+    }
+    // occasion edits ("Styles to celebrate in"), stylists' picks and the luxe edit
+    $cols = [
+        ['Eid Edit', 'eid-edit', 'Festive kurtis, salwar and gold for Eid', 'eth-red-salwar', ['red-salwar-kameez-with-dupatta', 'marigold-embroidered-kurti', 'pink-block-print-kurti-set', 'gold-plated-bangle-set', 'golden-amber-perfume', 'velvet-red-matte-lipstick', 'little-gent-cardigan-set']],
+        ['Wedding Season', 'wedding-season', 'Silk sarees, heels and bridal sets', 'eth-banarasi-saree', ['red-bridal-kanjivaram-saree', 'rose-gold-banarasi-silk-saree', 'royal-purple-katan-saree', 'kundan-gold-bridal-necklace-set', 'ivory-pointed-pumps', 'navy-slim-fit-suit', 'cherry-top-handle-bag']],
+        ['Office Ready', 'office-ready', 'Smart pieces for the work week', 'men-white-shirt', ['crisp-white-formal-shirt', 'indigo-linen-shirt', 'terracotta-belted-shirt-dress', 'classic-black-pumps', 'black-structured-tote', 'grey-buckle-satchel', 'crystal-stud-earrings']],
+        ['Weekend Casual', 'weekend-casual', 'Easy outfits for days off', 'wst-floral-coord', ['pink-blossom-co-ord-set', 'colour-pop-chunky-sneakers', 'essential-white-tee', 'gold-round-sunglasses', 'cognac-crossbody-sling', 'red-polka-dot-midi-dress', 'mustard-check-overshirt']],
+        ["Stylists' Picks", 'stylists-picks', 'Chosen by our stylists this week', 'eth-navy-kurti', ['indigo-paisley-anarkali-kurti', 'blue-garden-floral-heels', 'woven-chain-tote', 'sapphire-drop-earrings', 'tan-suede-jacket', 'cloud-ruffle-blouse']],
+        ['The Luxe Edit', 'luxe-edit', 'Silk, gold and fine finishes for the moments that matter', 'eth-purple-saree', ['royal-purple-katan-saree', 'kundan-gold-bridal-necklace-set', 'rose-gold-banarasi-silk-saree', 'plum-satin-evening-gown', 'walnut-leather-brogues']],
+    ];
+    $cc = $pdo->prepare('INSERT INTO collections(name,slug,tagline,image,sort) VALUES(?,?,?,?,?)');
+    $ix = $pdo->prepare('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT ?, id FROM products WHERE slug=?');
+    foreach ($cols as $i => $c) { $cc->execute([$c[0], $c[1], $c[2], 'assets/img/p/' . $c[3] . '.webp', $i + 1]); $cid = (int)$pdo->lastInsertId(); foreach ($c[4] as $s) $ix->execute([$cid, $s]); }
+    $pdo->exec('UPDATE collections SET sort = sort + 10 WHERE slug IN (\'bridal-glow\',\'everyday-essentials\',\'gift-sets\',\'party-night\')');
+    $pdo->exec("UPDATE collections SET image='assets/img/p/eth-sage-saree.webp' WHERE slug='bridal-glow' AND image='assets/img/p/velvet-palette.webp'");
+    $pdo->exec("UPDATE collections SET image='assets/img/p/wst-satin-gown.webp' WHERE slug='party-night' AND image='assets/img/p/rainbow-palette.webp'");
+    $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('rose-gold-banarasi-silk-saree','colour-pop-chunky-sneakers','cherry-top-handle-bag','pink-block-print-kurti-set','gold-round-sunglasses','terracotta-belted-shirt-dress')");
 }
