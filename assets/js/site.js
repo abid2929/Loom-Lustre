@@ -233,6 +233,7 @@
       btn.disabled = true; btn.textContent = 'Placing your order...';
       if (LL.demo) { // GitHub Pages preview: no server, so show a sample confirmation
         var code = 'LL' + Date.now().toString().slice(-8);
+        try { var dl = JSON.parse(localStorage.getItem('ll_demo_orders') || '[]'); dl.unshift({ code: code, phone: phone, name: body.name, area: body.area, items: data.c.length, t: Date.now() }); localStorage.setItem('ll_demo_orders', JSON.stringify(dl.slice(0, 20))); } catch (x) {}
         localStorage.removeItem('ll_cart'); counts();
         $('.cart-in').innerHTML = '<div class="done-box"><span class="tick"><svg class="ic" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m5 12 5 5 9-10"/></svg></span><h2>Thank you, ' + esc(body.name) + '!</h2><p>Demo order <b>' + code + '</b> placed. On the real website this order goes straight to the admin panel and the shop calls you to confirm.</p><a class="btn" href="' + B + 'admin/">See the demo admin panel</a><a class="btn ghost" href="' + B + 'shop/">Continue shopping</a></div>';
         scrollTo(0, 0); return;
@@ -281,6 +282,24 @@
     var h = $('.list-h h1'); if (h && qs) h.textContent = 'Results for "' + qs + '"';
     var ct = $('.tools .count'); if (ct) ct.textContent = shown + ' product' + (shown === 1 ? '' : 's');
     var si = $('.search input'); if (si) si.value = qs;
+  }
+
+  /* ---------- demo: nothing found on search ---------- */
+  if (LL.demo && /\/search\/?$/.test(location.pathname) && typeof shown !== 'undefined' && shown === 0 && qs) {
+    var g = $('.grid'); if (g) g.insertAdjacentHTML('beforebegin', '<div class="empty-box"><h3>Nothing found for "' + esc(qs) + '"</h3><p>Try another word, like lipstick, serum or perfume.</p><a class="btn" href="' + B + 'shop/">See all products</a></div>');
+  }
+
+  /* ---------- demo: order tracking (orders placed in this browser) ---------- */
+  if (LL.demo && /\/track\/?$/.test(location.pathname)) {
+    var tp = new URLSearchParams(location.search), tc = (tp.get('code') || '').trim().toUpperCase(), tph = (tp.get('phone') || '').replace(/\D/g, '').replace(/^88/, '');
+    if (tc) {
+      var mine = []; try { mine = JSON.parse(localStorage.getItem('ll_demo_orders') || '[]'); } catch (x) {}
+      var o = mine.filter(function (x) { return x.code === tc && x.phone === tph; })[0];
+      var tf = $('main form');
+      var html = o ? '<div class="done-box sm"><h3>Order ' + esc(o.code) + '</h3><p>Hi ' + esc(o.name) + ', your order is <b>Pending</b>. The shop will call you soon to confirm. (Demo preview)</p></div>'
+                   : '<p class="err">We could not find that order. Please check the order code and mobile number.</p>';
+      if (tf) tf.insertAdjacentHTML('afterend', html);
+    }
   }
 
   counts();
