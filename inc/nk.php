@@ -171,7 +171,7 @@ function nk_dept_subs(): string {
     $h = '';
     foreach (nk_depts() as $k => $d) {
         $h .= '<div class="dsub" id="dsub-' . $k . '" hidden role="dialog" aria-label="' . e($d[0]) . '"><div class="dsub-h"><button type="button" class="dsub-back" data-sub-close aria-label="Back">' . icon('arrow', 22) . '</button><a href="' . url('cart') . '" aria-label="Bag">' . icon('bag', 21) . '</a></div>';
-        $h .= '<h2>' . e($d[0]) . '</h2><ul>' . nk_dept_items($k) . '</ul></div>';
+        $h .= '<h2><a href="' . url('d/' . $k) . '">' . e($d[0]) . '</a></h2><ul>' . nk_dept_items($k) . '</ul></div>';
     }
     return $h;
 }
@@ -181,7 +181,6 @@ function nk_dept_items(string $k): string {
     static $cache = [];
     if (isset($cache[$k])) return $cache[$k];
     $d = nk_depts()[$k]; $h = '';
-        $h .= '<li><a href="' . url('d/' . $k) . '"><span>All ' . e($d[0]) . '</span><i class="dsub-txt">ALL</i></a></li>';
         $h .= '<li><a href="' . url('new') . '"><span>What\'s New</span><i class="dsub-txt">WHAT\'S<br>NEW</i></a></li>';
         $h .= '<li><a href="' . url('sale') . '"><span>Sale</span><i class="dsub-txt dsub-sale">SALE</i></a></li>';
         $cs = nk_dept_cats($k); $ord = ['ethnic', 'westernwear', 'men', 'kids', 'home', 'footwear', 'bags', 'jewellery', 'activewear', 'watches', 'sneakers', 'eyewear'];

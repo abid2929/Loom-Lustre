@@ -82,7 +82,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <meta name="robots" content="index, follow, max-image-preview:large">
 <?php endif; if (S('gsv') !== ''): ?><meta name="google-site-verification" content="<?= e(S('gsv')) ?>">
 <?php endif; if ($route === ''): ?><script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@graph' => [
-    ['@type' => 'Organization', '@id' => abs_url() . '#org', 'name' => $name, 'url' => abs_url(), 'logo' => site_origin() . url('assets/img/icon-512.png'), 'sameAs' => array_values(array_filter([S('facebook'), S('instagram')])), 'contactPoint' => array_filter(['@type' => 'ContactPoint', 'telephone' => S('phone'), 'contactType' => 'customer service', 'areaServed' => 'BD'])],
+    ['@type' => 'Organization', '@id' => abs_url() . '#org', 'name' => $name, 'url' => abs_url(), 'logo' => site_origin() . url('assets/img/icon-512.png'), 'sameAs' => array_values(array_filter([S('facebook'), S('instagram')])), 'contactPoint' => array_filter(['@type' => 'ContactPoint', 'telephone' => has_phone() ? S('phone') : '', 'contactType' => 'customer service', 'areaServed' => 'BD'])],
     ['@type' => 'WebSite', '@id' => abs_url() . '#web', 'name' => $name, 'url' => abs_url(), 'publisher' => ['@id' => abs_url() . '#org'], 'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('search') . '?q={q}', 'query-input' => 'required name=q']],
 ]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 <?php endif; ?><link rel="icon" href="<?= url('assets/img/favicon-32.png') ?>" sizes="32x32">
@@ -120,7 +120,7 @@ function site_header(): void {
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
     <nav class="nk-nav only-d" aria-label="Departments">
-      <?php if (ll_lux()): foreach (array_slice(categories(), 0, 5) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; else: ?><?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="nk-dd-a<?= $cd === $k ? ' on' : '' ?>"><?= e($d[0]) ?></a><div class="nk-dd-m"><p><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></p><ul><?= nk_dept_items($k) ?></ul></div><?php endforeach; ?><?php endif; ?>
+      <?php if (ll_lux()): foreach (array_slice(categories(), 0, 5) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; else: ?><?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="nk-dd-a<?= $cd === $k ? ' on' : '' ?>"><?= e($d[0]) ?></a><div class="nk-dd-m"><p><a href="<?= url('d/' . $k) ?>"><b><?= e($d[0]) ?></b></a><small><?= e($d[1]) ?></small></p><ul><?= nk_dept_items($k) ?></ul></div><?php endforeach; ?><?php endif; ?>
 <?php if (!ll_lux()): ?>
       <div class="nk-more"><a href="<?= url('categories') ?>">More <?= icon('chev', 13) ?></a><div class="nk-more-m">
         <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
@@ -187,7 +187,7 @@ function page_foot(): void {
     <div><h4>Top categories</h4><?php $dn = array_map('strtolower', array_column(nk_depts(), 0)); foreach (array_slice(array_values(array_filter($cats, fn($c) => !in_array(strtolower($c['name']), $dn, true))), 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div>
     <div><h4>Help</h4><a href="<?= url('track') ?>">Track order</a><a href="<?= url('about') ?>#delivery">Delivery &amp; payment</a><a href="<?= url('about') ?>#exchange">Exchange policy</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></div>
     <div><h4>Contact</h4>
-      <a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 17) ?><?= e(S('phone')) ?></a>
+      <?php if (has_phone()): ?><a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 17) ?><?= e(S('phone')) ?></a><?php endif; ?>
       <a href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><?= icon('wa', 17) ?>WhatsApp us</a>
       <?php if (S('email') !== ''): ?><a href="mailto:<?= e(S('email')) ?>"><?= icon('mail', 17) ?><?= e(S('email')) ?></a><?php endif; ?>
       <span><?= icon('pin', 17) ?><?= e(S('address')) ?></span>

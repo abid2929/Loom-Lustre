@@ -246,10 +246,10 @@ case '':
   <small class="nk-k">Explore More</small>
   <h2 class="nk-h"><?= e($T('circles') ?: 'Find everything for your every need') ?></h2>
   <div class="nk-circ">
-    <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><span><?= nk_img($d[3], '', 200, 200) ?></span><b><?= e($d[0]) ?></b></a><?php endforeach; ?>
+    <?php $used = []; foreach (nk_depts() as $k => $d): $used[] = $d[3]; ?><a href="<?= url('d/' . $k) ?>"><span><?= nk_img($d[3], '', 200, 200) ?></span><b><?= e($d[0]) ?></b></a><?php endforeach; ?>
     <?php if ($lx): ?><a href="<?= url('luxe') ?>"><span><?= nk_img((string)$lx['image'], '', 200, 200) ?></span><b>Luxe Store</b></a><?php endif; ?>
     <?php foreach (nk_discover() as [$dt, $dl, $di]): if ($dt !== 'Hidden Gems') continue; ?><a href="<?= url($dl) ?>"><span><?= nk_img($di, '', 200, 200) ?></span><b><?= e($dt) ?></b></a><?php endforeach; ?>
-    <?php foreach (collections() as $c): if (in_array($c['slug'], ['luxe-edit', 'stylists-picks'], true)) continue; ?><a href="<?= url('collection/' . $c['slug']) ?>"><span><?= nk_img((string)$c['image'], '', 200, 200) ?></span><b><?= e($c['name']) ?></b></a><?php endforeach; ?>
+    <?php foreach (collections() as $c): if (in_array($c['slug'], ['luxe-edit', 'stylists-picks'], true)) continue; $ci = (string)$c['image']; if (in_array($ci, $used, true)) { foreach (nk_coll_products((int)$c['id'], 12) as $cp) { if (!in_array(p_image($cp), $used, true)) { $ci = p_image($cp); break; } } } $used[] = $ci; ?><a href="<?= url('collection/' . $c['slug']) ?>"><span><?= nk_img($ci, '', 200, 200) ?></span><b><?= e($c['name']) ?></b></a><?php endforeach; ?>
   </div>
 </section>
 <?php endif; ?>
@@ -733,7 +733,7 @@ case 'contact':
 <div class="wrap page narrow">
   <h1 class="pg-t">Contact us</h1>
   <div class="contact">
-    <a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 26) ?><b>Call</b><span><?= e(S('phone')) ?></span></a>
+    <?php if (has_phone()): ?><a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 26) ?><b>Call</b><span><?= e(S('phone')) ?></span></a><?php endif; ?>
     <a href="<?= e(wa_link('Hi ' . S('shop_name'))) ?>" target="_blank" rel="noopener" class="wa"><?= icon('wa', 26) ?><b>WhatsApp</b><span>Chat with us</span></a>
     <?php if (S('facebook') !== ''): ?><a href="<?= e(S('facebook')) ?>" target="_blank" rel="noopener"><?= icon('fb', 26) ?><b>Facebook</b><span>Message our page</span></a><?php endif; ?>
     <?php if (S('email') !== ''): ?><a href="mailto:<?= e(S('email')) ?>"><?= icon('mail', 26) ?><b>Email</b><span><?= e(S('email')) ?></span></a><?php endif; ?>

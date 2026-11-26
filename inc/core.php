@@ -271,6 +271,9 @@ function norm_phone(string $p): string {
     if (strlen($d) === 13 && str_starts_with($d, '880')) $d = substr($d, 2);
     return $d;
 }
+/** True when a real phone number is set (not the 01XXXXXXXXX placeholder). */
+function has_phone(): bool { return (bool)preg_match('/\d{6}/', S('phone')); }
+
 /** WhatsApp number in 8801XXXXXXXXX form, from the WhatsApp setting or the phone. '' if none is set yet. */
 function wa_number(): string {
     $n = norm_phone(S('whatsapp') ?: S('phone'));
