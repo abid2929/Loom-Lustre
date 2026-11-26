@@ -1087,3 +1087,86 @@ body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{col
 .nk-nt span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 body.lxm .nk-sub2{display:none}
 .nk-dpg{padding-top:10px}
+
+/* v1.5.3 PC "More" menu = Discover posters, like Nykaa */
+.nk-more{position:relative;display:flex;align-self:stretch}
+.nk-more>a{display:flex;align-items:center;gap:4px;padding:0 16px;font-size:15.5px;font-weight:600;color:var(--ink)}
+.nk-more>a svg{transform:rotate(90deg);transition:transform .2s;opacity:.7}
+.nk-more:hover>a svg,.nk-more:focus-within>a svg{transform:rotate(-90deg)}
+.nk-more-m{display:none;position:absolute;top:100%;left:-120px;z-index:80;background:#fff;box-shadow:0 12px 32px rgba(0,0,0,.16);padding:20px;gap:12px;grid-template-columns:repeat(5,160px)}
+.nk-more:hover .nk-more-m,.nk-more:focus-within .nk-more-m{display:grid}
+.nk-more-m a{position:relative;height:214px;overflow:hidden;background:var(--ink)}
+.nk-more-m img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.nk-more-m a:hover img{transform:scale(1.05)}
+.nk-more-m b{position:absolute;left:0;right:0;top:0;padding:14px 6px 40px;background:linear-gradient(rgba(0,0,0,.4),transparent);color:#fff;text-align:center;font-family:var(--fh);font-size:21px;font-weight:600;text-transform:uppercase;line-height:1;letter-spacing:.02em}
+body.lxm .nk-more>a{color:#e9e2de}
+
+/* v1.5.3 header row 1 in Nykaa order: logo | departments + More | search | Fashion/Luxe | Account Wishlist Cart */
+@media(min-width:1001px){
+  .hdr-in{gap:0;height:72px}
+  .hdr-in .brand{margin-right:36px}
+  .nk-nav{gap:4px}
+  .hdr-in .search{flex:0 1 380px;margin:0 16px 0 auto;background:#fff;border:0;border-bottom:1px solid #cfc9c5;border-radius:0;height:44px}
+  .hdr-in .search input{font-size:15.5px}
+  .nk-sw{padding:3px;background:#efefef;border:1px solid #e2e2e2;margin-right:14px}
+  .nk-sw a{flex-direction:column;gap:1px;padding:4px 14px;font-size:10.5px;color:#333}
+  .nk-sw a.on{background:#fff;color:#111;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .hdr-act{gap:6px}
+  .hdr-act .icon-btn{min-width:64px;gap:2px}
+  .hdr-act .icon-btn span{display:block!important;font-size:15px;font-weight:600;letter-spacing:0;text-transform:none}
+}
+@media(min-width:1001px) and (max-width:1280px){
+  .hdr-in .brand{margin-right:16px}.nk-nav>a,.nk-more>a{padding:0 10px;font-size:14.5px}
+  .hdr-in .search{flex-basis:240px}.hdr-act .icon-btn{min-width:52px}.hdr-act .icon-btn span{font-size:13px}
+}
+body.lxm .nk-sw a.on{background:#fff;color:#111}body.lxm .hdr-in .search{background:transparent;border-bottom-color:#4a4244}
+.nk-nav{position:relative}.nk-more{position:static}.nk-more-m{left:60px}
+.nk-sub2-in{overflow-x:auto;scrollbar-width:none}.nk-sub2-in::-webkit-scrollbar{display:none}
+.nk-sub2-in:hover{overflow:visible}
+@media(min-width:1001px) and (max-width:1280px){
+  .hdr-in .brand img,.hdr-in .brand svg{max-width:150px}
+  .nk-sw a{padding:4px 9px}.nk-sw span{display:block}
+  .nk-dd>a{padding:0 9px;font-size:13px}
+}
+@media(min-width:1001px) and (max-width:1180px){
+  .hdr-in .search{min-width:120px;flex-basis:180px;margin-right:10px}
+  .nk-nav>a,.nk-more>a{padding:0 8px;font-size:14px}.hdr-in .brand{margin-right:8px}
+  .nk-sw{margin-right:8px}.nk-sw a{padding:4px 7px}
+  .hdr-act{gap:0}.hdr-act .icon-btn{min-width:48px}.hdr-act .icon-btn span{font-size:12px}
+}
+
+/* v1.5.3 phone menu = Nykaa Categories screen */
+.drawer-p{width:min(420px,100vw)}
+.drawer-c{padding:6px 14px 30px}
+.drawer-c h2{font-family:var(--f);font-size:27px;font-weight:700;margin:8px 2px 12px}
+.dr-depts{display:flex;flex-direction:column;gap:5px}
+.dr-depts a{position:relative;display:flex;align-items:center;height:100px;background:var(--bg,#eee);overflow:hidden}
+.dr-depts span{position:relative;z-index:1;display:flex;flex-direction:column;gap:2px;padding:0 16px;max-width:64%}
+.dr-depts b{font-size:19px;font-weight:700}
+.dr-depts small{font-size:13px;line-height:1.35;color:#3f3936}
+.dr-depts img{position:absolute;right:0;top:0;height:100%;width:44%;object-fit:cover;object-position:50% 12%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 30%);mask-image:linear-gradient(90deg,transparent,#000 30%)}
+.drawer-c h3{font-family:var(--f);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:14px 2px 8px}
+.dr-disc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 8px}
+.dr-disc a{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--ink)}
+.dr-disc img{width:100%;height:100%;object-fit:cover}
+.dr-disc b{position:absolute;left:0;right:0;top:0;padding:9px 4px 30px;background:linear-gradient(rgba(0,0,0,.45),transparent);color:#fff;text-align:center;font-family:var(--fh);font-size:15px;font-weight:600;text-transform:uppercase;line-height:1}
+.dr-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.dr-links a{padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:12.5px}
+
+/* v1.5.3 phone tab bar like Nykaa: Fashion/Luxe pill + Categories + Offers + Bag */
+@media(max-width:860px){
+  .tabbar{grid-template-columns:1.7fr 1fr 1fr 1fr;align-items:center}
+  .tb-sw{display:flex;margin:0 6px 0 10px;background:#eee;border-radius:999px;padding:3px}
+  .tb-sw a{flex:1;height:44px!important;border-radius:999px;gap:1px!important;font-size:9.5px!important;letter-spacing:0!important;text-transform:none!important}
+  .tb-sw a.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14);color:var(--ink)}
+  .tb-sw a.on::before{display:none}
+  body.lxm .tb-sw{background:#2a2526}body.lxm .tb-sw a{color:#aaa}body.lxm .tb-sw a.on{background:#5b5556;color:#fff}
+}
+/* Luxe: dark phone menu with photo cards, like Nykaa Luxe */
+body.lxm .drawer-p{background:#141213;color:#f1ece8}
+body.lxm .drawer-h{border-color:#2a2526}body.lxm .drawer-h .icon-btn{color:#eee}
+body.lxm .drawer-h .brand img{filter:brightness(0) invert(1)}
+body.lxm .dr-depts a{background:#222}
+body.lxm .dr-depts img{width:100%;-webkit-mask-image:none;mask-image:none;filter:brightness(.62)}
+body.lxm .dr-depts b,body.lxm .dr-depts small{color:#fff}
+body.lxm .dr-links{border-color:#2a2526}body.lxm .dr-links a{border-color:#3a3335;color:#ddd}

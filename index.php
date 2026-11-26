@@ -268,11 +268,7 @@ case 'categories':
   <h2 class="nk-k2">Discover</h2>
   <div class="nk-disc">
     <?php
-    $disc = [];
-    if ($lx = nk_coll('luxe-edit')) $disc[] = ['Luxe Edit', 'luxe', (string)$lx['image']];
-    $ni = q("p.is_new=1 AND c.slug IN ('westernwear','ethnic','jewellery','bags')", [], 'p.featured DESC, p.id DESC', 1); if ($ni) $disc[] = ['Hidden Gems', 'new', p_image($ni[0])];
-    $fz = nk_cat_imgs('activewear', 1); if ($fz) $disc[] = ['Fit Zone', 'c/activewear', $fz[0]];
-    foreach (['eid-edit', 'wedding-season'] as $cs) if ($c = nk_coll($cs)) $disc[] = [$c['name'], 'collection/' . $cs, (string)$c['image']];
+    $disc = nk_discover();
     foreach ($disc as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
   </div>
 </div>
@@ -322,7 +318,7 @@ case 'luxe':
 
   <section class="wrap lx-cats"><div class="lx-cats-in">
     <a class="lx-cat0" href="<?= url('collection/luxe-edit') ?>"><b>LUXE</b><small>EDIT</small></a>
-    <?php foreach ($lc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper($c['name'])) ?></small><?= nk_img(p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image'], '', 300, 375) ?></a><?php endforeach; ?>
+    <?php foreach ($lc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper($c['name'])) ?></small><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?></a><?php endforeach; ?>
   </div></section>
 
   <section class="wrap lx-sec"><?php $ban('assets/img/p/eth-red-saree.webp', 'Festive Icons', nk_off_text(max($offs['ethnic']['off'] ?? 0, $offs['jewellery']['off'] ?? 0), ''), 'c/ethnic'); ?></section>

@@ -60,6 +60,16 @@ function nk_dept_products(string $dk, string $slug, int $n): array {
     return q($w, $a, $o, $n);
 }
 
+/** Discover posters (Categories page + PC "More" menu): [title, link, image]. */
+function nk_discover(): array {
+    $disc = [];
+    if ($lx = nk_coll('luxe-edit')) $disc[] = ['Luxe Edit', 'luxe', (string)$lx['image']];
+    $ni = q("p.is_new=1 AND c.slug IN ('westernwear','ethnic','jewellery','bags')", [], 'p.featured DESC, p.id DESC', 1); if ($ni) $disc[] = ['Hidden Gems', 'new', p_image($ni[0])];
+    $fz = nk_cat_imgs('activewear', 1); if ($fz) $disc[] = ['Fit Zone', 'c/activewear', $fz[0]];
+    foreach (['eid-edit', 'wedding-season'] as $cs) if ($c = nk_coll($cs)) $disc[] = [$c['name'], 'collection/' . $cs, (string)$c['image']];
+    return $disc;
+}
+
 /** Department the visitor is in (for the second menu row). */
 function nk_cur_dept(string $active): string {
     if (preg_match('~^d/([a-z]+)~', $active, $m) && isset(nk_depts()[$m[1]])) return $m[1];
@@ -138,7 +148,7 @@ function nk_img(string $src, string $alt = '', int $w = 600, int $h = 750, bool 
 
 /** Store switch shown in the header: Fashion | Luxe. */
 function nk_switch(bool $luxe): string {
-    return '<div class="nk-sw" role="group" aria-label="Store"><a href="' . url() . '" class="' . ($luxe ? '' : 'on') . '">' . icon('spark', 15) . '<span>Fashion</span></a><a href="' . url('luxe') . '" class="' . ($luxe ? 'on' : '') . '">' . icon('gem', 15) . '<span>Luxe</span></a></div>';
+    return '<div class="nk-sw" role="group" aria-label="Store"><a href="' . url() . '" class="' . ($luxe ? '' : 'on') . '">' . icon('spark', 17) . '<span>Fashion</span></a><a href="' . url('luxe') . '" class="' . ($luxe ? 'on' : '') . '">' . icon('gem', 17) . '<span>Luxe</span></a></div>';
 }
 
 /** Long SEO text at the bottom of the home page. */
