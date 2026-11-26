@@ -166,7 +166,7 @@ case '':
     <?php $cby = []; foreach ($cats as $c) $cby[$c['slug']] = $c;
     // Same order and names as the Nykaa Fashion row (lingerie skipped).
     foreach (['westernwear' => ['Westernwear', ''], 'ethnic' => ['Indianwear', ''], 'men' => ['Men', ''], 'footwear' => ['Footwear', 'assets/img/p/fw-pink-stilettos.webp'], 'bags' => ['Bags', 'assets/img/p/bag-woven-tote.webp'], 'kids' => ['Kids', ''], 'activewear' => ['Activewear', ''], 'jewellery' => ['Jewellery', ''], 'sneakers' => ['Sneakers', ''], 'watches' => ['Watches', ''], 'home' => ['Home', '']] as $sl => [$nm, $im]):
-        if (!isset($cby[$sl]) || ($offs[$sl]['n'] ?? 0) === 0) continue; $im = ($im !== '' && is_file(LL_ROOT . '/' . $im)) ? $im : $cby[$sl]['image']; ?>
+        if (!isset($cby[$sl]) || ($offs[$sl]['n'] ?? 0) === 0) continue; $im = nk_tile_img($sl, ($im !== '' && is_file(LL_ROOT . '/' . $im)) ? $im : $cby[$sl]['image']); ?>
     <a href="<?= url('c/' . $sl) ?>"><span><?= nk_img($im, '', 300, 360) ?></span><b><?= e($nm) ?></b></a>
     <?php endforeach; ?>
   </div>
@@ -297,7 +297,7 @@ case 'd':
     <?php if ($few): foreach ($dpr as $p): $po = $p['old_price'] > $p['price'] ? (int)round(($p['old_price'] - $p['price']) * 100 / $p['old_price']) : 0; ?><a href="<?= url('p/' . $p['slug']) ?>"><b><?= e(preg_replace('~\s*\(.*\)$~', '', $p['name'])) ?></b><?= nk_img(p_image($p), '', 300, 375) ?><small><?= e(nk_off_text($po, 'Shop now')) ?></small></a><?php endforeach; endif; ?>
     <?php if (!$few): $ord = ['westernwear', 'ethnic', 'men', 'footwear', 'bags', 'kids', 'activewear', 'jewellery', 'sneakers', 'watches', 'eyewear', 'home']; $lbl = ['ethnic' => 'Indianwear', 'eyewear' => 'Sunglasses', 'men' => 'Clothing'];
       $dc2 = $dc; usort($dc2, fn($x, $y) => ((array_search($x['slug'], $ord) === false) ? 99 : array_search($x['slug'], $ord)) <=> ((array_search($y['slug'], $ord) === false) ? 99 : array_search($y['slug'], $ord)));
-      foreach ($dc2 as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= nk_img(p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image'], '', 300, 375) ?><b><?= e($lbl[$c['slug']] ?? $c['name']) ?></b><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach;
+      foreach ($dc2 as $c): $fb = p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image']; ?><a href="<?= url('c/' . $c['slug']) ?>"><?= nk_img($dk === 'men' ? $fb : nk_tile_img($c['slug'], $fb), '', 300, 375) ?><b><?= e($lbl[$c['slug']] ?? $c['name']) ?></b><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach;
       $nw = q('p.is_new=1', [], 'p.featured DESC, p.id DESC', 1); $sl = q('p.old_price > p.price', [], 'p.old_price - p.price DESC', 1); ?>
       <?php if ($nw): ?><a href="<?= url('new') ?>"><?= nk_img(p_image($nw[0]), '', 300, 375) ?><b>New In</b><small>Just landed</small></a><?php endif; ?>
       <?php if ($sl): ?><a href="<?= url('sale') ?>"><?= nk_img(p_image($sl[0]), '', 300, 375) ?><b>Sale</b><small><?= e(nk_off_text($doff, 'Shop now')) ?></small></a><?php endif; ?>

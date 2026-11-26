@@ -178,7 +178,16 @@ function nk_dept_subs(): string {
         $cs = nk_dept_cats($k); $ord = ['ethnic', 'westernwear', 'men', 'kids', 'home', 'footwear', 'bags', 'jewellery', 'activewear', 'watches', 'sneakers', 'eyewear'];
         usort($cs, fn($x, $y) => (array_search($x['slug'], $ord) === false ? 99 : array_search($x['slug'], $ord)) <=> (array_search($y['slug'], $ord) === false ? 99 : array_search($y['slug'], $ord)));
         $lbl = ['ethnic' => 'Indian Wear', 'westernwear' => 'Western Wear', 'activewear' => 'Active & Sports', 'men' => 'Clothing', 'eyewear' => 'Sunglasses'];
-        foreach ($cs as $c) { $c['name'] = $lbl[$c['slug']] ?? $c['name'];
+        foreach ($cs as $c) {
+            if (in_array($c['slug'], ['men', 'kids', 'home'], true) && !empty(LL_SUBS[$c['slug']])) {
+                foreach (LL_SUBS[$c['slug']] as $sn => $sw) {
+                    $sp = q('c.slug=? AND (p.name LIKE ? OR p.tags LIKE ? OR p.short LIKE ?)', [$c['slug'], "%$sw%", "%$sw%", "%$sw%"], 'p.featured DESC, p.sold DESC', 1);
+                    if (!$sp) continue;
+                    $h .= '<li><a href="' . url('search') . '?q=' . rawurlencode($sw) . '&amp;c=' . $c['slug'] . '"><span>' . e($sn) . '</span><i><img src="' . e(img_small(p_image($sp[0]))) . '" alt="" width="44" height="44" loading="lazy"></i></a></li>';
+                }
+                continue;
+            }
+            $c['name'] = $lbl[$c['slug']] ?? $c['name'];
             $ps = nk_dept_products($k, $c['slug'], 1); $im = $ps ? p_image($ps[0]) : (string)$c['image'];
             $h .= '<li><a href="' . url('c/' . $c['slug']) . '"><span>' . e($c['name']) . '</span><i><img src="' . e(img_small($im)) . '" alt="" width="44" height="44" loading="lazy"></i></a></li>';
         }
@@ -186,3 +195,6 @@ function nk_dept_subs(): string {
     }
     return $h;
 }
+
+/** Styled photo for a category tile (assets/img/t/<slug>.webp), else the fallback. */
+function nk_tile_img(string $slug, string $fallback): string { return is_file(LL_ROOT . '/assets/img/t/' . $slug . '.webp') ? 'assets/img/t/' . $slug . '.webp' : $fallback; }
