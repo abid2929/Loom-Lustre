@@ -222,4 +222,65 @@ function ll_seed_v15(PDO $pdo): void {
     $ix = $pdo->prepare('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT c.id, p.id FROM collections c, products p WHERE c.slug=? AND p.slug=?');
     foreach ([['eid-edit', 'navy-dial-gold-watch'], ['eid-edit', 'velvet-round-cushions-set-of-3'], ['wedding-season', 'rose-gold-link-bracelet-watch'], ['office-ready', 'classic-tan-leather-watch'], ['weekend-casual', 'rose-gold-minimal-watch'], ["stylists-picks", 'rose-gold-minimal-watch'], ['luxe-edit', 'copper-ornate-wall-mirror']] as $x) $ix->execute($x);
     $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('rose-gold-link-bracelet-watch','blush-pillow-bedding-set')");
+    ll_seed_v16($pdo);
+}
+
+/** v1.6: the Luxe store has its own categories (slug starts with lx-) and its own products. */
+function ll_seed_v16(PDO $pdo): void {
+    if ($pdo->query("SELECT 1 FROM categories WHERE slug='lx-bags'")->fetchColumn()) return;
+    $now = date('Y-m-d H:i:s');
+    $ci = $pdo->prepare('INSERT INTO categories(name,slug,tagline,image,sort) VALUES(?,?,?,?,?)');
+    $ids = [];
+    foreach ([
+        ['Designer Bags', 'lx-bags', 'Totes, clutches and top handles', 'lx-bag-chestnut-doctor'],
+        ['Fine Jewellery', 'lx-jewellery', 'Diamonds, gold and statement earrings', 'lx-jw-cascade-drops'],
+        ['Luxury Watches', 'lx-watches', 'Crystal, gold and rose gold', 'lx-wt-emerald'],
+        ['Bridal Couture', 'lx-bridal', 'Lehengas and silk for the big day', 'lx-br-zardozi-red'],
+        ['Evening Gowns', 'lx-gowns', 'Ball gowns, sequins and tulle', 'lx-gw-emerald-sequin'],
+        ['Designer Heels', 'lx-heels', 'Glitter, crystal and stilettos', 'lx-hl-crystal-mesh'],
+        ['Luxury Sunglasses', 'lx-eyewear', 'Aviators, cat-eyes and navigators', 'lx-sg-gold-aviator'],
+    ] as $i => $c) { $ci->execute([$c[0], $c[1], $c[2], 'assets/img/p/' . $c[3] . '.webp', 100 + $i]); $ids[$c[1]] = (int)$pdo->lastInsertId(); }
+    $P = [
+        ['Chestnut Leather Doctor Bag', 'lx-bags', 'lx-bag-chestnut-doctor', 18900, 22900, 'Chestnut', 'Polished full-grain leather with twin buckles.', "A structured doctor bag in polished chestnut leather with twin buckle straps, a roomy lined inside and a detachable shoulder strap.\n\nFull-grain leather, gold-tone hardware, dust bag included.", 1, 1, 1],
+        ['Cognac Hand-stitched Tote', 'lx-bags', 'lx-bag-cognac-tote', 14500, 16900, 'Cognac', 'Soft crazy-horse leather that ages beautifully.', "A large open tote in soft cognac crazy-horse leather with hand-stitched handles. Fits a laptop, a scarf and everything for the day.\n\nFull-grain leather, inner zip pocket.", 1, 0, 1],
+        ['Blush Quilted Top Handle Bag', 'lx-bags', 'lx-bag-blush-quilted', 12900, 15900, 'Blush Pink', 'Quilted flap bag with a gold drop clasp.', "A blush pink top handle bag with a quilted flap, a gold drop clasp and a long strap for cross-body wear.\n\nPU-free genuine leather, suede lining.", 1, 1, 0],
+        ['Tan Pebble Leather Hobo', 'lx-bags', 'lx-bag-tan-hobo', 16900, 19900, 'Tan / Espresso', 'Slouchy hobo with a sculpted gold clasp.', "A slouchy hobo bag in tan pebble leather with espresso handles and a sculpted gold clasp. Soft, light and made for everyday luxury.", 0, 1, 1],
+        ['Powder Blue Saffiano Satchel', 'lx-bags', 'lx-bag-powder-satchel', 13900, 0, 'Powder Blue', 'Saffiano leather with a silver turn lock.', "A neat satchel in powder blue saffiano leather with a silver turn lock and drawstring sides. Smart for brunches and office days.", 0, 0, 1],
+        ['Ivory Pleated Pouch Bag', 'lx-bags', 'lx-bag-ivory-pleated', 11500, 0, 'Ivory', 'Sculpted pleats and a curved handle.', "A sculptural pouch bag in ivory with soft pleats and a curved top handle. A modern art piece for weddings and evenings.", 0, 0, 1],
+        ['White Quilted Chain Clutch', 'lx-bags', 'lx-clutch-quilted-chain', 9900, 12500, 'White', 'Puffy quilted clutch on a silver chain.', "A puffy white quilted clutch on a silver chain strap. Pairs with red, black and pastels for parties and receptions.", 1, 0, 0],
+        ['Pearl Beaded Evening Clutch', 'lx-bags', 'lx-clutch-pearl', 8900, 10900, 'Ivory / Silver', 'Hand-beaded clutch for weddings.', "A hand-beaded ivory clutch with a soft shimmer, a magnetic flap and a hidden chain. Made for walimas, receptions and holud nights.", 0, 1, 0],
+        ['Silver Quilted Minaudiere', 'lx-bags', 'lx-clutch-silver', 7900, 9500, 'Silver', 'Hard-case quilted clutch with a kiss lock.', "A silver quilted hard-case clutch with a kiss-lock clasp. Holds your phone, lipstick and keys in style.", 0, 0, 0],
+        ['Espresso Leather Clutch', 'lx-bags', 'lx-clutch-espresso', 6900, 0, 'Espresso', 'Slim zip clutch with a wrist loop.', "A slim espresso leather zip clutch with a side wrist loop. Unisex, minimal and perfect for evenings out.", 0, 0, 0],
+        ['Cascade Diamond Drop Earrings', 'lx-jewellery', 'lx-jw-cascade-drops', 24900, 29900, 'Silver / Crystal', 'Long cascade of sparkling stones.', "Long chandelier earrings with a cascade of brilliant-cut stones set in rhodium-plated silver. A red-carpet piece for receptions.", 1, 1, 1],
+        ['Laurel Crystal Earrings', 'lx-jewellery', 'lx-jw-laurel-earrings', 15900, 18900, 'Silver / Crystal', 'Wreath-shaped earrings in marquise stones.', "Laurel wreath earrings made of marquise-cut stones in silver. Elegant with sarees, gowns and lehengas.", 1, 0, 1],
+        ['Hexagon Diamond Studs', 'lx-jewellery', 'lx-jw-hex-studs', 19900, 0, 'Gold / Diamond', 'Hexagon halo studs in gold.', "Hexagon halo studs with a round centre stone in 18k gold-plated silver. Small, brilliant and right for every day.", 0, 1, 0],
+        ['Solitaire Pendant and Ring Set', 'lx-jewellery', 'lx-jw-solitaire', 27900, 32900, 'Silver / Diamond', 'A single brilliant stone on a fine chain, with matching ring.', "A fine chain with a single solitaire stone and a matching ring. A timeless gift for anniversaries and engagements.", 1, 1, 0],
+        ['Gold Diamond Bar Pendant', 'lx-jewellery', 'lx-jw-bar-pendant', 21500, 0, 'Gold', 'Gold bar pendant set with square stones.', "A gold bar pendant set with square-cut stones on a thick rope chain. A bold, modern statement.", 0, 0, 1],
+        ['Gold Chunky Chain Bracelet', 'lx-jewellery', 'lx-jw-chain-bracelet', 12900, 14900, 'Gold', 'Polished chunky links with a toggle clasp.', "A chunky gold chain bracelet with polished links and a toggle clasp. Stacks well with watches.", 0, 0, 0],
+        ['Stacked Gold Bangle Trio', 'lx-jewellery', 'lx-jw-gold-bangles', 17900, 20900, 'Gold', 'Three slim gold bangles with a nail detail.', "Three slim gold bangles, one with a nail detail, to wear together or apart. 18k gold plated.", 0, 1, 0],
+        ['Emerald Crystal Bezel Watch', 'lx-watches', 'lx-wt-emerald', 32900, 38900, 'Gold / Emerald', 'Emerald dial ringed with crystals.', "A gold bracelet watch with a deep emerald sunray dial and a crystal-set bezel. Roman numerals and a fold-over clasp.\n\nQuartz movement, 38 mm case, water resistant.", 1, 1, 1],
+        ['Rose Gold Crystal Watch', 'lx-watches', 'lx-wt-rose-crystal', 29900, 34900, 'Rose Gold', 'A dial filled with tiny crystals.', "A rose gold watch with a dial filled with tiny crystals and a soft sunray centre. Sparkles with every move.\n\nQuartz movement, 32 mm case.", 1, 0, 1],
+        ['Pearl Dial Gold Mesh Watch', 'lx-watches', 'lx-wt-pearl-mesh', 24500, 0, 'Gold / Pearl', 'Fluted pearl dial on a gold mesh strap.', "A slim gold watch with a fluted pearl dial, crystal markers and a fine mesh strap.\n\nQuartz movement, 34 mm case.", 0, 1, 0],
+        ['Red Zardozi Bridal Lehenga', 'lx-bridal', 'lx-br-zardozi-red', 89000, 99000, 'Red / Gold', 'Hand zardozi work with a heavy dupatta.', "A red bridal lehenga with hand zardozi and sequin work, a fitted blouse and a heavy bordered dupatta. Made to order in 3 weeks.", 1, 1, 1],
+        ['Crimson Bridal Lehenga Set', 'lx-bridal', 'lx-br-crimson-lehenga', 78000, 89000, 'Crimson', 'Crimson net lehenga with silver embroidery.', "A crimson lehenga with silver and gold embroidery, a sheer net dupatta and a structured blouse.", 1, 0, 1],
+        ['Maroon Velvet Bridal Lehenga', 'lx-bridal', 'lx-br-maroon-velvet', 69000, 79000, 'Maroon', 'Rich velvet with stone and thread work.', "A maroon velvet lehenga with stone and thread work and a matching net dupatta. Warm, regal and perfect for winter weddings.", 0, 1, 0],
+        ['Royal Red Lehenga Gown', 'lx-bridal', 'lx-br-royal-gown', 72000, 0, 'Red', 'A full-flare gown with a long trail.', "A full-flare red lehenga gown with all-over embroidery and a long dupatta trail. Made for grand entries.", 0, 0, 1],
+        ['Hand-painted Silk Saree', 'lx-bridal', 'lx-br-painted-silk', 38000, 42000, 'Blue / Multi', 'Pure silk with hand-painted motifs.', "A pure silk saree with hand-painted motifs in blue, red and gold, with an unstitched blouse piece.", 0, 0, 0],
+        ['Emerald Sequin Gown', 'lx-gowns', 'lx-gw-emerald-sequin', 45000, 52000, 'Emerald', 'All-over sequins with a flowing skirt.', "An emerald gown with all-over sequins, a fitted bodice and a flowing skirt. Ready for receptions and gala nights.", 1, 1, 1],
+        ['Lilac Embellished Ball Gown', 'lx-gowns', 'lx-gw-lilac-ball', 58000, 0, 'Lilac', 'Hand-embellished tulle ball gown.', "A lilac tulle ball gown with hand-embellished flowers and sparkle. A true couture moment.", 1, 0, 1],
+        ['Wine Tulle Petal Gown', 'lx-gowns', 'lx-gw-wine-tulle', 42000, 48000, 'Wine', 'Strapless tulle with 3D petals.', "A strapless wine tulle gown with 3D petal appliques and a dramatic train.", 0, 1, 0],
+        ['Powder Blue Ball Gown', 'lx-gowns', 'lx-gw-powder-ball', 39000, 45000, 'Powder Blue', 'Satin ball gown with a full skirt.', "A powder blue satin ball gown with a full skirt and an off-shoulder neckline. Fairy-tale ready.", 0, 0, 0],
+        ['Black Ruffle Couture Dress', 'lx-gowns', 'lx-gw-black-ruffle', 34000, 0, 'Black', 'Tiered ruffles with an off-shoulder neck.', "A black couture dress with tiered organza ruffles and an off-shoulder neckline. Bold for parties and shoots.", 0, 0, 1],
+        ['Crystal Mesh Pumps', 'lx-heels', 'lx-hl-crystal-mesh', 16900, 19900, 'Silver', 'Sheer mesh set with crystals.', "Pointed pumps in sheer mesh set with crystals, on a 10 cm stiletto heel. Bridal and party favourite.", 1, 1, 1],
+        ['Silver Glitter Peep-toe Heels', 'lx-heels', 'lx-hl-silver-glitter', 12900, 14900, 'Silver', 'Glitter platforms with a peep toe.', "Silver glitter peep-toe platforms with a padded insole. Sparkle from day to night.", 0, 1, 0],
+        ['Violet Glitter Stilettos', 'lx-heels', 'lx-hl-violet', 13900, 0, 'Violet', 'Pointed glitter stilettos.', "Pointed violet glitter stilettos with a sleek 9 cm heel. Statement shoes for parties.", 0, 0, 1],
+        ['Gold Rimless Aviators', 'lx-eyewear', 'lx-sg-gold-aviator', 11900, 13900, 'Gold / Brown', 'Gold metal frame with gradient lenses.', "Classic aviators with a gold metal frame and brown gradient lenses. UV400 protection, case included.", 1, 1, 0],
+        ['Blush Cat-eye Sunglasses', 'lx-eyewear', 'lx-sg-blush-cateye', 9900, 11900, 'Blush / Gold', 'Soft cat-eye frame with gold arms.', "Cat-eye sunglasses with a blush frame, thin gold arms and smoky lenses. UV400 protection.", 0, 1, 1],
+        ['Tortoise Navigator Sunglasses', 'lx-eyewear', 'lx-sg-tortoise', 10900, 0, 'Tortoise / Brown', 'Bold navigator with a double bridge.', "A bold tortoise navigator with a double bridge and brown gradient lenses. UV400 protection.", 0, 0, 0],
+    ];
+    $pi = $pdo->prepare('INSERT INTO products(name,slug,category_id,brand,price,old_price,images,shades,sizes,size,stock,short,description,how_to,featured,bestseller,is_new,sort,sold,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $sizes = ['lx-bridal' => 'S, M, L, XL', 'lx-gowns' => 'S, M, L, XL', 'lx-heels' => '36, 37, 38, 39, 40'];
+    foreach ($P as $i => $p) {
+        $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre Luxe', $p[3], $p[4], json_encode(['assets/img/p/' . $p[2] . '.webp']), $p[5], $sizes[$p[1]] ?? '', '', 8, $p[6], str_replace('\n', "\n", $p[7]), '', $p[8], $p[9], $p[10], 300 + $i, $p[9] ? 18 - ($i % 9) : 2, $now, $now]);
+    }
 }

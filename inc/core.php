@@ -101,6 +101,11 @@ function db(): PDO {
         $pdo->exec("UPDATE settings SET v='Iconic Styles, Unreal Savings' WHERE k='h_spot_t' AND lower(v)='in the spotlight'");
         if (!$new && $pdo->query("SELECT 1 FROM categories WHERE slug='ethnic'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_v15($pdo); }
     }
+    // v1.6: separate Luxe store (own lx- categories and products)
+    if (!$pdo->query("SELECT 1 FROM settings WHERE k='v16_luxe'")->fetchColumn()) {
+        $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v16_luxe','1')");
+        if (!$new && $pdo->query("SELECT 1 FROM categories WHERE slug='watches'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_v16($pdo); }
+    }
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }
@@ -246,7 +251,14 @@ function rate_ok(string $kind, int $max, int $secs): bool {
     return true;
 }
 function categories(bool $activeOnly = true): array {
-    return db()->query('SELECT * FROM categories' . ($activeOnly ? ' WHERE active=1' : '') . ' ORDER BY sort, id')->fetchAll();
+    // Storefront: the Fashion store and the Luxe store (slug lx-...) each see only their own categories.
+    $w = $activeOnly ? " WHERE active=1 AND slug " . (ll_lux() ? '' : 'NOT ') . "LIKE 'lx-%'" : '';
+    return db()->query('SELECT * FROM categories' . $w . ' ORDER BY sort, id')->fetchAll();
+}
+/** True on Luxe store pages (luxe home, lx- categories and their products). */
+function ll_lux(?bool $set = null): bool {
+    if ($set !== null) { $GLOBALS['ll_lux'] = $set; if ($set) $GLOBALS['ll_body'] = 'lxm'; }
+    return !empty($GLOBALS['ll_lux']);
 }
 function norm_phone(string $p): string {
     $p = strtr($p, ['০'=>'0','১'=>'1','২'=>'2','৩'=>'3','৪'=>'4','৫'=>'5','৬'=>'6','৭'=>'7','৮'=>'8','৯'=>'9']);

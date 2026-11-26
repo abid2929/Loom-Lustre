@@ -119,8 +119,8 @@ function site_header(): void {
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
     <nav class="nk-nav only-d" aria-label="Departments">
-      <?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="<?= $cd === $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
-<?php if ($a !== 'luxe'): ?>
+      <?php if (ll_lux()): foreach (array_slice(categories(), 0, 5) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; else: ?><?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="<?= $cd === $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?><?php endif; ?>
+<?php if (!ll_lux()): ?>
       <div class="nk-more"><a href="<?= url('categories') ?>">More <?= icon('chev', 13) ?></a><div class="nk-more-m">
         <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
       </div></div><?php endif; ?>
@@ -129,14 +129,14 @@ function site_header(): void {
       <?= icon('search', 19) ?>
       <input type="search" name="q" placeholder="Search for products, styles, sarees..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
     </form>
-    <?= nk_switch($a === 'luxe') ?>
+    <?= nk_switch(ll_lux()) ?>
     <nav class="hdr-act">
       <a class="icon-btn only-d" href="<?= url('track') ?>" aria-label="Account"><?= icon('user') ?><span>Account</span></a>
       <a class="icon-btn" href="<?= url('wishlist') ?>" aria-label="Wishlist"><?= icon('heart') ?><span class="only-d">Wishlist</span><i class="cnt" data-wish-count hidden>0</i></a>
       <a class="icon-btn" href="<?= url('cart') ?>" aria-label="Shopping bag"><?= icon('bag') ?><span class="only-d">Cart</span><i class="cnt" data-cart-count hidden>0</i></a>
     </nav>
   </div>
-  <?= $a === 'luxe' ? '' : nk_subnav(nk_cur_dept($a)) ?>
+  <?= ll_lux() ? '' : nk_subnav(nk_cur_dept($a)) ?>
 </header>
 <div class="drawer" id="drawer" hidden>
   <div class="drawer-bg" data-close></div>
@@ -145,12 +145,12 @@ function site_header(): void {
     <div class="drawer-c">
       <h2>Categories</h2>
       <div class="dr-depts">
-        <?php if ($a === 'luxe'): foreach (LL_LUXE_MENU as [$t, $ln, $lk, $im]): if (!is_file(LL_ROOT . '/' . $im)) continue; ?><a href="<?= url($lk) ?>"><span><b><?= e($t) ?></b><small><?= e($ln) ?></small></span><img src="<?= e(img_small($im)) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; else: ?>
+        <?php if (ll_lux()): foreach (categories() as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small></span><img src="<?= e(img_small($c['image'])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; else: ?>
         <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><img src="<?= e(img_small($d[3])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; endif; ?>
       </div>
-      <h3><?= $a === 'luxe' ? 'Luxe Collections' : 'Discover' ?></h3>
+      <h3><?= ll_lux() ? 'Luxe Edits' : 'Discover' ?></h3>
       <div class="dr-disc">
-        <?php foreach ($a === 'luxe' ? array_map(fn($c) => [$c['name'], 'collection/' . $c['slug'], (string)$c['image']], array_values(array_filter(array_map('nk_coll', ['luxe-edit', 'bridal-glow', 'wedding-season'])))) : nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><img src="<?= e(img_small($im)) ?>" alt="" width="200" height="270" loading="lazy"><b><?= e($t) ?></b></a><?php endforeach; ?>
+        <?php foreach (ll_lux() ? [['Couture Edit', 'c/lx-gowns', 'assets/img/p/lx-gw-lilac-ball.webp'], ['Bridal Luxe', 'c/lx-bridal', 'assets/img/p/lx-br-maroon-velvet.webp'], ['Red Carpet', 'c/lx-heels', 'assets/img/p/lx-hl-violet.webp']] : nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><img src="<?= e(img_small($im)) ?>" alt="" width="200" height="270" loading="lazy"><b><?= e($t) ?></b></a><?php endforeach; ?>
       </div>
       <nav class="dr-links"><a href="<?= url('sale') ?>">Sale</a><a href="<?= url('new') ?>">New In</a><a href="<?= url('track') ?>">Track order</a><a href="<?= url('wishlist') ?>">Wishlist</a><a href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener">WhatsApp us</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></nav>
     </div>
@@ -197,7 +197,7 @@ function page_foot(): void {
 </footer>
 <nav class="tabbar" aria-label="Quick links">
   <?php $ta = $GLOBALS['ll_active'] ?? ''; ?>
-  <div class="tb-sw"><a href="<?= url() ?>" class="<?= $ta === 'luxe' ? '' : 'on' ?>"><?= icon('spark', 17) ?><span>Fashion</span></a><a href="<?= url('luxe') ?>" class="<?= $ta === 'luxe' ? 'on' : '' ?>"><?= icon('gem', 17) ?><span>Luxe</span></a></div>
+  <div class="tb-sw"><a href="<?= url() ?>" class="<?= ll_lux() ? '' : 'on' ?>"><?= icon('spark', 17) ?><span>Fashion</span></a><a href="<?= url('luxe') ?>" class="<?= ll_lux() ? 'on' : '' ?>"><?= icon('gem', 17) ?><span>Luxe</span></a></div>
   <a href="<?= url('categories') ?>" class="<?= $ta === 'categories' || str_starts_with($ta, 'c/') || str_starts_with($ta, 'd/') || $ta === 'shop' ? 'on' : '' ?>"><?= icon('cats') ?><span>Categories</span></a>
   <a href="<?= url('sale') ?>" class="<?= $ta === 'sale' ? 'on' : '' ?>"><?= icon('tag') ?><span>Offers</span></a>
   <a href="<?= url('cart') ?>" class="<?= $ta === 'cart' ? 'on' : '' ?>"><?= icon('bag') ?><span>Bag</span><i class="cnt" data-cart-count hidden>0</i></a>

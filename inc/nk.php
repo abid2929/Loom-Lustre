@@ -8,15 +8,6 @@ const LL_DEPTS = [
     'beauty' => ['Beauty', 'Lipstick, Skincare, Makeup and More', ['lips', 'skincare', 'makeup', 'fragrance', 'nails', 'body'], 'assets/img/p/rose-trio.webp', '#eedfe2'],
 ];
 
-/** Luxe store menu (phone drawer on Luxe pages): [title, line, link, product image]. */
-const LL_LUXE_MENU = [
-    ['Designer Bags', 'Totes, Clutches and Top Handles', 'c/bags', 'assets/img/p/bag-woven-tote.webp'],
-    ['Fine Jewellery', 'Bridal Gold, Drops and Danglers', 'c/jewellery', 'assets/img/p/jw-bridal-set.webp'],
-    ['Luxury Watches', 'Gold, Rose Gold and Leather', 'c/watches', 'assets/img/p/wt-rose-minimal.webp'],
-    ['Silk Sarees', 'Banarasi, Silk and Festive Wear', 'c/ethnic', 'assets/img/p/eth-purple-saree.webp'],
-    ['Evening Gowns', 'Satin, Party and Occasion Wear', 'c/westernwear', 'assets/img/p/wst-satin-gown.webp'],
-    ['Statement Heels', 'Heels, Sandals and Flats', 'c/footwear', 'assets/img/p/fw-pink-stilettos.webp'],
-];
 
 /** Home page photo-tile rows (label, link, product slug for the photo), like the Nykaa Fashion store. */
 const LL_CELEB = [
@@ -138,7 +129,7 @@ function nk_off_text(int $o, string $none = 'New styles inside'): string { retur
 /** Active categories of a department, in shop order. */
 function nk_dept_cats(string $d): array {
     $want = LL_DEPTS[$d][2] ?? []; $out = [];
-    foreach (categories() as $c) if (in_array($c['slug'], $want, true)) $out[] = $c;
+    foreach (db()->query("SELECT * FROM categories WHERE active=1 AND slug NOT LIKE 'lx-%' ORDER BY sort, id") as $c) if (in_array($c['slug'], $want, true)) $out[] = $c;
     return $out;
 }
 function nk_dept_off(string $d): int { $m = 0; foreach (LL_DEPTS[$d][2] as $s) $m = max($m, nk_offs()[$s]['off'] ?? 0); return $m; }
