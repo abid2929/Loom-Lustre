@@ -185,7 +185,7 @@ function page_foot(): void {
       <?php if ($social): ?><div class="social"><?php foreach ($social as $k => $u): ?><a href="<?= e($u) ?>" target="_blank" rel="noopener" aria-label="<?= $k ?>"><?= icon($k, 20) ?></a><?php endforeach; ?></div><?php endif; ?>
     </div>
     <div><h4>Shop</h4><?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><?= e($d[0]) ?></a><?php endforeach; ?><a href="<?= url('luxe') ?>">Luxe</a><a href="<?= url('categories') ?>">All categories</a><a href="<?= url('sale') ?>">Sale</a></div>
-    <div><h4>Top categories</h4><?php foreach (array_slice($cats, 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div>
+    <div><h4>Top categories</h4><?php $dn = array_map('strtolower', array_column(nk_depts(), 0)); foreach (array_slice(array_values(array_filter($cats, fn($c) => !in_array(strtolower($c['name']), $dn, true))), 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div>
     <div><h4>Help</h4><a href="<?= url('track') ?>">Track order</a><a href="<?= url('about') ?>#delivery">Delivery &amp; payment</a><a href="<?= url('about') ?>#exchange">Exchange policy</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></div>
     <div><h4>Contact</h4>
       <a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 17) ?><?= e(S('phone')) ?></a>

@@ -1017,3 +1017,27 @@ body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{col
 .nk-nav .nav-more-m a.lx{font-weight:600;color:var(--gold);display:flex;align-items:center;gap:6px}
 .ftr-in{grid-template-columns:1.5fr 1fr 1fr 1fr 1.3fr}
 @media (max-width:1000px){.ftr-in{grid-template-columns:1fr 1fr}.ftr-brand{grid-column:1/-1}}
+
+/* v1.5.1 compact categories page (accordion like Nykaa) */
+.nk-cats-pg{max-width:900px}
+.nk-cats-pg h1{font-size:22px;margin:0 0 12px}
+.nk-acc{display:flex;flex-direction:column;gap:8px}
+.nk-accd{display:block;background:var(--bg,#f1e7e3);overflow:hidden}
+.nk-accd summary,.nk-acc-lx{position:relative;display:flex;align-items:center;height:84px;cursor:pointer;list-style:none}
+.nk-accd summary::-webkit-details-marker{display:none}
+.nk-acc-t{position:relative;z-index:1;flex:1;padding:0 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.nk-acc-t b{font-size:17px;font-weight:600}
+.nk-acc-t small{font-size:12px;color:#5a514d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nk-accd summary img,.nk-acc-lx img{width:84px;height:84px;object-fit:cover;object-position:50% 15%;flex:0 0 84px}
+.nk-accd summary i,.nk-acc-lx i{flex:0 0 36px;display:flex;justify-content:center;color:#5a514d;transition:transform .25s}
+.nk-accd[open] summary i{transform:rotate(90deg)}
+.nk-acc-lx{background:#1d1714;color:#f3e6cf}.nk-acc-lx .nk-acc-t small,.nk-acc-lx i{color:#cdb894}
+.nk-acc-g{display:grid;grid-template-columns:repeat(6,1fr);gap:12px 8px;background:#fff;padding:14px 10px;border:1px solid var(--line);border-top:0}
+.nk-acc-g a,.nk-disc2 a{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;text-align:center;line-height:1.25}
+.nk-acc-g span,.nk-disc2 span{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--nude)}
+.nk-acc-g img,.nk-disc2 img{width:100%;height:100%;object-fit:cover}
+.nk-acc-g .all{font-weight:600;color:var(--brand)}.nk-acc-g .all span{background:var(--brand-l);color:var(--brand)}
+.nk-disc2{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.nk-disc2::-webkit-scrollbar{display:none}
+.nk-disc2 a{flex:0 0 72px}
+@media (max-width:860px){.nk-acc-g{grid-template-columns:repeat(4,1fr)}.nk-acc-g span{width:58px;height:58px}.nk-acc-g a{font-size:11px}.nk-accd summary,.nk-acc-lx{height:76px}.nk-accd summary img,.nk-acc-lx img{width:76px;height:76px;flex-basis:76px}}
