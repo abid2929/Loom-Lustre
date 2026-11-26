@@ -313,3 +313,26 @@ document.addEventListener('click', function (e) {
   if (a && window.matchMedia('(max-width:860px)').matches) { var p = document.getElementById('dsub-' + a.getAttribute('data-sub')); if (p) { e.preventDefault(); p.hidden = false; p.scrollTop = 0; document.documentElement.classList.add('dsub-on'); } return; }
   if (e.target.closest('[data-sub-close]')) { var o = e.target.closest('.dsub'); if (o) o.hidden = true; document.documentElement.classList.remove('dsub-on'); }
 });
+
+/* sideways rows: drag with the mouse + arrow buttons on PC (like Nykaa) */
+(function () {
+  if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  var sel = '.nk-strip-in,.nk-row,.nk-circ,.nk-sub,.lx-cats-in,.lx-row,.nk-spot,.nk-disc2,.lxl-chips';
+  document.querySelectorAll(sel).forEach(function (r) {
+    if (r.closest('.drawer,.dsub')) return;
+    var w = document.createElement('div'); w.className = 'hs-wrap';
+    r.parentNode.insertBefore(w, r); w.appendChild(r);
+    var mk = function (d) { var b = document.createElement('button'); b.type = 'button'; b.className = 'hs-btn hs-' + d; b.setAttribute('aria-label', d === 'l' ? 'Scroll left' : 'Scroll right');
+      b.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + (d === 'l' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6') + '"/></svg>';
+      b.addEventListener('click', function () { r.scrollBy({ left: (d === 'l' ? -1 : 1) * r.clientWidth * 0.8, behavior: 'smooth' }); }); w.appendChild(b); return b; };
+    var L = mk('l'), R = mk('r');
+    var upd = function () { var max = r.scrollWidth - r.clientWidth - 2; L.hidden = r.scrollLeft <= 2; R.hidden = r.scrollLeft >= max; };
+    r.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); window.addEventListener('load', upd); upd();
+    var down = false, sx = 0, sl = 0, moved = false;
+    r.addEventListener('mousedown', function (e) { if (e.button !== 0) return; down = true; moved = false; sx = e.pageX; sl = r.scrollLeft; r.style.scrollSnapType = 'none'; });
+    window.addEventListener('mousemove', function (e) { if (!down) return; var dx = e.pageX - sx; if (Math.abs(dx) > 5) { moved = true; r.classList.add('hs-drag'); } if (moved) { e.preventDefault(); r.scrollLeft = sl - dx; } });
+    window.addEventListener('mouseup', function () { if (!down) return; down = false; r.classList.remove('hs-drag'); r.style.scrollSnapType = ''; });
+    r.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    r.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  });
+})();
