@@ -11,6 +11,7 @@ function icon(string $n, int $s = 22): string {
         'arrow' => '<path d="M4 12h15M14 6l6 6-6 6"/>',
         'bag' => '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
         'user' => '<circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/>',
+        'sort' => '<path d="M4 7h11M4 12h7M4 17h4M18 6v13M15 16l3 3 3-3"/>',
         'heart' => '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>',
         'menu' => '<path d="M4 7h16M4 12h16M4 17h16"/>',
         'close' => '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -242,12 +243,13 @@ function product_card(array $p, bool $lazy = true): string {
         ? '<a class="quick" href="' . $url . '" aria-label="Choose shade for ' . e($p['name']) . '">' . icon('bag', 18) . '<span>Choose shade</span></a>'
         : '<button class="quick" data-add="' . (int)$p['id'] . '" aria-label="Add ' . e($p['name']) . ' to bag">' . icon('bag', 18) . '<span>Add to bag</span></button>';
     $h .= '</div><div class="card-b">';
+    if (ll_lux() && !empty($p['is_new'])) $h .= '<em class="lx-latest">Latest Style</em>';
     $h .= '<small class="card-cat">' . e($p['brand'] ?: ($p['cat_name'] ?? '')) . '</small>';
     $h .= '<h3><a href="' . $url . '">' . e($p['name']) . '</a></h3>';
     if ($rn) $h .= '<span class="card-r"><span class="stars">' . str_repeat('★', (int)round($ravg)) . '<i>' . str_repeat('★', 5 - (int)round($ravg)) . '</i></span>(' . $rn . ')</span>';
     elseif ($p['size'] !== '') $h .= '<p class="card-s">' . e($p['size']) . ($shades ? ' · ' . count($shades) . ' shades' : '') . '</p>';
     $h .= '<div class="price"><b>' . money($p['price']) . '</b>';
-    if ($off > 0) $h .= '<s>' . money($p['old_price']) . '</s>';
+    if ($off > 0) $h .= '<s>' . money($p['old_price']) . '</s>' . (ll_lux() ? '<i class="lx-off">' . $off . '%</i>' : '');
     $h .= '</div></div></article>';
     return $h;
 }

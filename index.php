@@ -327,7 +327,7 @@ case 'luxe':
   <section class="wrap lx-hero"><a href="<?= url('c/lx-gowns') ?>"><img src="<?= url('assets/img/b/lx-hero.webp') ?>" srcset="<?= url('assets/img/b/lx-hero-s.webp') ?> 900w, <?= url('assets/img/b/lx-hero.webp') ?> 2000w" sizes="100vw" alt="Luxe couture gowns and bridal wear" width="2000" height="1125" fetchpriority="high"><span><small>Introducing</small><h1><?= e(S('shop_name')) ?> <em>LUXE</em></h1><span>Designer bags, fine jewellery and couture</span><i>Shop Now</i></span></a></section>
 
   <section class="wrap lx-cats"><div class="lx-cats-in">
-    <a class="lx-cat0" href="<?= url('c/lx-bridal') ?>"><b>LUXE</b><small>COUTURE</small></a>
+    <a class="lx-cat0" href="<?= url('luxe-all') ?>"><b>LUXE</b><small>EDIT</small></a>
     <?php foreach ($lc as $c): if (($offs[$c['slug']]['n'] ?? 0) === 0) continue; ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper(preg_replace('~^(Designer|Fine|Luxury) ~', '', $c['name']))) ?></small><?= nk_img($c['image'], '', 300, 375) ?></a><?php endforeach; ?>
   </div></section>
 
@@ -371,8 +371,9 @@ case 'luxe':
     page_foot();
     break;
 
-case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection':
+case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection': case 'luxe-all':
     $where = ''; $args = []; $title = 'All Products'; $sub = 'Every product in our shop'; $active = 'shop'; $banner = '';
+    if ($page === 'luxe-all') { ll_lux(true); $title = 'Luxe Edit'; $sub = 'Every piece in our Luxe store'; $active = 'luxe-all'; }
     if ($page === 'c') {
         $st = db()->prepare('SELECT * FROM categories WHERE slug=? AND active=1'); $st->execute([$parts[1] ?? '']); $cat = $st->fetch();
         if (!$cat) { not_found(); break; }
@@ -400,6 +401,33 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
     $list = q($where, $args, $orders[$sort][1]);
     page_head($title, $sub, '', $active);
     $cats = categories();
+    if (ll_lux()) {
+        $base = url($active); $qs = fn(array $x) => '?' . http_build_query(array_filter(array_merge(['sort' => $sort, 'max' => $max ?: ''], $x), fn($v) => $v !== '' && $v !== 0));
+        ?>
+<div class="wrap lxl">
+  <div class="lxl-top"><h1><?= e($title) ?> <small>· <?= count($list) ?> item<?= count($list) === 1 ? '' : 's' ?></small></h1>
+    <nav class="lxl-crumbs"><a href="<?= url('luxe') ?>">Luxe Home</a><?= icon('chev', 12) ?><span><?= e($title) ?></span></nav></div>
+  <div class="lxl-body">
+    <aside class="lxl-f">
+      <div class="lxl-fh"><b>Filters</b><a href="<?= $base ?>">Reset</a></div>
+      <details open><summary>Category</summary><div><?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $active === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div></details>
+      <details open><summary>Price</summary><div><a href="<?= $base . $qs(['max' => '']) ?>" class="<?= $max ? '' : 'on' ?>">Any price</a><?php foreach ([10000, 20000, 50000] as $m): ?><a href="<?= $base . $qs(['max' => $m]) ?>" class="<?= $max === $m ? 'on' : '' ?>">Under <?= money($m) ?></a><?php endforeach; ?></div></details>
+      <details><summary>Discount</summary><div><a href="<?= $base . $qs(['sort' => 'off']) ?>">Biggest discount first</a></div></details>
+      <details><summary>Launched In</summary><div><a href="<?= $base . $qs(['sort' => 'new']) ?>">Newest first</a></div></details>
+    </aside>
+    <div class="lxl-main">
+      <form class="lxl-sort" method="get"><?php if ($max): ?><input type="hidden" name="max" value="<?= $max ?>"><?php endif; ?>
+        <div class="lxl-chips"><?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $active === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; ?></div>
+        <label><?= icon('sort', 16) ?><span>Sort by</span><select name="sort" onchange="this.form.submit()"><?php foreach ($orders as $k => $o): ?><option value="<?= $k ?>" <?= $sort === $k ? 'selected' : '' ?>><?= $o[0] ?></option><?php endforeach; ?></select></label>
+      </form>
+      <?= product_grid($list, 'grid lxl-grid') ?>
+    </div>
+  </div>
+</div>
+        <?php
+        page_foot();
+        break;
+    }
     ?>
 <section class="list-h<?= $banner ? ' has-img' : '' ?>">
   <div class="wrap">
