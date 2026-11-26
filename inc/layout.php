@@ -149,7 +149,7 @@ function site_header(): void {
       <h2>Categories</h2>
       <div class="dr-depts">
         <?php if (ll_lux()): foreach (categories() as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small></span><img src="<?= e(img_small($c['image'])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; else: ?>
-        <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><img src="<?= e(img_small($d[3])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; endif; ?>
+        <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" data-sub="<?= $k ?>" style="--bg:<?= e($d[4]) ?>"><span><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><img src="<?= e(img_small($d[3])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; endif; ?>
       </div>
       <h3><?= ll_lux() ? 'Luxe Edits' : 'Discover' ?></h3>
       <div class="dr-disc">
@@ -198,6 +198,7 @@ function page_foot(): void {
     <span class="credit">Designed &amp; developed by <span class="cr-g"><a class="cr" href="https://www.linkedin.com/in/abid-islam-a926ab2b5/" target="_blank" rel="noopener"><i class="cr-in" aria-hidden="true">in</i>Abid Islam</a> <a class="cr" href="https://boostnixmedia.com" target="_blank" rel="noopener"><i class="cr-b" aria-hidden="true">B</i>Boostnix Media</a></span></span>
   </div>
 </footer>
+<?= ll_lux() ? '' : nk_dept_subs() ?>
 <nav class="tabbar" aria-label="Quick links">
   <?php $ta = $GLOBALS['ll_active'] ?? ''; ?>
   <div class="tb-sw"><a href="<?= url() ?>" class="<?= ll_lux() ? '' : 'on' ?>"><?= icon('spark', 17) ?><span>Fashion</span></a><a href="<?= url('luxe') ?>" class="<?= ll_lux() ? 'on' : '' ?>"><?= icon('gem', 17) ?><span>Luxe</span></a></div>

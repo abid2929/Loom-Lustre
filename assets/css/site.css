@@ -1216,3 +1216,25 @@ body.lxm .card-r,body.lxm .card-s{color:#999}
 .lx-tip p{margin:0;flex:1;font-size:13px;line-height:1.35}.lx-tip b{display:block}.lx-tip small{color:#666;font-size:12px}
 .lx-tip button{align-self:flex-end;background:none;border:0;color:var(--brand);font-weight:700;font-size:13px;cursor:pointer;padding:0}
 @media (max-width:860px){.lx-tip{right:12px;left:12px;width:auto}}
+
+/* phone department sub-list */
+.dsub{position:fixed;left:0;top:0;bottom:0;width:min(420px,100vw);z-index:90;background:#fff;color:var(--ink);overflow-y:auto;padding:0 18px 90px;animation:slin .25s ease}
+.dsub[hidden]{display:none}
+.dsub-h{display:flex;justify-content:space-between;align-items:center;height:54px}
+.dsub-back svg{transform:rotate(180deg)}.dsub-back{background:none;border:0;padding:6px;margin-left:-6px;color:var(--ink);cursor:pointer}
+.dsub h2{font-family:var(--f);font-weight:700;font-size:28px;margin:2px 0 10px;letter-spacing:0}
+.dsub ul{list-style:none;margin:0;padding:0}
+.dsub li a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border-bottom:1px solid var(--line);font-size:15px}
+.dsub li i{flex:none;width:44px;height:44px;border-radius:50%;overflow:hidden;background:#eceae8;display:grid;place-items:center;font-style:normal}
+.dsub li img{width:100%;height:100%;object-fit:cover}
+.dsub-txt{font-size:8.5px;font-weight:800;line-height:1.05;text-align:center;color:#222}
+.dsub-txt.dsub-sale{background:#a3121f!important;color:#fff;font-size:11px}
+html.dsub-on{overflow:hidden}
+
+/* v1.6.3 department photo row like the Nykaa row: name under photo, scrolls sideways */
+.nk-sub{gap:10px;padding:22px 0 8px}
+.nk-sub a{flex:0 0 calc((100% - 90px)/9.4);min-width:120px;border:0;background:transparent}
+.nk-sub a img{order:0;aspect-ratio:9/8;object-position:50% 25%}
+.nk-sub b{order:1;font-size:16px;font-weight:400;color:var(--ink);padding:6px 2px 0;letter-spacing:0}
+.nk-sub small{order:2;padding:0 2px 4px;font-size:12.5px}
+@media (max-width:860px){.nk-sub a{flex:0 0 104px;min-width:0}.nk-sub b{font-size:13px}.nk-sub small{font-size:11px}}

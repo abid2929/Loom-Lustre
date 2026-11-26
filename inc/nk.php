@@ -165,3 +165,24 @@ function nk_seo_text(): string {
     $h .= '<h3>Why shop with us</h3><p>Original products, easy exchange if anything is wrong, fast delivery all over the country and real help on WhatsApp. <a href="' . url('track') . '">Track your order</a> any time with your order code and phone number.</p></section>';
     return $h;
 }
+
+/** Phone: tapping a department (Women, Men...) opens its category list in place, like the Nykaa app. */
+function nk_dept_subs(): string {
+    $h = '';
+    foreach (nk_depts() as $k => $d) {
+        $h .= '<div class="dsub" id="dsub-' . $k . '" hidden role="dialog" aria-label="' . e($d[0]) . '"><div class="dsub-h"><button type="button" class="dsub-back" data-sub-close aria-label="Back">' . icon('arrow', 22) . '</button><a href="' . url('cart') . '" aria-label="Bag">' . icon('bag', 21) . '</a></div>';
+        $h .= '<h2>' . e($d[0]) . '</h2><ul>';
+        $h .= '<li><a href="' . url('d/' . $k) . '"><span>All ' . e($d[0]) . '</span><i class="dsub-txt">ALL</i></a></li>';
+        $h .= '<li><a href="' . url('new') . '"><span>What\'s New</span><i class="dsub-txt">WHAT\'S<br>NEW</i></a></li>';
+        $h .= '<li><a href="' . url('sale') . '"><span>Sale</span><i class="dsub-txt dsub-sale">SALE</i></a></li>';
+        $cs = nk_dept_cats($k); $ord = ['ethnic', 'westernwear', 'men', 'kids', 'home', 'footwear', 'bags', 'jewellery', 'activewear', 'watches', 'sneakers', 'eyewear'];
+        usort($cs, fn($x, $y) => (array_search($x['slug'], $ord) === false ? 99 : array_search($x['slug'], $ord)) <=> (array_search($y['slug'], $ord) === false ? 99 : array_search($y['slug'], $ord)));
+        $lbl = ['ethnic' => 'Indian Wear', 'westernwear' => 'Western Wear', 'activewear' => 'Active & Sports', 'men' => 'Clothing', 'eyewear' => 'Sunglasses'];
+        foreach ($cs as $c) { $c['name'] = $lbl[$c['slug']] ?? $c['name'];
+            $ps = nk_dept_products($k, $c['slug'], 1); $im = $ps ? p_image($ps[0]) : (string)$c['image'];
+            $h .= '<li><a href="' . url('c/' . $c['slug']) . '"><span>' . e($c['name']) . '</span><i><img src="' . e(img_small($im)) . '" alt="" width="44" height="44" loading="lazy"></i></a></li>';
+        }
+        $h .= '</ul></div>';
+    }
+    return $h;
+}
