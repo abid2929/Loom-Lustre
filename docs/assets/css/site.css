@@ -1,7 +1,7 @@
 /* Loom & Lustre storefront: premium beauty theme */
 :root{
   --brand:#9e1b34; --brand-d:#7a1427; --brand-l:#f8ecee; --blush:#f7f1ee; --nude:#efe6e1; --gold:#a9844f; --gold-l:#d9c3a0;
-  --ink:#17110f; --ink2:#6e6461; --ink3:#9b908c; --line:#e9e1dd; --bg:#fffdfb; --wa:#25D366;
+  --ink:#17110f; --ink2:#6e6461; --ink3:#9b908c; --line:#e9e1dd; --bg:#ffffff; --wa:#25D366;
   --r:6px; --sh:0 18px 40px -24px rgba(40,20,20,.35);
   --f:'Jost',system-ui,-apple-system,'Segoe UI',sans-serif; --fh:'Cormorant Garamond','Playfair Display',Georgia,serif; --fs:'Great Vibes',cursive;
 }
