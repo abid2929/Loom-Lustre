@@ -131,6 +131,8 @@ function site_header(): void {
       <input type="search" name="q" placeholder="Search for products, styles, sarees..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
     </form>
     <?= nk_switch(ll_lux()) ?>
+    <?php if (ll_lux()): ?><div class="lx-tip" id="lxTip" hidden><?= icon('gem', 22) ?><p><b>You are now in <?= e(S('shop_name')) ?> Luxe</b><small>Tap Fashion / Luxe to switch stores</small></p><button type="button" onclick="try{localStorage.setItem('llLxTip','1')}catch(e){}this.parentNode.hidden=true">Got it</button></div>
+    <script>try{if(!localStorage.getItem('llLxTip'))document.getElementById('lxTip').hidden=false}catch(e){}</script><?php endif; ?>
     <nav class="hdr-act">
       <a class="icon-btn only-d" href="<?= url('track') ?>" aria-label="Account"><?= icon('user') ?><span>Account</span></a>
       <a class="icon-btn" href="<?= url('wishlist') ?>" aria-label="Wishlist"><?= icon('heart') ?><span class="only-d">Wishlist</span><i class="cnt" data-wish-count hidden>0</i></a>
