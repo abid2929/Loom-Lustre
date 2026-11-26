@@ -119,10 +119,11 @@ function site_header(): void {
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
     <nav class="nk-nav only-d" aria-label="Departments">
-      <?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" class="<?= $cd === $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
+      <?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="<?= $cd === $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
+<?php if ($a !== 'luxe'): ?>
       <div class="nk-more"><a href="<?= url('categories') ?>">More <?= icon('chev', 13) ?></a><div class="nk-more-m">
         <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
-      </div></div>
+      </div></div><?php endif; ?>
     </nav>
     <form class="search" action="<?= url('search') ?>" role="search">
       <?= icon('search', 19) ?>
@@ -144,11 +145,12 @@ function site_header(): void {
     <div class="drawer-c">
       <h2>Categories</h2>
       <div class="dr-depts">
-        <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><img src="<?= e(img_small($d[3])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; ?>
+        <?php if ($a === 'luxe'): foreach (LL_LUXE_MENU as [$t, $ln, $lk, $im]): if (!is_file(LL_ROOT . '/' . $im)) continue; ?><a href="<?= url($lk) ?>"><span><b><?= e($t) ?></b><small><?= e($ln) ?></small></span><img src="<?= e(img_small($im)) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; else: ?>
+        <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><img src="<?= e(img_small($d[3])) ?>" alt="" width="150" height="190" loading="lazy"></a><?php endforeach; endif; ?>
       </div>
-      <h3>Discover</h3>
+      <h3><?= $a === 'luxe' ? 'Luxe Collections' : 'Discover' ?></h3>
       <div class="dr-disc">
-        <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><img src="<?= e(img_small($im)) ?>" alt="" width="200" height="270" loading="lazy"><b><?= e($t) ?></b></a><?php endforeach; ?>
+        <?php foreach ($a === 'luxe' ? array_map(fn($c) => [$c['name'], 'collection/' . $c['slug'], (string)$c['image']], array_values(array_filter(array_map('nk_coll', ['luxe-edit', 'bridal-glow', 'wedding-season'])))) : nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><img src="<?= e(img_small($im)) ?>" alt="" width="200" height="270" loading="lazy"><b><?= e($t) ?></b></a><?php endforeach; ?>
       </div>
       <nav class="dr-links"><a href="<?= url('sale') ?>">Sale</a><a href="<?= url('new') ?>">New In</a><a href="<?= url('track') ?>">Track order</a><a href="<?= url('wishlist') ?>">Wishlist</a><a href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener">WhatsApp us</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></nav>
     </div>

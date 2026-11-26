@@ -245,6 +245,7 @@ case '':
   <div class="nk-circ">
     <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><span><?= nk_img($d[3], '', 200, 200) ?></span><b><?= e($d[0]) ?></b></a><?php endforeach; ?>
     <?php if ($lx): ?><a href="<?= url('luxe') ?>"><span><?= nk_img((string)$lx['image'], '', 200, 200) ?></span><b>Luxe Store</b></a><?php endif; ?>
+    <?php foreach (nk_discover() as [$dt, $dl, $di]): if ($dt !== 'Hidden Gems') continue; ?><a href="<?= url($dl) ?>"><span><?= nk_img($di, '', 200, 200) ?></span><b><?= e($dt) ?></b></a><?php endforeach; ?>
     <?php foreach (collections() as $c): if (in_array($c['slug'], ['luxe-edit', 'stylists-picks'], true)) continue; ?><a href="<?= url('collection/' . $c['slug']) ?>"><span><?= nk_img((string)$c['image'], '', 200, 200) ?></span><b><?= e($c['name']) ?></b></a><?php endforeach; ?>
   </div>
 </section>
@@ -308,7 +309,8 @@ case 'luxe':
     $lx = nk_coll('luxe-edit'); $offs = nk_offs();
     $GLOBALS['ll_body'] = 'lxm';
     page_head('Luxe Store', 'Silk sarees, bridal jewellery, evening gowns and fine leather at ' . S('shop_name') . ' Luxe.', img_url('assets/img/b/ethnic-festive.webp'), 'luxe');
-    $lc = array_values(array_filter(categories(), fn($c) => in_array($c['slug'], ['bags', 'westernwear', 'ethnic', 'jewellery', 'footwear', 'eyewear', 'activewear', 'men'], true)));
+    $cby = []; foreach (categories() as $c) $cby[$c['slug']] = $c;
+    $lc = []; foreach (['bags' => 'Bags', 'westernwear' => 'Westernwear', 'ethnic' => 'Indianwear', 'watches' => 'Watches', 'footwear' => 'Footwear', 'eyewear' => 'Sunglasses', 'jewellery' => 'Jewellery', 'activewear' => 'Active & Sport', 'men' => 'Menswear'] as $sl => $nm) if (isset($cby[$sl])) $lc[] = ['slug' => $sl, 'name' => $nm, 'image' => $cby[$sl]['image']];
     $ban = function (string $img, string $title, string $sub, string $link, string $btn = 'Shop Now') { ?>
   <a class="lx-ban" href="<?= url($link) ?>" style="--bgi:url('<?= e(img_small($img)) ?>')"><?= nk_img($img, $title, 1200, 1500, true) ?><span><b><?= e($title) ?></b><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?><i><?= e($btn) ?></i></span></a>
 <?php };
@@ -324,7 +326,7 @@ case 'luxe':
   <section class="wrap lx-sec"><?php $ban('assets/img/p/eth-red-saree.webp', 'Festive Icons', nk_off_text(max($offs['ethnic']['off'] ?? 0, $offs['jewellery']['off'] ?? 0), ''), 'c/ethnic'); ?></section>
 
   <section class="wrap lx-sec"><div class="lx-row lx-occ">
-    <?php foreach ([['The Occasion Edit', 'collection/wedding-season', 'assets/img/p/wst-satin-gown.webp'], ['Sparkling Jewellery', 'c/jewellery', 'assets/img/p/jw-sapphire-drops.webp'], ['Bridal Gold', 'collection/bridal-glow', 'assets/img/p/jw-bridal-set.webp'], ['Contemporary Saree', 'c/ethnic', 'assets/img/p/eth-sage-saree.webp'], ['Perfect Companion', 'c/bags', 'assets/img/p/bag-woven-tote.webp'], ['Statement Heels', 'c/footwear', 'assets/img/p/fw-floral-heels.webp']] as [$t, $l, $im]): ?>
+    <?php foreach ([['The Occasion Edit', 'collection/wedding-season', 'assets/img/p/wst-satin-gown.webp'], ['Veritable Watches', 'c/watches', 'assets/img/p/wt-rose-link.webp'], ['Sparkling Jewellery', 'c/jewellery', 'assets/img/p/jw-sapphire-drops.webp'], ['Contemporary Saree', 'c/ethnic', 'assets/img/p/eth-sage-saree.webp'], ['Perfect Companion', 'c/bags', 'assets/img/p/bag-woven-tote.webp'], ['Set the Scene', 'c/home', 'assets/img/p/hm-pineapple-lamp.webp']] as [$t, $l, $im]): ?>
     <a href="<?= url($l) ?>"><?= nk_img($im, $t) ?><b><?= e($t) ?></b></a>
     <?php endforeach; ?>
   </div></section>
@@ -352,6 +354,12 @@ case 'luxe':
     <?php $et = q("c.slug='ethnic'", [], 'p.price DESC', 8); ?>
     <div class="lx-row lx-des"><?php foreach ($et as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><b><?= e($p['name']) ?></b><?= nk_img(p_image($p), $p['name']) ?></a><?php endforeach; ?></div>
   </section>
+
+  <?php $wt = q("c.slug='watches'", [], 'p.price DESC', 8); if ($wt): ?>
+  <section class="wrap lx-sec"><h2 class="lx-h">Statement Timekeepers</h2><div class="lx-row lx-jw lx-wt">
+    <?php foreach ($wt as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><span><?= nk_img(p_image($p), $p['name']) ?></span><b><?= e($p['name']) ?></b><small><?= money($p['price']) ?></small></a><?php endforeach; ?>
+  </div></section>
+  <?php endif; ?>
 
   <?php $jw = q("c.slug='jewellery'", [], 'p.price DESC', 8); if ($jw): ?>
   <section class="wrap lx-sec"><h2 class="lx-h">Statement Jewellery</h2><div class="lx-row lx-jw">

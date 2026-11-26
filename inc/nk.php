@@ -8,6 +8,16 @@ const LL_DEPTS = [
     'beauty' => ['Beauty', 'Lipstick, Skincare, Makeup and More', ['lips', 'skincare', 'makeup', 'fragrance', 'nails', 'body'], 'assets/img/p/rose-trio.webp', '#eedfe2'],
 ];
 
+/** Luxe store menu (phone drawer on Luxe pages): [title, line, link, product image]. */
+const LL_LUXE_MENU = [
+    ['Designer Bags', 'Totes, Clutches and Top Handles', 'c/bags', 'assets/img/p/bag-woven-tote.webp'],
+    ['Fine Jewellery', 'Bridal Gold, Drops and Danglers', 'c/jewellery', 'assets/img/p/jw-bridal-set.webp'],
+    ['Luxury Watches', 'Gold, Rose Gold and Leather', 'c/watches', 'assets/img/p/wt-rose-minimal.webp'],
+    ['Silk Sarees', 'Banarasi, Silk and Festive Wear', 'c/ethnic', 'assets/img/p/eth-purple-saree.webp'],
+    ['Evening Gowns', 'Satin, Party and Occasion Wear', 'c/westernwear', 'assets/img/p/wst-satin-gown.webp'],
+    ['Statement Heels', 'Heels, Sandals and Flats', 'c/footwear', 'assets/img/p/fw-pink-stilettos.webp'],
+];
+
 /** Home page photo-tile rows (label, link, product slug for the photo), like the Nykaa Fashion store. */
 const LL_CELEB = [
     ['Drops & Danglers', 'c/jewellery', 'sapphire-drop-earrings'], ['Evening Gowns', 'c/westernwear', 'plum-satin-evening-gown'],

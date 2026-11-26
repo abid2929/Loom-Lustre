@@ -1061,7 +1061,7 @@ body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{col
 /* v1.5.2 Nykaa-style two-row PC header: department tabs + category row with hover menus */
 .nk-nav{align-self:stretch}
 .nk-nav>a{display:flex;align-items:center;align-self:stretch;border-radius:0;padding:0 16px;font-size:15.5px;font-weight:600;position:relative;border-left:1px solid transparent;border-right:1px solid transparent}
-.nk-nav>a.on{border-color:var(--ink);color:var(--ink)}
+.nk-nav>a.on{border-color:transparent;color:var(--ink)}
 .nk-nav>a.on::before{content:"";position:absolute;left:30%;right:30%;bottom:12px;height:2px;background:var(--brand)}
 .nk-nav .nav-more{align-self:center}
 .nk-sub2{border-top:1px solid var(--line);background:#fff}
@@ -1167,6 +1167,6 @@ body.lxm .drawer-p{background:#141213;color:#f1ece8}
 body.lxm .drawer-h{border-color:#2a2526}body.lxm .drawer-h .icon-btn{color:#eee}
 body.lxm .drawer-h .brand img{filter:brightness(0) invert(1)}
 body.lxm .dr-depts a{background:#222}
-body.lxm .dr-depts img{width:100%;-webkit-mask-image:none;mask-image:none;filter:brightness(.62)}
+body.lxm .dr-depts img{width:58%;object-position:50% 40%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 35%);mask-image:linear-gradient(90deg,transparent,#000 35%);filter:brightness(.9)}
 body.lxm .dr-depts b,body.lxm .dr-depts small{color:#fff}
 body.lxm .dr-links{border-color:#2a2526}body.lxm .dr-links a{border-color:#3a3335;color:#ddd}
