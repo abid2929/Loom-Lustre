@@ -13,7 +13,7 @@ Sarees and kurtis, westernwear, menswear, footwear, bags, jewellery, sunglasses,
 
 ![PHP 8](https://img.shields.io/badge/PHP-8.1%2B-777bb4?logo=php&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-no%20MySQL%20needed-003b57?logo=sqlite&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.3-c9a063)
+![Version](https://img.shields.io/badge/version-1.4-c9a063)
 ![Phone ready](https://img.shields.io/badge/phone%20%2B%20PC-ready-2e7d32)
 
 <br>
@@ -53,7 +53,7 @@ Sarees and kurtis, westernwear, menswear, footwear, bags, jewellery, sunglasses,
 | Shop | Admin |
 |---|---|
 | Wide auto-sliding offer banner. The "Up to X% off" pill is worked out from real prices | Bangla by default, EN button, the same shared panel as every shop |
-| "What are you looking for?" colourful category tiles, "In the spotlight" offers, occasion edits, Stylists' picks, Luxe Edit and round category circles | Dashboard with sales chart, live activity and recent orders |
+| Women, Men, Kids, Beauty menu with a Fashion / Luxe switch; photo category row, In the Spotlight offers, Styles To Celebrate In, Stylists' Picks, Luxe Edit, circles; Categories page and a dark Luxe store | Dashboard with sales chart, live activity and recent orders |
 | 16 categories and 97 sample products with colours, shades, sizes and stock | Products: sizes, shades, photo gallery, AI copywriter |
 | Product page: shade picker, Add to bag, Buy now, Order on WhatsApp | Categories, collections, inventory and stock |
 | Bag, wishlist, checkout with cash on delivery | Orders: status tabs, manual orders, invoice, CSV, courier (Steadfast) |

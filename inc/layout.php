@@ -1,9 +1,14 @@
 <?php
 // Shared page parts: <head>, header, footer, product card.
 
+require_once __DIR__ . '/nk.php';
 function icon(string $n, int $s = 22): string {
     $p = [
         'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+        'cats' => '<circle cx="7.5" cy="7.5" r="3.2"/><path d="M16.5 4.2l3.3 3.3-3.3 3.3-3.3-3.3z"/><circle cx="7.5" cy="16.5" r="3.2"/><circle cx="16.5" cy="16.5" r="3.2"/>',
+        'tag' => '<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0z"/><circle cx="8" cy="8" r="1.4"/>',
+        'gem' => '<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5"/>',
+        'arrow' => '<path d="M4 12h15M14 6l6 6-6 6"/>',
         'bag' => '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
         'heart' => '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>',
         'menu' => '<path d="M4 7h16M4 12h16M4 17h16"/>',
@@ -94,7 +99,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','<?= e(S('ga_id')) ?>');</script>
 <?php endif; ?>
 </head>
-<body<?= defined('LL_DEMO') ? ' class="demo"' : '' ?>>
+<?php $bc = trim((defined('LL_DEMO') ? 'demo ' : '') . ($GLOBALS['ll_body'] ?? '')); ?><body<?= $bc !== '' ? ' class="' . e($bc) . '"' : '' ?>>
 
 <?php site_header();
 }
@@ -112,26 +117,24 @@ function site_header(): void {
   <div class="hdr-in wrap">
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
+    <nav class="nk-nav only-d" aria-label="Departments">
+      <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" class="<?= $a === 'd/' . $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
+      <details class="nav-more"><summary>More <?= icon('chev', 13) ?></summary><div class="nav-more-m">
+        <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
+        <a href="<?= url('new') ?>">New In</a><a href="<?= url('sale') ?>" class="sale">Sale</a><a href="<?= url('categories') ?>">All Categories</a><a href="<?= url('track') ?>">Track Order</a>
+      </div></details>
+    </nav>
     <form class="search" action="<?= url('search') ?>" role="search">
       <?= icon('search', 19) ?>
-      <input type="search" name="q" placeholder="Search sarees, heels, lipstick..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
+      <input type="search" name="q" placeholder="Search for products, styles, sarees..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Search products">
     </form>
+    <?= nk_switch($a === 'luxe') ?>
     <nav class="hdr-act">
       <a class="icon-btn only-d" href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><?= icon('wa') ?><span>Help</span></a>
       <a class="icon-btn" href="<?= url('wishlist') ?>" aria-label="Wishlist"><?= icon('heart') ?><span class="only-d">Wishlist</span><i class="cnt" data-wish-count hidden>0</i></a>
       <a class="icon-btn" href="<?= url('cart') ?>" aria-label="Shopping bag"><?= icon('bag') ?><span class="only-d">Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
     </nav>
   </div>
-  <nav class="catnav" aria-label="Categories">
-    <div class="wrap catnav-in">
-      <a href="<?= url() ?>" class="<?= $a === 'home' ? 'on' : '' ?>">Home</a>
-      <a href="<?= url('shop') ?>" class="<?= $a === 'shop' ? 'on' : '' ?>">All Products</a>
-      <?php $nv = count($cats) > 9 ? 7 : count($cats); foreach (array_slice($cats, 0, $nv) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
-      <?php if (count($cats) > $nv): $rest = array_slice($cats, $nv); ?><details class="nav-more"><summary class="<?= in_array($a, array_map(fn($c) => 'c/' . $c['slug'], $rest), true) ? 'on' : '' ?>">More <?= icon('chev', 13) ?></summary><div class="nav-more-m"><?php foreach ($rest as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div></details><?php endif; ?>
-      <a href="<?= url('new') ?>" class="<?= $a === 'new' ? 'on' : '' ?>">New In</a>
-      <a href="<?= url('sale') ?>" class="sale <?= $a === 'sale' ? 'on' : '' ?>">Sale</a>
-    </div>
-  </nav>
 </header>
 <div class="drawer" id="drawer" hidden>
   <div class="drawer-bg" data-close></div>
@@ -140,9 +143,15 @@ function site_header(): void {
     <nav class="drawer-n">
       <a href="<?= url() ?>"><?= icon('home', 20) ?>Home</a>
       <a href="<?= url('shop') ?>"><?= icon('grid', 20) ?>All Products</a>
+      <a href="<?= url('categories') ?>"><?= icon('cats', 20) ?>Categories</a>
+      <a href="<?= url('luxe') ?>"><?= icon('gem', 20) ?>Luxe Store</a>
+      <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><img src="<?= e(img_small($d[3])) ?>" alt="" width="28" height="28"><?= e($d[0]) ?></a><?php endforeach; ?>
+      <hr>
       <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="28" height="28"><?= e($c['name']) ?></a><?php endforeach; ?>
       <a href="<?= url('new') ?>"><?= icon('spark', 20) ?>New In</a>
       <a href="<?= url('sale') ?>" class="sale"><?= icon('spark', 20) ?>Sale</a>
+      <a href="<?= url('wishlist') ?>"><?= icon('heart', 20) ?>Wishlist</a>
+      <a href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener"><?= icon('wa', 20) ?>WhatsApp us</a>
       <hr>
       <a href="<?= url('track') ?>"><?= icon('truck', 20) ?>Track my order</a>
       <a href="<?= url('about') ?>"><?= icon('leaf', 20) ?>About us</a>
@@ -189,11 +198,12 @@ function page_foot(): void {
   </div>
 </footer>
 <nav class="tabbar" aria-label="Quick links">
-  <a href="<?= url() ?>" class="<?= ($GLOBALS['ll_active'] ?? '') === 'home' ? 'on' : '' ?>"><?= icon('home') ?><span>Home</span></a>
-  <a href="<?= url('shop') ?>" class="<?= in_array($GLOBALS['ll_active'] ?? '', ['shop'], true) || str_starts_with($GLOBALS['ll_active'] ?? '', 'c/') ? 'on' : '' ?>"><?= icon('grid') ?><span>Shop</span></a>
-  <a href="<?= url('wishlist') ?>" class="<?= ($GLOBALS['ll_active'] ?? '') === 'wishlist' ? 'on' : '' ?>"><?= icon('heart') ?><span>Wishlist</span><i class="cnt" data-wish-count hidden>0</i></a>
-  <a href="<?= url('cart') ?>" class="<?= ($GLOBALS['ll_active'] ?? '') === 'cart' ? 'on' : '' ?>"><?= icon('bag') ?><span>Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
-  <a href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" class="wa" target="_blank" rel="noopener"><?= icon('wa') ?><span>WhatsApp</span></a>
+  <?php $ta = $GLOBALS['ll_active'] ?? ''; ?>
+  <a href="<?= url() ?>" class="<?= $ta === 'home' ? 'on' : '' ?>"><?= icon('home') ?><span>Home</span></a>
+  <a href="<?= url('categories') ?>" class="<?= $ta === 'categories' || str_starts_with($ta, 'c/') || str_starts_with($ta, 'd/') || $ta === 'shop' ? 'on' : '' ?>"><?= icon('cats') ?><span>Categories</span></a>
+  <a href="<?= url('luxe') ?>" class="<?= $ta === 'luxe' ? 'on' : '' ?>"><?= icon('gem') ?><span>Luxe</span></a>
+  <a href="<?= url('sale') ?>" class="<?= $ta === 'sale' ? 'on' : '' ?>"><?= icon('tag') ?><span>Offers</span></a>
+  <a href="<?= url('cart') ?>" class="<?= $ta === 'cart' ? 'on' : '' ?>"><?= icon('bag') ?><span>Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
 </nav>
 <a class="wa-float" href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" title="<?= e(S('wa_popup')) ?>"><?= icon('wa', 30) ?></a>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

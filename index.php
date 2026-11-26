@@ -2,6 +2,7 @@
 // Loom & Lustre storefront: one front controller for every page.
 require __DIR__ . '/inc/core.php';
 require __DIR__ . '/inc/layout.php';
+require_once __DIR__ . '/inc/nk.php';
 
 $route = trim((string)($_GET['route'] ?? ''), '/');
 if ($route === '' && isset($_SERVER['PATH_INFO'])) $route = trim($_SERVER['PATH_INFO'], '/');
@@ -105,7 +106,8 @@ if ($route === 'sitemap.xml') {
     };
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
     echo $u('', '', '', '1.0');
-    foreach (['shop' => '0.9', 'new' => '0.7', 'sale' => '0.7', 'about' => '0.4', 'contact' => '0.4'] as $r => $pr) echo $u($r, '', '', $pr);
+    foreach (['shop' => '0.9', 'categories' => '0.8', 'luxe' => '0.8', 'new' => '0.7', 'sale' => '0.7', 'about' => '0.4', 'contact' => '0.4'] as $r => $pr) echo $u($r, '', '', $pr);
+    foreach (array_keys(nk_depts()) as $dk) echo $u('d/' . $dk, '', '', '0.9');
     foreach (db()->query('SELECT slug FROM categories WHERE active=1') as $c) echo $u('c/' . $c['slug'], '', '', '0.8');
     foreach (db()->query('SELECT slug FROM collections WHERE active=1') as $c) echo $u('collection/' . $c['slug'], '', '', '0.7');
     foreach (db()->query('SELECT * FROM products WHERE active=1') as $pr) echo $u('p/' . $pr['slug'], (string)($pr['updated'] ?? $pr['created'] ?? ''), img_url(p_image($pr)), '0.8');
@@ -128,6 +130,7 @@ case '':
     $offFor = function (string $lk): int {
         $w = 'p.active=1 AND p.old_price > p.price'; $a = [];
         if (preg_match('~^c/([a-z0-9-]+)~', ltrim($lk, '#/'), $m)) { $w .= ' AND p.category_id=(SELECT id FROM categories WHERE slug=?)'; $a[] = $m[1]; }
+        elseif (preg_match('~^d/([a-z]+)~', ltrim($lk, '#/'), $m) && isset(LL_DEPTS[$m[1]])) { return nk_dept_off($m[1]); }
         elseif (!preg_match('~^(sale|shop)~', ltrim($lk, '#/'))) return 0;
         $st = db()->prepare("SELECT MAX((p.old_price - p.price) * 100 / p.old_price) FROM products p WHERE $w"); $st->execute($a);
         return (int)$st->fetchColumn();
@@ -155,179 +158,185 @@ case '':
   <?php endif; ?>
 </section>
 
-<?php $on = fn(string $k) => S("h_{$k}_on") === '1'; $T = fn(string $k) => S("h_{$k}_t"); $Sb = fn(string $k) => S("h_{$k}_s"); ?>
+<?php $on = fn(string $k) => S("h_{$k}_on") === '1'; $T = fn(string $k) => S("h_{$k}_t"); $Sb = fn(string $k) => S("h_{$k}_s"); $offs = nk_offs(); ?>
 <?php if ($on('cats')): ?>
-<section class="wrap look">
-  <div class="look-h"><h2><?= e($T('cats') !== '' ? $T('cats') : 'What are you looking for?') ?></h2><?php if ($Sb('cats') !== ''): ?><p><?= e($Sb('cats')) ?></p><?php endif; ?></div>
-  <div class="cats<?= count($cats) > 6 ? " many" : "" ?>">
-    <?php foreach ($cats as $k => $c): ?>
-    <a class="cat t<?= $k % 6 ?>" href="<?= url('c/' . $c['slug']) ?>"><span class="cat-img"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="300" height="375" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
+<section class="wrap nk-strip" aria-label="Categories">
+  <div class="nk-strip-in">
+    <?php foreach ($cats as $c): if (($offs[$c['slug']]['n'] ?? 0) === 0) continue; ?>
+    <a href="<?= url('c/' . $c['slug']) ?>"><span><?= nk_img($c['image'], '', 300, 360) ?></span><b><?= e($c['name']) ?></b></a>
     <?php endforeach; ?>
   </div>
 </section>
 <?php endif; ?>
 
-<?php $flash = $on('flash') ? q('p.flash_sale=1', [], 'p.sort, p.id DESC', 8) : []; if (ctype_digit(S('deal_id'))) { $dl = q('p.id=?', [(int)S('deal_id')]); if ($dl) $flash = array_merge($dl, array_values(array_filter($flash, fn($x) => (int)$x['id'] !== (int)$dl[0]['id']))); } if (count($flash) > 4) $flash = array_slice($flash, 0, intdiv(count($flash), 4) * 4); if ($flash): ?>
-<section class="wrap sec flash-s">
-  <div class="sec-h flash-h"><div><h2><?= icon('bolt', 22) ?><?= e($T('flash')) ?></h2><p><?= e($Sb('flash')) ?></p></div>
-    <div class="cd" data-countdown aria-label="Time left"><span><b data-h>00</b><small>hours</small></span><i>:</i><span><b data-m>00</b><small>min</small></span><i>:</i><span><b data-s>00</b><small>sec</small></span></div></div>
-  <?= product_grid($flash, 'grid rail') ?>
-</section>
-<?php endif; ?>
-
-<?php if ($on('spot')): $spot = db()->query("SELECT c.slug, c.name, c.image, MAX((p.old_price - p.price) * 100 / p.old_price) off, COUNT(p.id) n FROM categories c JOIN products p ON p.category_id=c.id AND p.active=1 WHERE c.active=1 GROUP BY c.id HAVING n > 0 ORDER BY off DESC, c.sort LIMIT 8")->fetchAll(); if (count($spot) >= 4): $spot = array_slice($spot, 0, intdiv(count($spot), 4) * 4); ?>
-<section class="wrap sec spot-s">
-  <?= section_head($T('spot'), $Sb('spot'), 'sale', 'All offers') ?>
-  <div class="spot">
-    <?php foreach ($spot as $k => $c): $o = (int)$c['off']; ?>
-    <a class="spot-c" href="<?= url('c/' . $c['slug']) ?>"><span class="spot-p"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" width="600" height="750" loading="lazy"></span><span class="spot-t"><b><?= e($c['name']) ?></b><em><?= $o >= 5 ? 'Up to ' . $o . '% off' : 'New styles inside' ?></em></span></a>
+<?php if ($on('spot')): $sp = array_filter($cats, fn($c) => ($offs[$c['slug']]['n'] ?? 0) > 0); usort($sp, fn($a, $b) => ($offs[$b['slug']]['off'] <=> $offs[$a['slug']]['off']) ?: ($a['sort'] <=> $b['sort'])); $sp = array_slice($sp, 0, 10); if ($sp): ?>
+<section class="wrap nk-sec">
+  <h2 class="nk-h"><?= e($T('spot') ?: 'In the Spotlight') ?></h2>
+  <div class="nk-spot">
+    <?php foreach ($sp as $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?>
+    <a href="<?= url('c/' . $c['slug']) ?>"><span class="nk-spot-p"><?= nk_img($im, $c['name']) ?><i><?= e($c['name']) ?></i></span><b><?= e(nk_off_text($offs[$c['slug']]['off'])) ?></b><small><?= e($c['tagline']) ?></small></a>
     <?php endforeach; ?>
   </div>
 </section>
 <?php endif; endif; ?>
 
-<?php $colls = $on('styles') ? array_values(array_filter(collections(), fn($c) => !in_array($c['slug'], ['stylists-picks', 'luxe-edit'], true))) : []; if ($colls): ?>
-<section class="wrap sec">
-  <?= section_head($T('styles'), $Sb('styles')) ?>
-  <div class="colls">
-    <?php foreach ($colls as $c): ?>
-    <a class="coll" href="<?= url('collection/' . $c['slug']) ?>"><img src="<?= e(img_small((string)$c['image'])) ?>" alt="" width="600" height="800" loading="lazy"><span><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small><i>Shop now <?= icon('chev', 14) ?></i></span></a>
+<?php if ($on('styles')): $st = array_values(array_filter($cats, fn($c) => count(nk_cat_imgs($c['slug'], 2)) >= 2)); if ($st): ?>
+<section class="wrap nk-sec">
+  <h2 class="nk-h"><?= e($T('styles') ?: 'Styles To Celebrate In') ?></h2>
+  <div class="nk-row nk-styles">
+    <?php foreach ($st as $c): $ims = nk_cat_imgs($c['slug'], 2); ?>
+    <a href="<?= url('c/' . $c['slug']) ?>"><span class="nk-sty"><span class="nk-sty-in"><?= nk_img($ims[1], '', 160, 200) ?></span><b><?= e($c['name']) ?></b><span class="nk-sty-p"><?= nk_img($ims[0], $c['name']) ?></span></span><em><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0)) ?></em></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; endif; ?>
+
+<?php $pk = $on('picks') ? nk_coll('stylists-picks') : null; $pkp = $pk ? nk_coll_products((int)$pk['id'], 8) : []; if ($pkp): ?>
+<section class="wrap nk-sec">
+  <h2 class="nk-h"><?= e($T('picks') ?: $pk['name']) ?></h2>
+  <div class="nk-row nk-picks">
+    <?php foreach ($pkp as $p): ?>
+    <a href="<?= url('p/' . $p['slug']) ?>"><?= nk_img(p_image($p), $p['name']) ?><span><b><?= e($p['name']) ?></b><small><?= e($p['short']) ?></small></span></a>
     <?php endforeach; ?>
   </div>
 </section>
 <?php endif; ?>
 
-<?php if ($on('deals')): ?>
-<section class="wrap sec">
-  <?= section_head($T('deals'), $Sb('deals'), 'sale') ?>
-  <?= product_grid(q('p.featured=1 OR p.old_price > p.price', [], 'p.featured DESC, (p.old_price - p.price) * 1.0 / MAX(p.old_price,1) DESC', 8), 'grid rail') ?>
-</section>
-<?php endif; ?>
-
-<?php $pk = $on('picks') ? db()->query("SELECT * FROM collections WHERE slug='stylists-picks' AND active=1")->fetch() : null; $pkp = $pk ? q('p.id IN (SELECT product_id FROM col_items WHERE collection_id=?)', [(int)$pk['id']], 'p.featured DESC, p.sort', 4) : []; if (count($pkp) >= 2): ?>
-<section class="picks-band">
-  <div class="wrap">
-    <div class="picks-h"><small><?= e($Sb('picks') !== '' ? $Sb('picks') : $pk['tagline']) ?></small><h2><?= e($T('picks') !== '' ? $T('picks') : $pk['name']) ?></h2></div>
-    <div class="picks">
-      <?php foreach ($pkp as $p): $po = discount_pct($p); ?>
-      <a class="pick" href="<?= url('p/' . $p['slug']) ?>"><span class="pick-p"><img src="<?= e(img_small(p_image($p))) ?>" alt="<?= e($p['name']) ?>" width="600" height="750" loading="lazy"><?php if ($po): ?><em><?= $po ?>% off</em><?php endif; ?></span><b><?= e($p['name']) ?></b><span class="pick-m"><?= money($p['price']) ?><i>Shop the look <?= icon('chev', 14) ?></i></span></a>
+<?php $lx = $on('luxe') ? nk_coll('luxe-edit') : null; if ($lx): $tiles = array_values(array_filter(array_map('nk_coll', ['wedding-season', 'weekend-casual', 'party-night', 'office-ready', 'eid-edit', 'bridal-glow']))); $tiles = array_slice($tiles, 0, 4); ?>
+<section class="wrap nk-sec">
+  <div class="nk-luxe">
+    <a class="nk-luxe-big" href="<?= url('luxe') ?>"><?= nk_img((string)$lx['image'], $lx['name'], 1200, 1500, true) ?><span><b>LUXE EDIT</b><small><?= e($Sb('luxe') ?: $lx['tagline']) ?></small><i>Shop Now <?= icon('arrow', 16) ?></i></span></a>
+    <div class="nk-luxe-g">
+      <?php foreach ($tiles as $t): ?>
+      <a href="<?= url('collection/' . $t['slug']) ?>"><?= nk_img((string)$t['image'], $t['name']) ?><b><?= e($t['name']) ?></b></a>
       <?php endforeach; ?>
     </div>
-    <a class="btn gold" href="<?= url('collection/stylists-picks') ?>">See all picks</a>
   </div>
 </section>
 <?php endif; ?>
 
-<?php if ($on('promo')): ?>
-<section class="wrap duo">
-  <a class="promo pink" href="<?= url('c/lips') ?>">
-    <img src="<?= url('assets/img/b/rose-trio.webp') ?>" alt="" loading="lazy">
-    <span><small>THE LIP EDIT</small><b>Find your perfect shade</b><i class="btn">Shop lips</i></span>
-  </a>
-  <a class="promo dark" href="<?= url('c/nails') ?>">
-    <img src="<?= url('assets/img/b/drip-polish.webp') ?>" alt="" loading="lazy">
-    <span><small>NAIL STUDIO</small><b>Colours that pop</b><i class="btn">Shop nails</i></span>
-  </a>
-</section>
-<?php endif; ?>
-
-<?php if ($on('best')): ?>
-<section class="wrap sec">
-  <?= section_head($T('best'), $Sb('best'), 'shop?sort=popular') ?>
-  <?= product_grid(q('p.bestseller=1', [], 'p.sold DESC', 8)) ?>
-</section>
-<?php endif; ?>
-
-<?php if ($on('band')): ?>
-<section class="band">
-  <div class="wrap band-in">
-    <div class="band-txt">
-      <small>WHY <?= e(mb_strtoupper(S('shop_name'))) ?></small>
-      <h2><?= e($T('band')) ?></h2>
-      <p><?= e(S('about')) ?></p>
-      <ul>
-        <li><?= icon('check', 18) ?>Only original, sealed products</li>
-        <li><?= icon('check', 18) ?>Shade help on WhatsApp before you buy</li>
-        <li><?= icon('check', 18) ?>Cash on delivery in all 64 districts</li>
-      </ul>
-      <a class="btn" href="<?= url('shop') ?>">Start shopping</a>
-    </div>
-    <img src="<?= url('assets/img/b/pink-flat.webp') ?>" alt="Pink skincare and makeup set" loading="lazy">
+<?php if ($on('circles')): ?>
+<section class="wrap nk-sec">
+  <small class="nk-k">Explore More</small>
+  <h2 class="nk-h"><?= e($T('circles') ?: 'Find everything for your every need') ?></h2>
+  <div class="nk-circ">
+    <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><span><?= nk_img($d[3], '', 200, 200) ?></span><b><?= e($d[0]) ?></b></a><?php endforeach; ?>
+    <?php if ($lx): ?><a href="<?= url('luxe') ?>"><span><?= nk_img((string)$lx['image'], '', 200, 200) ?></span><b>Luxe Store</b></a><?php endif; ?>
+    <?php foreach (collections() as $c): if (in_array($c['slug'], ['luxe-edit', 'stylists-picks'], true)) continue; ?><a href="<?= url('collection/' . $c['slug']) ?>"><span><?= nk_img((string)$c['image'], '', 200, 200) ?></span><b><?= e($c['name']) ?></b></a><?php endforeach; ?>
   </div>
 </section>
 <?php endif; ?>
 
-<?php if ($on('makeup')): ?>
-<section class="wrap sec">
-  <?= section_head($T('makeup'), $Sb('makeup'), 'c/makeup') ?>
-  <?= product_grid(q("c.slug='makeup'", [], 'p.featured DESC, p.sold DESC', 8), 'grid rail') ?>
-</section>
-<?php endif; ?>
+<?= nk_seo_text() ?>
+    <?php
+    page_foot();
+    break;
 
-<?php $lx = $on('luxe') ? db()->query("SELECT * FROM collections WHERE slug='luxe-edit' AND active=1")->fetch() : null; $lxp = $lx ? q('p.id IN (SELECT product_id FROM col_items WHERE collection_id=?) AND p.images NOT LIKE ?', [(int)$lx['id'], '%' . (string)$lx['image'] . '%'], 'p.price DESC', 3) : []; if ($lx && $lxp): ?>
-<section class="wrap sec luxe-s">
-  <div class="luxe">
-    <a class="luxe-img" href="<?= url('collection/luxe-edit') ?>"><img src="<?= e(img_url((string)$lx['image'])) ?>" alt="<?= e($lx['name']) ?>" width="1200" height="1500" loading="lazy"></a>
-    <div class="luxe-t">
-      <small>LUXE EDIT</small>
-      <h2><?= e($T('luxe') !== '' ? $T('luxe') : $lx['name']) ?></h2>
-      <p><?= e($Sb('luxe') !== '' ? $Sb('luxe') : $lx['tagline']) ?></p>
-      <div class="luxe-ps">
-        <?php foreach ($lxp as $p): ?>
-        <a href="<?= url('p/' . $p['slug']) ?>"><img src="<?= e(img_small(p_image($p))) ?>" alt="" width="600" height="750" loading="lazy"><b><?= e($p['name']) ?></b><span><?= money($p['price']) ?></span></a>
-        <?php endforeach; ?>
-      </div>
-      <a class="btn gold" href="<?= url('collection/luxe-edit') ?>">Explore the edit</a>
-    </div>
-  </div>
-</section>
-<?php endif; ?>
-
-<?php if ($on('skin')): ?>
-<section class="wrap sec">
-  <?= section_head($T('skin'), $Sb('skin'), 'c/skincare') ?>
-  <?= product_grid(q("c.slug='skincare'", [], 'p.featured DESC, p.sort', 4)) ?>
-</section>
-<?php endif; ?>
-
-<?php if ($on('new')): ?>
-<section class="wrap sec">
-  <?= section_head($T('new'), $Sb('new'), 'new') ?>
-  <?= product_grid(q('', [], 'p.is_new DESC, p.id DESC', 8), 'grid rail') ?>
-</section>
-<?php endif; ?>
-
-<?php if ($on('circles') && count($cats) > 3): ?>
-<section class="wrap sec circ-s">
-  <?= section_head($T('circles'), $Sb('circles'), 'shop', 'Shop all') ?>
-  <div class="circles">
-    <?php foreach ($cats as $c): ?>
-    <a href="<?= url('c/' . $c['slug']) ?>"><span><img src="<?= e(img_small($c['image'])) ?>" alt="" width="160" height="160" loading="lazy"></span><b><?= e($c['name']) ?></b></a>
+case 'categories':
+    page_head('All Categories', 'Shop women, men, kids and beauty at ' . S('shop_name') . ': sarees, westernwear, shoes, bags, jewellery, lipstick and more.', '', 'categories');
+    ?>
+<div class="wrap nk-cats-pg">
+  <h1>Categories</h1>
+  <div class="nk-depts">
+    <?php foreach (nk_depts() as $k => $d): ?>
+    <a class="nk-dept" href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span class="nk-dept-t"><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><?= nk_img($d[3], '', 600, 750) ?></a>
     <?php endforeach; ?>
   </div>
-</section>
-<?php endif; ?>
+  <h2 class="nk-k2">Discover</h2>
+  <div class="nk-disc">
+    <?php if ($lx = nk_coll('luxe-edit')): ?><a href="<?= url('luxe') ?>"><?= nk_img((string)$lx['image'], '') ?><b>Luxe Edit</b></a><?php endif; ?>
+    <?php foreach (collections() as $c): if ($c['slug'] === 'luxe-edit') continue; ?><a href="<?= url('collection/' . $c['slug']) ?>"><?= nk_img((string)$c['image'], '') ?><b><?= e($c['name']) ?></b></a><?php endforeach; ?>
+  </div>
+  <h2 class="nk-k2">All categories</h2>
+  <div class="nk-allc">
+    <?php foreach (categories() as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= nk_img($c['image'], '', 120, 150) ?><span><?= e($c['name']) ?></span></a><?php endforeach; ?>
+  </div>
+</div>
+    <?php
+    page_foot();
+    break;
 
-<?php $revs = $on('reviews') ? db()->query('SELECT r.*, p.name pn, p.slug FROM reviews r LEFT JOIN products p ON p.id=r.product_id WHERE r.approved=1 AND r.rating>=4 ORDER BY r.id DESC LIMIT 8')->fetchAll() : []; if ($revs): ?>
-<section class="wrap sec">
-  <?= section_head($T('reviews'), 'Real words from real customers') ?>
-  <div class="revs-h">
-    <?php foreach ($revs as $r): ?>
-    <figure class="rcard"><span class="stars" aria-label="<?= (int)$r['rating'] ?> out of 5"><?= str_repeat('★', (int)$r['rating']) ?><i><?= str_repeat('★', 5 - (int)$r['rating']) ?></i></span><blockquote><?= e($r['body']) ?></blockquote><figcaption><b><?= e($r['name']) ?></b><?php if (!empty($r['slug'])): ?><a href="<?= url('p/' . $r['slug']) ?>"><?= e($r['pn']) ?></a><?php endif; ?></figcaption></figure>
+case 'd':
+    $dk = $parts[1] ?? ''; $dp = nk_depts()[$dk] ?? null;
+    if (!$dp) { not_found(); break; }
+    $dc = nk_dept_cats($dk); $doff = nk_dept_off($dk); $offs = nk_offs();
+    page_head($dp[0], $dp[1] . ' at ' . S('shop_name') . '. Cash on delivery all over Bangladesh.', img_url($dp[3]), 'd/' . $dk);
+    ?>
+<div class="wrap nk-dpg">
+  <nav class="crumbs"><a href="<?= url() ?>">Home</a><?= icon('chev', 14) ?><span><?= e($dp[0]) ?></span></nav>
+  <div class="nk-dhero" style="--bg:<?= e($dp[4]) ?>">
+    <div class="nk-dhero-t"><small><?= e(S('shop_name')) ?></small><h1><?= e($dp[0]) ?></h1><p><?= e($dp[1]) ?></p><?php if ($doff >= 5): ?><em>UP TO <?= $doff ?>% OFF</em><?php endif; ?><a class="btn" href="#d-all">Shop now</a></div>
+    <div class="nk-dhero-p"><?php foreach (array_slice($dc, 0, 3) as $i => $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?><span><?= nk_img($im, $c['name'], 600, 750, $i === 0) ?></span><?php endforeach; ?></div>
+  </div>
+  <div class="nk-sub">
+    <?php foreach ($dc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><b><?= e($c['name']) ?></b><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach; ?>
+  </div>
+  <?php foreach ($dc as $i => $c): $pl = q('c.slug=?', [$c['slug']], 'p.featured DESC, p.sold DESC', 8); if (!$pl) continue; ?>
+  <section class="sec"<?= $i === 0 ? ' id="d-all"' : '' ?>>
+    <?= section_head($c['name'], $c['tagline'], 'c/' . $c['slug']) ?>
+    <?= product_grid($pl, 'grid rail') ?>
+  </section>
+  <?php endforeach; ?>
+</div>
+    <?php
+    page_foot();
+    break;
+
+case 'luxe':
+    $lx = nk_coll('luxe-edit'); $offs = nk_offs();
+    $GLOBALS['ll_body'] = 'lxm';
+    page_head('Luxe Store', 'Silk sarees, bridal jewellery, evening gowns and fine leather at ' . S('shop_name') . ' Luxe.', img_url('assets/img/b/ethnic-festive.webp'), 'luxe');
+    $lc = array_values(array_filter(categories(), fn($c) => in_array($c['slug'], ['bags', 'westernwear', 'ethnic', 'jewellery', 'footwear', 'eyewear', 'activewear', 'men'], true)));
+    $ban = function (string $img, string $title, string $sub, string $link, string $btn = 'Shop Now') { ?>
+  <a class="lx-ban" href="<?= url($link) ?>" style="--bgi:url('<?= e(img_small($img)) ?>')"><?= nk_img($img, $title, 1200, 1500, true) ?><span><b><?= e($title) ?></b><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?><i><?= e($btn) ?></i></span></a>
+<?php };
+    ?>
+<div class="lx">
+  <section class="wrap lx-hero"><a href="<?= url('collection/luxe-edit') ?>"><img src="<?= url('assets/img/b/ethnic-festive.webp') ?>" srcset="<?= url('assets/img/b/ethnic-festive-s.webp') ?> 900w, <?= url('assets/img/b/ethnic-festive.webp') ?> 2000w" sizes="100vw" alt="Luxe festive gowns" width="2000" height="1125" fetchpriority="high"><span><small>Introducing</small><h1><?= e(S('shop_name')) ?> <em>LUXE</em></h1><span>Silk, gold and fine finishes in one place</span><i>Shop Now</i></span></a></section>
+
+  <section class="wrap lx-cats"><div class="lx-cats-in">
+    <a class="lx-cat0" href="<?= url('collection/luxe-edit') ?>"><b>LUXE</b><small>EDIT</small></a>
+    <?php foreach ($lc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper($c['name'])) ?></small><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?></a><?php endforeach; ?>
+  </div></section>
+
+  <section class="wrap lx-sec"><?php $ban('assets/img/p/eth-red-saree.webp', 'Festive Icons', nk_off_text(max($offs['ethnic']['off'] ?? 0, $offs['jewellery']['off'] ?? 0), ''), 'c/ethnic'); ?></section>
+
+  <section class="wrap lx-sec"><div class="lx-row lx-occ">
+    <?php foreach ([['The Occasion Edit', 'collection/wedding-season', 'assets/img/p/wst-satin-gown.webp'], ['Sparkling Jewellery', 'c/jewellery', 'assets/img/p/jw-sapphire-drops.webp'], ['Bridal Gold', 'collection/bridal-glow', 'assets/img/p/jw-bridal-set.webp'], ['Contemporary Saree', 'c/ethnic', 'assets/img/p/eth-sage-saree.webp'], ['Perfect Companion', 'c/bags', 'assets/img/p/bag-woven-tote.webp'], ['Statement Heels', 'c/footwear', 'assets/img/p/fw-floral-heels.webp']] as [$t, $l, $im]): ?>
+    <a href="<?= url($l) ?>"><?= nk_img($im, $t) ?><b><?= e($t) ?></b></a>
     <?php endforeach; ?>
-  </div>
-</section>
-<?php endif; ?>
+  </div></section>
 
-<?php if ($on('help')): ?>
-<section class="wrap help-w"><div class="help">
-  <div>
-    <h2><?= e($T('help')) ?></h2>
-    <p><?= e($Sb('help')) ?></p>
-  </div>
-  <a class="btn wa-btn" href="<?= e(wa_link('Hi, can you help me choose a shade?')) ?>" target="_blank" rel="noopener"><?= icon('wa', 20) ?>Ask on WhatsApp</a>
-</div></section>
-<?php endif; ?>
+  <section class="wrap lx-sec"><h2 class="lx-h">Luxe Collections</h2><div class="lx-row lx-labels">
+    <?php foreach (array_slice(array_values(array_filter(collections(), fn($c) => $c['slug'] !== 'stylists-picks')), 0, 6) as $c): $mx = 0; foreach (nk_coll_products((int)$c['id'], 30) as $p) $mx = max($mx, discount_pct($p)); ?>
+    <a href="<?= url('collection/' . $c['slug']) ?>"><span class="lx-lt"><b><?= e($c['name']) ?></b><small><?= e($c['tagline']) ?></small><?php if ($mx >= 5): ?><em>Up to <?= $mx ?>% off</em><?php endif; ?><i><?= icon('arrow', 20) ?></i></span><?= nk_img((string)$c['image'], '') ?></a>
+    <?php endforeach; ?>
+  </div></section>
+
+  <?php $bags = q("c.slug='bags'", [], 'p.price DESC', 6); if ($bags): ?>
+  <section class="wrap lx-sec"><h2 class="lx-h">Signature Bags</h2>
+    <div class="lx-trio"><?php foreach (array_slice($bags, 0, 3) as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><?= nk_img(p_image($p), $p['name'], 1200, 1500, true) ?></a><?php endforeach; ?></div>
+    <div class="lx-row lx-tiles"><?php foreach ($bags as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><?= nk_img(p_image($p), $p['name']) ?><b><?= e($p['name']) ?></b><small><?= money($p['price']) ?></small></a><?php endforeach; ?></div>
+  </section>
+  <?php endif; ?>
+
+  <?php $ns = q("c.slug IN ('westernwear','ethnic','footwear','eyewear')", [], 'p.is_new DESC, p.price DESC', 8); if ($ns): ?>
+  <section class="wrap lx-sec"><h2 class="lx-h">New Season Styles</h2><div class="lx-row lx-new">
+    <?php foreach ($ns as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><?= nk_img(p_image($p), $p['name']) ?><small><?= e($p['cat_name']) ?></small><i>Shop Now</i></a><?php endforeach; ?>
+  </div></section>
+  <?php endif; ?>
+
+  <section class="wrap lx-sec"><?php $ban('assets/img/p/eth-purple-saree.webp', 'Explore Ethnic Luxe', 'Katan, Banarasi and soft silk sarees', 'c/ethnic'); ?>
+    <?php $et = q("c.slug='ethnic'", [], 'p.price DESC', 8); ?>
+    <div class="lx-row lx-des"><?php foreach ($et as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><b><?= e($p['name']) ?></b><?= nk_img(p_image($p), $p['name']) ?></a><?php endforeach; ?></div>
+  </section>
+
+  <?php $jw = q("c.slug='jewellery'", [], 'p.price DESC', 8); if ($jw): ?>
+  <section class="wrap lx-sec"><h2 class="lx-h">Statement Jewellery</h2><div class="lx-row lx-jw">
+    <?php foreach ($jw as $p): ?><a href="<?= url('p/' . $p['slug']) ?>"><span><?= nk_img(p_image($p), $p['name']) ?></span><b><?= e($p['name']) ?></b><small><?= money($p['price']) ?></small></a><?php endforeach; ?>
+  </div></section>
+  <?php endif; ?>
+</div>
     <?php
     page_foot();
     break;

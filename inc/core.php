@@ -129,7 +129,7 @@ function defaults(): array {
         's1_on' => '1', 's1_img' => 'assets/img/b/ethnic-festive.webp', 's1_kicker' => 'ETHNIC WEAR FESTIVAL', 's1_title' => 'Sarees & kurtis for every celebration', 's1_text' => 'Banarasi, katan and soft silk sarees, block print kurtis and festive salwar sets.', 's1_btn' => 'Shop ethnic wear', 's1_link' => 'c/ethnic', 's1_dark' => '0',
         's2_on' => '1', 's2_img' => 'assets/img/b/owner-lip.webp', 's2_kicker' => 'NEW IN', 's2_title' => 'Moonlight Lip Tint Set', 's2_text' => '8 rich shades in one cute box. Soft matte finish that stays all day.', 's2_btn' => 'Shop lips', 's2_link' => 'c/lips', 's2_dark' => '0',
         's3_on' => '1', 's3_img' => 'assets/img/b/western-edit.webp', 's3_kicker' => 'WESTERNWEAR', 's3_title' => 'Fresh styles, easy days', 's3_text' => 'Shirt dresses, co-ord sets and party gowns.', 's3_btn' => 'Shop westernwear', 's3_link' => 'c/westernwear', 's3_dark' => '0',
-        's4_on' => '1', 's4_img' => 'assets/img/b/swatch.webp', 's4_kicker' => 'THE BIG SALE', 's4_title' => 'Fashion & beauty sale', 's4_text' => 'Sarees, heels, bags and makeup at special prices.', 's4_btn' => 'Shop the sale', 's4_link' => 'sale', 's4_dark' => '0',
+        's4_on' => '1', 's4_img' => 'assets/img/b/men-edit.webp', 's4_kicker' => 'MEN', 's4_title' => 'Sharp suits & easy shirts', 's4_text' => 'Formals, casuals, jackets and shoes for him.', 's4_btn' => 'Shop men', 's4_link' => 'd/men', 's4_dark' => '0',
         // delivery
         'delivery_time_in' => '1 to 2 days', 'delivery_time_out' => '2 to 4 days',
         // payment
@@ -149,9 +149,9 @@ function defaults(): array {
         // homepage sections (Homepage CMS)
         'h_cats_on' => '1', 'h_cats_t' => 'What are you looking for?', 'h_cats_s' => '',
         'h_flash_on' => '1', 'h_flash_t' => 'Flash sale', 'h_flash_s' => 'Hurry, these prices end tonight',
-        'h_spot_on' => '1', 'h_spot_t' => 'In the spotlight', 'h_spot_s' => 'The biggest offers in every department',
-        'h_styles_on' => '1', 'h_styles_t' => 'Styles to celebrate in', 'h_styles_s' => 'Ready-made edits for every occasion',
-        'h_picks_on' => '1', 'h_picks_t' => "Stylists' picks", 'h_picks_s' => 'CHOSEN BY OUR STYLISTS THIS WEEK',
+        'h_spot_on' => '1', 'h_spot_t' => 'In the Spotlight', 'h_spot_s' => 'The biggest offers in every department',
+        'h_styles_on' => '1', 'h_styles_t' => 'Styles To Celebrate In', 'h_styles_s' => 'Ready-made edits for every occasion',
+        'h_picks_on' => '1', 'h_picks_t' => "Stylists' Picks", 'h_picks_s' => 'CHOSEN BY OUR STYLISTS THIS WEEK',
         'h_luxe_on' => '1', 'h_luxe_t' => 'The Luxe Edit', 'h_luxe_s' => 'Silk, gold and fine finishes for the moments that matter.',
         'h_circles_on' => '1', 'h_circles_t' => 'Find everything for your every need', 'h_circles_s' => 'Fashion, beauty and accessories in one place',
         'h_deals_on' => '1', 'h_deals_t' => 'Deals of the week', 'h_deals_s' => 'Special prices for a short time',
