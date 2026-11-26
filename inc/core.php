@@ -106,6 +106,11 @@ function db(): PDO {
         $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v16_luxe','1')");
         if (!$new && $pdo->query("SELECT 1 FROM categories WHERE slug='watches'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_v16($pdo); }
     }
+    // v1.7: more fashion products
+    if (!$pdo->query("SELECT 1 FROM settings WHERE k='v17_more'")->fetchColumn()) {
+        $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v17_more','1')");
+        if (!$new && $pdo->query("SELECT 1 FROM categories WHERE slug='westernwear'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_v17($pdo); }
+    }
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }

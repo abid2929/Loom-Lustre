@@ -307,12 +307,14 @@
 /* close the "More" category menu when clicking elsewhere */
 document.addEventListener('click', function (e) { var d = document.querySelector('.nav-more[open]'); if (d && !d.contains(e.target)) d.removeAttribute('open'); });
 
-/* phone: department card opens its category list (Nykaa app style) */
+/* department card opens its category list (Nykaa style): full screen on phone, side panel on PC */
 document.addEventListener('click', function (e) {
   var a = e.target.closest('[data-sub]');
-  if (a && window.matchMedia('(max-width:860px)').matches) { var p = document.getElementById('dsub-' + a.getAttribute('data-sub')); if (p) { e.preventDefault(); p.hidden = false; p.scrollTop = 0; document.documentElement.classList.add('dsub-on'); } return; }
-  if (e.target.closest('[data-sub-close]')) { var o = e.target.closest('.dsub'); if (o) o.hidden = true; document.documentElement.classList.remove('dsub-on'); }
+  if (a) { var p = document.getElementById('dsub-' + a.getAttribute('data-sub')); if (p) { e.preventDefault(); p.hidden = false; p.scrollTop = 0; document.documentElement.classList.add('dsub-on'); } return; }
+  if (e.target.closest('[data-sub-close]') || (document.documentElement.classList.contains('dsub-on') && !e.target.closest('.dsub'))) dsubClose();
 });
+function dsubClose() { document.querySelectorAll('.dsub').forEach(function (o) { o.hidden = true; }); document.documentElement.classList.remove('dsub-on'); }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.documentElement.classList.contains('dsub-on')) dsubClose(); });
 
 /* sideways rows: drag with the mouse + arrow buttons on PC (like Nykaa) */
 (function () {

@@ -171,7 +171,16 @@ function nk_dept_subs(): string {
     $h = '';
     foreach (nk_depts() as $k => $d) {
         $h .= '<div class="dsub" id="dsub-' . $k . '" hidden role="dialog" aria-label="' . e($d[0]) . '"><div class="dsub-h"><button type="button" class="dsub-back" data-sub-close aria-label="Back">' . icon('arrow', 22) . '</button><a href="' . url('cart') . '" aria-label="Bag">' . icon('bag', 21) . '</a></div>';
-        $h .= '<h2>' . e($d[0]) . '</h2><ul>';
+        $h .= '<h2>' . e($d[0]) . '</h2><ul>' . nk_dept_items($k) . '</ul></div>';
+    }
+    return $h;
+}
+
+/** The list rows (All, What's New, Sale, categories) of one department; used by the phone panel and the PC hover menu. */
+function nk_dept_items(string $k): string {
+    static $cache = [];
+    if (isset($cache[$k])) return $cache[$k];
+    $d = nk_depts()[$k]; $h = '';
         $h .= '<li><a href="' . url('d/' . $k) . '"><span>All ' . e($d[0]) . '</span><i class="dsub-txt">ALL</i></a></li>';
         $h .= '<li><a href="' . url('new') . '"><span>What\'s New</span><i class="dsub-txt">WHAT\'S<br>NEW</i></a></li>';
         $h .= '<li><a href="' . url('sale') . '"><span>Sale</span><i class="dsub-txt dsub-sale">SALE</i></a></li>';
@@ -191,9 +200,7 @@ function nk_dept_subs(): string {
             $ps = nk_dept_products($k, $c['slug'], 1); $im = $ps ? p_image($ps[0]) : (string)$c['image'];
             $h .= '<li><a href="' . url('c/' . $c['slug']) . '"><span>' . e($c['name']) . '</span><i><img src="' . e(img_small($im)) . '" alt="" width="44" height="44" loading="lazy"></i></a></li>';
         }
-        $h .= '</ul></div>';
-    }
-    return $h;
+    return $cache[$k] = $h;
 }
 
 /** Styled photo for a category tile (assets/img/t/<slug>.webp), else the fallback. */

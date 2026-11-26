@@ -223,6 +223,7 @@ function ll_seed_v15(PDO $pdo): void {
     foreach ([['eid-edit', 'navy-dial-gold-watch'], ['eid-edit', 'velvet-round-cushions-set-of-3'], ['wedding-season', 'rose-gold-link-bracelet-watch'], ['office-ready', 'classic-tan-leather-watch'], ['weekend-casual', 'rose-gold-minimal-watch'], ["stylists-picks", 'rose-gold-minimal-watch'], ['luxe-edit', 'copper-ornate-wall-mirror']] as $x) $ix->execute($x);
     $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('rose-gold-link-bracelet-watch','blush-pillow-bedding-set')");
     ll_seed_v16($pdo);
+    ll_seed_v17($pdo);
 }
 
 /** v1.6: the Luxe store has its own categories (slug starts with lx-) and its own products. */
@@ -282,5 +283,65 @@ function ll_seed_v16(PDO $pdo): void {
     $sizes = ['lx-bridal' => 'S, M, L, XL', 'lx-gowns' => 'S, M, L, XL', 'lx-heels' => '36, 37, 38, 39, 40'];
     foreach ($P as $i => $p) {
         $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre Luxe', $p[3], $p[4], json_encode(['assets/img/p/' . $p[2] . '.webp']), $p[5], $sizes[$p[1]] ?? '', '', 8, $p[6], str_replace('\n', "\n", $p[7]), '', $p[8], $p[9], $p[10], 300 + $i, $p[9] ? 18 - ($i % 9) : 2, $now, $now]);
+    }
+}
+
+// v1.7: more fashion products with model photos
+function ll_seed_v17(PDO $pdo): void {
+    if ($pdo->query("SELECT 1 FROM products WHERE images LIKE '%wst-black-tiered-gown%'")->fetchColumn()) return;
+    $now = date('Y-m-d H:i:s');
+    $ids = [];
+    foreach ($pdo->query('SELECT id, slug FROM categories') as $r) $ids[$r['slug']] = (int)$r['id'];
+    $W = 'S, M, L, XL'; $M = '40, 41, 42, 43, 44'; $K = '2-3 Y, 4-5 Y, 6-7 Y'; $F = '36, 37, 38, 39, 40'; $A = 'XS, S, M, L, XL';
+    // name, cat, img, price, old, colour, sizes, short, description, featured, bestseller, new
+    $P = [
+        ['Black Tiered Ruffle Gown', 'westernwear', 'wst-black-tiered-gown', 7490, 8990, 'Black', $W, 'Off-shoulder gown with tiered ruffles.', 'A dramatic black gown with an off-shoulder neckline, a fitted waist and layers of soft ruffles that flow to the floor. Made for receptions and parties.', 1, 1, 1],
+        ['Red Drape Slit Dress', 'westernwear', 'wst-red-drape-dress', 4990, 5990, 'Red', $W, 'Long-sleeve dress with a flowing side drape.', 'A red long-sleeve mini dress with a high neck and a long flowing side drape. Bold, elegant and made to be noticed.', 1, 0, 1],
+        ['Maroon Embroidered Anarkali Gown', 'ethnic', 'eth-red-anarkali', 6890, 7990, 'Maroon', $W, 'Floor-length flare with gold embroidery.', 'A maroon anarkali gown with a full flare, gold embroidered sleeves and a fitted bodice. Perfect for weddings and Eid.', 1, 1, 1],
+        ['Mustard Paisley Lehenga Set', 'ethnic', 'eth-mustard-lehenga', 12900, 14900, 'Mustard / Maroon', $W, 'Paisley print lehenga with a velvet dupatta.', 'A mustard lehenga with rich paisley work, a matching blouse and a maroon velvet dupatta with a golden border.', 1, 1, 0],
+        ['Emerald Layered Lehenga', 'ethnic', 'eth-emerald-lehenga', 9890, 11500, 'Emerald', $W, 'Layered flare with an embroidered blouse.', 'An emerald green lehenga with soft layered flare and a hand-embroidered long-sleeve blouse. Light to wear, rich to look at.', 0, 1, 1],
+        ['Red Bridal Lehenga with Veil', 'ethnic', 'eth-bridal-red-lehenga', 18900, 22900, 'Red / Gold', $W, 'Heavy zari bridal lehenga with a double dupatta.', 'A red bridal lehenga with heavy zari and thread work, a matching blouse and two dupattas, one for the head and one for the shoulder.', 1, 0, 1],
+        ['Ivory Gold Lehenga Set', 'ethnic', 'eth-ivory-lehenga', 10900, 12900, 'Ivory / Gold', $W, 'Ivory silk with gold butti and a sheer dupatta.', 'An ivory lehenga set in soft silk with gold butti, a sweetheart blouse and a sheer dupatta. Perfect for holud and engagement.', 0, 1, 0],
+        ['Printed Kurta with Green Sharara', 'ethnic', 'eth-green-sharara', 3490, 3990, 'Multi / Green', $W, 'Printed kurta, flared sharara and dupatta.', 'A colourful printed kurta paired with a bright green flared sharara and a matching dupatta. Fresh for Eid and day functions.', 0, 0, 1],
+        ['White Chikan Straight Kurti', 'ethnic', 'eth-white-chikan-kurti', 2290, 2690, 'White', $W, 'Chikan embroidery on soft cotton.', 'A straight white kurti with all-over chikan embroidery on breathable cotton, with a sheer dupatta. Cool and graceful for summer.', 0, 1, 0],
+        ['Red Kurta Set with Floral Dupatta', 'ethnic', 'eth-red-kurta-set', 2890, 3390, 'Red', $W, 'Red kurta, pants and a printed dupatta.', 'A red cotton kurta with neck embroidery, straight pants and a soft floral printed dupatta. Easy festive wear.', 0, 0, 1],
+        ['White Shirt with Suspender Trousers', 'men', 'men-suspender-shirt', 3990, 4590, 'White / Black', $M, 'Crisp shirt and black trousers with braces.', 'A crisp white shirt with black slim trousers and adjustable braces. A smart vintage look for parties and shoots.', 0, 0, 1],
+        ['Black Slim Fit Suit', 'men', 'men-black-suit', 11900, 13900, 'Black', $M, 'Two-piece suit with a slim cut.', 'A black two-piece suit with a slim notch-lapel jacket and flat-front trousers. Ready for weddings, receptions and office events.', 1, 1, 0],
+        ['Grey Textured Blazer', 'men', 'men-grey-blazer', 5990, 6990, 'Grey', $M, 'Single-breasted blazer in a soft weave.', 'A grey single-breasted blazer in a soft textured weave. Wear with a white tee or shirt and dark jeans.', 0, 1, 1],
+        ['Brown Waistcoat Set', 'men', 'men-brown-waistcoat', 4490, 5290, 'Brown / Grey', $M, 'Waistcoat with check trousers and a tie.', 'A brown waistcoat paired with grey check trousers. Add a white shirt and a paisley tie for a classic gentleman look.', 0, 0, 1],
+        ['Black Shirt and Waistcoat', 'men', 'men-black-waistcoat', 3790, 4290, 'Black', $M, 'All-black shirt with a fitted waistcoat.', 'An all-black look with a button-up shirt and a fitted waistcoat. Sharp for evenings and dinners.', 0, 0, 0],
+        ['Brown Leather Biker Jacket', 'men', 'men-leather-jacket', 7490, 8990, 'Brown', $M, 'Soft leather jacket with a band collar.', 'A brown leather jacket with a band collar, zip pockets and a slim fit. Pairs with jeans and boots in winter.', 1, 1, 0],
+        ['Fruit Print Dress with Sun Hat', 'kids', 'kd-fruit-dress', 1390, 1590, 'White / Multi', $K, 'Sleeveless cotton dress with a straw hat.', 'A sleeveless cotton dress with a happy fruit print and a matching straw sun hat. Cool for summer days out.', 0, 1, 1],
+        ['Boys Bomber Jacket Set', 'kids', 'kd-boy-bomber', 1990, 2390, 'Beige / Brown', $K, 'Bomber jacket, stripe tee and joggers.', 'A soft beige bomber jacket with a striped tee and brown joggers. A smart and comfy set for little boys.', 1, 0, 1],
+        ['Fox Hood Rain Jacket', 'kids', 'kd-fox-jacket', 1690, 1990, 'Orange', $K, 'Water-resistant jacket with fox ears.', 'A bright orange water-resistant jacket with a fox face hood and reflective stripes. Fun and warm for rainy days.', 0, 0, 1],
+        ['Navy Suede Court Heels', 'footwear', 'fw-navy-suede-pumps', 2790, 3290, 'Navy', $F, 'Soft suede pumps with a tan heel.', 'Classic navy suede court shoes with a tan block-stiletto heel and a padded insole. Office to evening.', 0, 1, 1],
+        ['Black Patent Stilettos', 'footwear', 'fw-patent-stilettos', 2990, 3490, 'Black', $F, 'Glossy pointed stilettos.', 'Glossy black patent stilettos with a pointed toe and a slim 10 cm heel. A wardrobe essential for parties.', 1, 1, 0],
+        ['Gold Cage Heeled Sandals', 'footwear', 'fw-gold-cage-heels', 3290, 3890, 'Gold', $F, 'Metallic lattice straps on a high heel.', 'Gold metallic sandals with a lattice cage upper and a high stiletto heel. Shine at weddings and receptions.', 1, 0, 1],
+        ['Nude Bow Strap Heels', 'footwear', 'fw-nude-bow-sandals', 2590, 2990, 'Nude', $F, 'Ankle strap sandals with a jewelled bow.', 'Nude ankle strap sandals with a soft jewelled bow on the toe and a slim heel. Pretty with dresses and sarees.', 0, 1, 0],
+        ['Pointed Black Court Heels', 'footwear', 'fw-pointed-court-heels', 2390, 2790, 'Black', $F, 'Matte pointed pumps for every day.', 'Matte black pointed court heels with a cushioned insole. Smart for office, easy for evenings.', 0, 0, 0],
+        ['Black Strappy Heeled Sandals', 'footwear', 'fw-black-strappy-sandals', 2190, 2590, 'Black', $F, 'Thin straps and an ankle buckle.', 'Minimal black sandals with thin straps, an ankle buckle and a stiletto heel. Goes with everything.', 0, 0, 1],
+        ['White Frame Top Handle Bag', 'bags', 'bag-white-frame', 3490, 3990, 'White', '', 'Structured bag with a gold clasp.', 'A white structured top handle bag with a gold frame clasp and a detachable strap. Fresh and classy.', 0, 1, 1],
+        ['Teal Leather Bucket Tote', 'bags', 'bag-teal-tote', 3890, 4490, 'Teal / Tan', '', 'Two-way tote with tan straps.', 'A teal leather tote with contrast tan handles and a long shoulder strap. Carry it by hand or on the shoulder.', 1, 0, 1],
+        ['Tan Mini Top Handle Bag', 'bags', 'bag-tan-mini', 2790, 3290, 'Tan', '', 'Small bag with a chain strap.', 'A small tan leather bag with a top handle and a gold chain strap. Holds your phone, cards and lipstick.', 0, 0, 1],
+        ['Wine Croc Effect Handbag', 'bags', 'bag-wine-croc', 4290, 4990, 'Wine', '', 'Croc-texture handbag with a gold lock.', 'A wine red handbag with a croc-effect finish, a top handle and a polished gold lock. Rich for evenings and weddings.', 1, 1, 0],
+        ['Burgundy Leather Doctor Bag', 'bags', 'bag-brown-doctor', 4990, 5690, 'Burgundy', '', 'Washed leather with a front pocket.', 'A burgundy washed-leather doctor bag with twin handles, a front pocket and a shoulder strap. Roomy for work and travel.', 0, 1, 0],
+        ['Sage Sports Bra and Leggings Set', 'activewear', 'act-sage-set', 2690, 3190, 'Sage', $A, 'Soft stretch set for yoga and gym.', 'A sage green sports bra and high-waist leggings in soft, sweat-wicking stretch fabric. For yoga, gym and everyday comfort.', 0, 1, 1],
+        ['Black Yoga Tank and Leggings', 'activewear', 'act-black-yoga', 2390, 2790, 'Black', $A, 'Crop tank and full-length leggings.', 'A black crop tank with matching full-length leggings that stretch with every move. Squat-proof and breathable.', 0, 0, 1],
+        ['Gemstone Ring Hoop Earrings', 'jewellery', 'jw-gem-hoop', 1490, 1790, 'Gold / Multi', '', 'Gold hoops set with colourful stones.', 'Statement round hoop earrings set with colourful gemstones in gold tone. Brightens any outfit.', 1, 1, 1],
+        ['Marble Resin Hoop Earrings', 'jewellery', 'jw-marble-hoops', 790, 990, 'Grey / White', '', 'Light resin hoops with a marble pattern.', 'Light marble-pattern resin hoops on silver posts. Modern, fun and easy to wear all day.', 0, 0, 1],
+        ['Gold Ear Stack Set', 'jewellery', 'jw-ear-stack', 1190, 1390, 'Gold', '', 'Studs, huggies and a pearl drop.', 'A set of tiny gold studs, huggies and a pearl drop to stack on one ear. Minimal and chic.', 0, 1, 0],
+        ['Black Chain Link Drop Earrings', 'jewellery', 'jw-chain-drops', 990, 1190, 'Black', '', 'Long glossy link drops.', 'Long glossy black chain link earrings that make a strong, modern statement with strapless and one-shoulder looks.', 0, 0, 1],
+        ['Black Cat-eye Sunglasses', 'eyewear', 'sg-black-cateye', 1390, 1690, 'Black', '', 'Sharp cat-eye with dark lenses.', 'Black cat-eye sunglasses with dark lenses and UV400 protection. A timeless glam look.', 1, 1, 0],
+        ['Bold Oversized Cat-eye', 'eyewear', 'sg-bold-cateye', 1590, 1890, 'Black', '', 'Thick frame with a wing tip.', 'Oversized cat-eye sunglasses with a thick black frame and lifted wing tips. UV400 protection.', 0, 1, 1],
+        ['Gold Mirror Half-rim Sunglasses', 'eyewear', 'sg-gold-mirror', 1490, 1790, 'Gold / Mirror', '', 'Half-rim frame with mirror lenses.', 'Gold half-rim sunglasses with a silver mirror finish lens. UV400 protection, case included.', 0, 0, 1],
+        ['Retro Oval Sunglasses', 'eyewear', 'sg-retro-oval', 1190, 1390, 'Black', '', 'Slim oval frame with a 90s feel.', 'Slim black oval sunglasses with a 90s retro feel. Light, comfortable and UV400 protected.', 0, 0, 1],
+        ['Oversized Square Sunglasses', 'eyewear', 'sg-pink-oversize', 1290, 1490, 'Brown', '', 'Big square frame with brown lenses.', 'Oversized square sunglasses with brown gradient lenses and a slim metal bridge. UV400 protection.', 0, 1, 0],
+        ['Navy Canvas Low-top Sneakers', 'sneakers', 'snk-navy-canvas', 1590, 1890, 'Navy', $F, 'Classic canvas with a white sole.', 'Navy canvas low-top sneakers with a white rubber sole and cotton laces. Everyday comfort with jeans.', 0, 1, 1],
+        ['Black Canvas Sneakers', 'sneakers', 'snk-black-canvas', 1490, 1790, 'Black', $F, 'Black canvas with a contrast toe cap.', 'Black canvas sneakers with a white toe cap and a cushioned sole. Pair with fun socks for a street style look.', 0, 0, 1],
+    ];
+    $pi = $pdo->prepare('INSERT INTO products(name,slug,category_id,brand,price,old_price,images,shades,sizes,size,stock,short,description,how_to,featured,bestseller,is_new,sort,sold,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    foreach ($P as $i => $p) {
+        if (empty($ids[$p[1]])) continue;
+        $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre', $p[3], $p[4], json_encode(['assets/img/p/' . $p[2] . '.webp']), $p[5], $p[6], '', 15, $p[7], $p[8], '', $p[9], $p[10], $p[11], 5 + $i, $p[10] ? 24 - ($i % 11) : 3, $now, $now]);
     }
 }

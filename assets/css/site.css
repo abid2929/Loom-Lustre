@@ -1251,3 +1251,18 @@ html.dsub-on{overflow:hidden}
 .hs-l{left:-14px}.hs-r{right:-14px}
 .hs-drag{cursor:grabbing;user-select:none}.hs-drag a{pointer-events:none}
 @media (hover:none),(pointer:coarse){.hs-btn{display:none}}
+
+/* v1.7 department list on PC: side panel with a dim backdrop */
+@media(min-width:861px){html.dsub-on body::after{content:'';position:fixed;inset:0;background:rgba(20,16,14,.45);z-index:89;animation:fdin .2s ease}.dsub{box-shadow:8px 0 30px rgba(0,0,0,.18);padding:0 26px 40px}.dsub li a:hover{color:var(--accent,#a3121f)}}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+/* v1.7 PC: hover a department (Women, Men...) to see all its categories, like Nykaa */
+.nk-nav>a.nk-dd-a{align-self:stretch;display:flex;align-items:center;border-radius:0;border-bottom:2px solid transparent}
+.nk-nav>a.nk-dd-a:hover{border-bottom-color:var(--brand)}
+.nk-dd-m{display:none;position:absolute;top:100%;left:0;z-index:80;width:min(860px,calc(100vw - 80px));background:#fff;box-shadow:0 14px 34px rgba(0,0,0,.16);padding:20px 24px 22px;border-top:1px solid var(--line)}
+.nk-dd-a:hover+.nk-dd-m,.nk-dd-m:hover{display:block}
+.nk-dd-m p{margin:0 0 10px;display:flex;align-items:baseline;gap:10px}.nk-dd-m p b{font-family:var(--fh);font-size:22px;font-weight:600}.nk-dd-m p small{color:var(--muted,#777);font-size:13px}
+.nk-dd-m ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);column-gap:26px}
+.nk-dd-m li a{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:14.5px;color:var(--ink)}
+.nk-dd-m li a:hover{color:var(--brand)}
+.nk-dd-m li i{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;background:#eceae8;display:grid;place-items:center;font-style:normal}
+.nk-dd-m li img{width:100%;height:100%;object-fit:cover}
