@@ -1170,3 +1170,5 @@ body.lxm .dr-depts a{background:#222}
 body.lxm .dr-depts img{width:58%;object-position:50% 40%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 35%);mask-image:linear-gradient(90deg,transparent,#000 35%);filter:brightness(.9)}
 body.lxm .dr-depts b,body.lxm .dr-depts small{color:#fff}
 body.lxm .dr-links{border-color:#2a2526}body.lxm .dr-links a{border-color:#3a3335;color:#ddd}
+/* v1.5.5 Nykaa PC category row: wider photos, bigger labels */
+@media (min-width:861px){.nk-strip-in{gap:8px}.nk-strip a{flex:0 0 calc((100% - 72px)/10);gap:4px}.nk-strip span{aspect-ratio:9/8}.nk-strip span img{object-position:50% 20%}.nk-strip b{font-size:17px;font-weight:400;color:var(--ink)}}

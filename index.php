@@ -162,9 +162,12 @@ case '':
 <?php if ($on('cats')): ?>
 <section class="wrap nk-strip" aria-label="Categories">
   <div class="nk-strip-in">
-    <?php $sw = nk_cat_imgs('westernwear', 3)[2] ?? ''; if ($sw !== ''): ?><a href="<?= url('sale') ?>" class="nk-sale"><span><?= nk_img($sw, '', 300, 360) ?><i>SALE</i></span><b>Sale</b></a><?php endif; ?>
-    <?php foreach ($cats as $c): if (($offs[$c['slug']]['n'] ?? 0) === 0) continue; ?>
-    <a href="<?= url('c/' . $c['slug']) ?>"><span><?= nk_img($c['image'], '', 300, 360) ?></span><b><?= e($c['name']) ?></b></a>
+    <?php $sw = nk_cat_imgs('westernwear', 3)[2] ?? ''; if ($sw !== ''): ?><a href="<?= url('sale') ?>" class="nk-sale only-m"><span><?= nk_img($sw, '', 300, 360) ?><i>SALE</i></span><b>Sale</b></a><?php endif; ?>
+    <?php $cby = []; foreach ($cats as $c) $cby[$c['slug']] = $c;
+    // Same order and names as the Nykaa Fashion row (lingerie skipped).
+    foreach (['westernwear' => ['Westernwear', ''], 'ethnic' => ['Indianwear', ''], 'men' => ['Men', ''], 'footwear' => ['Footwear', 'assets/img/p/fw-pink-stilettos.webp'], 'bags' => ['Bags', 'assets/img/p/bag-woven-tote.webp'], 'kids' => ['Kids', ''], 'activewear' => ['Activewear', ''], 'jewellery' => ['Jewellery', ''], 'sneakers' => ['Sneakers', ''], 'watches' => ['Watches', ''], 'home' => ['Home', '']] as $sl => [$nm, $im]):
+        if (!isset($cby[$sl]) || ($offs[$sl]['n'] ?? 0) === 0) continue; $im = ($im !== '' && is_file(LL_ROOT . '/' . $im)) ? $im : $cby[$sl]['image']; ?>
+    <a href="<?= url('c/' . $sl) ?>"><span><?= nk_img($im, '', 300, 360) ?></span><b><?= e($nm) ?></b></a>
     <?php endforeach; ?>
   </div>
 </section>
