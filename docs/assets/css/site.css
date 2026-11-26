@@ -1057,3 +1057,33 @@ body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{col
 .nk-cats-pg .nk-disc b{font-size:17px;padding:10px 6px 34px;letter-spacing:.02em}
 @media (min-width:861px){.nk-cats-pg .nk-dept{height:130px}.nk-cats-pg .nk-dept-t b{font-size:22px}.nk-cats-pg .nk-disc{grid-template-columns:repeat(5,1fr)}}
 @media (max-width:860px){.nk-cats-pg h1{font-size:26px}}
+
+/* v1.5.2 Nykaa-style two-row PC header: department tabs + category row with hover menus */
+.nk-nav{align-self:stretch}
+.nk-nav>a{display:flex;align-items:center;align-self:stretch;border-radius:0;padding:0 16px;font-size:15.5px;font-weight:600;position:relative;border-left:1px solid transparent;border-right:1px solid transparent}
+.nk-nav>a.on{border-color:var(--ink);color:var(--ink)}
+.nk-nav>a.on::before{content:"";position:absolute;left:30%;right:30%;bottom:12px;height:2px;background:var(--brand)}
+.nk-nav .nav-more{align-self:center}
+.nk-sub2{border-top:1px solid var(--line);background:#fff}
+.nk-sub2-in{display:flex;align-items:stretch;gap:4px;height:44px;flex-wrap:nowrap}
+.nk-dd{position:relative;display:flex}
+.nk-dd>a{display:flex;align-items:center;gap:5px;padding:0 14px;font-size:14px;color:var(--ink);white-space:nowrap}
+.nk-dd>a svg{opacity:.7;transform:rotate(90deg);transition:transform .2s}
+.nk-dd:hover>a,.nk-dd:focus-within>a{background:#f4f1ef}
+.nk-dd:hover>a svg,.nk-dd:focus-within>a svg{transform:rotate(-90deg)}
+.nk-mm{display:none;position:absolute;top:100%;left:0;z-index:70;background:#fff;box-shadow:0 10px 28px rgba(0,0,0,.14);border-radius:0 0 8px 8px;padding:18px 22px}
+.nk-dd:hover .nk-mm,.nk-dd:focus-within .nk-mm{display:grid}
+.nk-mm-l{grid-template-rows:repeat(8,auto);grid-auto-flow:column;grid-auto-columns:minmax(170px,auto);gap:2px 28px}
+.nk-mm-l a{padding:7px 0;font-size:14px;color:#3a3330;white-space:nowrap}
+.nk-mm-l a:hover{color:var(--brand)}
+.nk-mm a.hl{color:var(--brand);font-weight:500}
+.nk-mm-new{grid-template-columns:auto auto;gap:28px;width:max-content}
+.nk-mm h5{margin:0 0 10px;font-size:14px;font-weight:500;color:#5a514d}
+.nk-ji{display:flex;flex-direction:column;gap:12px}
+.nk-ji img{width:110px;height:138px;object-fit:cover}
+.nk-nt{display:grid;grid-template-columns:repeat(2,110px);gap:10px 14px}
+.nk-nt a{display:flex;flex-direction:column;gap:4px;font-size:11.5px;text-align:center;color:#5a514d}
+.nk-nt img{width:110px;height:120px;object-fit:cover}
+.nk-nt span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+body.lxm .nk-sub2{display:none}
+.nk-dpg{padding-top:10px}

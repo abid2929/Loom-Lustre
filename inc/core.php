@@ -231,7 +231,7 @@ function img_small(string $p): string {
     }
     return img_url($p);
 }
-function p_images(array $p): array { $a = json_decode($p['images'] ?: '[]', true); return is_array($a) ? array_values(array_filter($a)) : []; }
+function p_images(array $p): array { $a = json_decode(($p['images'] ?? '') ?: '[]', true); return is_array($a) ? array_values(array_filter($a)) : []; }
 function p_image(array $p): string { return p_images($p)[0] ?? ''; }
 function list_csv(string $s): array { return array_values(array_filter(array_map('trim', preg_split('/[,\n]+/u', $s)), 'strlen')); }
 function discount_pct(array $p): int { return ($p['old_price'] > $p['price'] && $p['old_price'] > 0) ? (int)round(100 - $p['price'] * 100 / $p['old_price']) : 0; }

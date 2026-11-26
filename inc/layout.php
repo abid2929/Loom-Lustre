@@ -118,7 +118,7 @@ function site_header(): void {
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
     <nav class="nk-nav only-d" aria-label="Departments">
-      <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" class="<?= $a === 'd/' . $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
+      <?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" class="<?= $cd === $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
       <details class="nav-more"><summary>More <?= icon('chev', 13) ?></summary><div class="nav-more-m">
         <a href="<?= url('luxe') ?>" class="lx"><?= icon('gem', 14) ?> Luxe</a><a href="<?= url('new') ?>">Hidden Gems</a><a href="<?= url('c/activewear') ?>">Fit Zone</a><hr>
         <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
@@ -136,6 +136,7 @@ function site_header(): void {
       <a class="icon-btn" href="<?= url('cart') ?>" aria-label="Shopping bag"><?= icon('bag') ?><span class="only-d">Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
     </nav>
   </div>
+  <?= $a === 'luxe' ? '' : nk_subnav(nk_cur_dept($a)) ?>
 </header>
 <div class="drawer" id="drawer" hidden>
   <div class="drawer-bg" data-close></div>
@@ -229,7 +230,7 @@ function product_card(array $p, bool $lazy = true): string {
     $out = (int)$p['stock'] <= 0;
     $url = url('p/' . $p['slug']);
     [$ravg, $rn] = review_stats()[(int)$p['id']] ?? [0, 0];
-    $h = '<article class="card' . ($out ? ' sold' : '') . '"><div class="card-m">';
+    $h = '<article class="card' . ($out ? ' sold' : '') . '" data-c="' . e((string)($p['cat_slug'] ?? '')) . '"><div class="card-m">';
     $h .= '<a class="card-img" href="' . $url . '" aria-label="' . e($p['name']) . '">';
     $h .= img_tag($imgs[0] ?? '', $p['name'], '(max-width:860px) 48vw, 300px', $lazy);
     if (isset($imgs[1])) $h .= img_tag($imgs[1], '', '(max-width:860px) 48vw, 300px', true, 'alt-img');

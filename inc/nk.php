@@ -23,6 +23,76 @@ const LL_EID = [
     ['Marigold Kurtis', 'c/ethnic', 'marigold-embroidered-kurti'], ['Kids Festive Sets', 'c/kids', 'little-gent-cardigan-set'],
     ['Festive Home Decor', 'c/home', 'velvet-round-cushions-set-of-3'], ['Eid Glam Lips', 'c/lips', 'velvet-red-matte-lipstick'],
 ];
+/** Sub-types under each category for the PC mega menu: label => search word (searched inside that category). */
+const LL_SUBS = [
+    'ethnic' => ['Sarees' => 'saree', 'Kurtis & Kurtas' => 'kurti', 'Salwar Suits' => 'salwar', 'Anarkalis' => 'anarkali'],
+    'westernwear' => ['Dresses' => 'dress', 'Tops & Blouses' => 'blouse', 'Co-ord Sets' => 'co-ord', 'Gowns' => 'gown', 'Sweaters' => 'sweater'],
+    'men' => ['Shirts' => 'shirt', 'T-shirts' => 'tee', 'Suits' => 'suit', 'Jackets' => 'jacket'],
+    'footwear' => ['Heels' => 'heels', 'Pumps' => 'pumps', 'Stilettos' => 'stiletto', 'Brogues' => 'brogue', 'Boots' => 'boots', 'Loafers' => 'loafer'],
+    'bags' => ['Handbags' => 'handbag', 'Totes' => 'tote', 'Slings' => 'sling', 'Satchels' => 'satchel', 'Duffle Bags' => 'duffle'],
+    'jewellery' => ['Necklace Sets' => 'necklace', 'Earrings' => 'earrings', 'Bangles' => 'bangle', 'Pendants' => 'pendant', 'Hoops' => 'hoops'],
+    'watches' => ['Leather Strap' => 'leather', 'Bracelet Watches' => 'bracelet', 'Rose Gold' => 'rose gold', 'Gold Watches' => 'gold'],
+    'eyewear' => ['Round' => 'round', 'Browline' => 'browline', 'Oversized' => 'oversized'],
+    'sneakers' => ['Chunky' => 'chunky', 'Canvas' => 'canvas', 'White Sneakers' => 'white'],
+    'activewear' => ['Leggings' => 'leggings', 'Workout Sets' => 'set'],
+    'kids' => ['Dresses' => 'dress', 'Sets' => 'set', 'Baby' => 'baby'],
+    'home' => ['Bedding' => 'bedding', 'Comforters' => 'comforter', 'Cushions' => 'cushion', 'Lamps' => 'lamp', 'Vases' => 'vase', 'Mirrors' => 'mirror', 'Rugs' => 'rug'],
+    'lips' => ['Lipsticks' => 'lipstick', 'Lip Tints' => 'tint', 'Lip Gloss' => 'gloss', 'Lip Balm' => 'balm'],
+    'skincare' => ['Serums' => 'serum', 'Creams' => 'cream', 'Face Oils' => 'oil'],
+    'makeup' => ['Eyeshadow' => 'eyeshadow', 'Foundation' => 'foundation', 'Blush' => 'blush', 'Mascara' => 'mascara', 'Powder' => 'powder', 'Brushes' => 'brush', 'Kits' => 'kit'],
+    'fragrance' => ['Perfumes' => 'parfum'],
+    'nails' => ['Nail Polish' => 'nail'],
+    'body' => ['Hair Oils' => 'hair', 'Body Butter' => 'butter', 'Lotions' => 'lotion', 'Face Masks' => 'mask'],
+];
+/** Men-only items inside shared categories (shoes, watches...) and unisex items also shown in Men. */
+const LL_MEN_ONLY = ['walnut-leather-brogues', 'tan-brogue-boots', 'black-penny-loafers', 'classic-tan-leather-watch'];
+const LL_UNISEX = ['everyday-white-sneakers', 'red-canvas-sneakers', 'colour-pop-chunky-sneakers', 'black-mini-duffle-bag', 'grey-buckle-satchel', 'navy-dial-gold-watch', 'gold-round-sunglasses', 'black-browline-sunglasses', 'clear-frame-sunglasses', 'amber-tint-sunglasses'];
+const LL_SHARED = ['footwear', 'sneakers', 'bags', 'watches', 'eyewear'];
+/** Products of one category as seen inside a department (Men sees men's shoes, Women does not). */
+function nk_dept_products(string $dk, string $slug, int $n): array {
+    $w = 'c.slug=?'; $a = [$slug];
+    if (in_array($slug, LL_SHARED, true)) {
+        if ($dk === 'men') { $l = array_merge(LL_MEN_ONLY, LL_UNISEX); $w .= ' AND p.slug IN (' . implode(',', array_fill(0, count($l), '?')) . ')'; $a = array_merge($a, $l); }
+        elseif ($dk === 'women') { $w .= ' AND p.slug NOT IN (' . implode(',', array_fill(0, count(LL_MEN_ONLY), '?')) . ')'; $a = array_merge($a, LL_MEN_ONLY); }
+    }
+    $o = 'p.featured DESC, p.sold DESC';
+    if ($dk === 'men' && in_array($slug, LL_SHARED, true)) $o = "(p.slug IN ('" . implode("','", LL_MEN_ONLY) . "')) DESC, " . $o;
+    return q($w, $a, $o, $n);
+}
+
+/** Department the visitor is in (for the second menu row). */
+function nk_cur_dept(string $active): string {
+    if (preg_match('~^d/([a-z]+)~', $active, $m) && isset(nk_depts()[$m[1]])) return $m[1];
+    if (preg_match('~^c/([a-z0-9-]+)~', $active, $m)) {
+        foreach (['women', 'men', 'kids', 'home', 'beauty'] as $k) if (isset(nk_depts()[$k]) && in_array($m[1], LL_DEPTS[$k][2], true)) return $k;
+    }
+    return isset(nk_depts()['women']) ? 'women' : (string)array_key_first(nk_depts());
+}
+/** PC second menu row: What's New, Sale, then each category of the department with a hover dropdown. */
+function nk_subnav(string $dk): string {
+    $dc = nk_dept_cats($dk); if (!$dc) return '';
+    $slugs = array_column($dc, 'slug'); $in = implode(',', array_fill(0, count($slugs), '?'));
+    $sq = fn(string $c, string $w) => url('search') . '?q=' . rawurlencode($w) . '&c=' . rawurlencode($c);
+    $h = '<nav class="nk-sub2 only-d" aria-label="' . e(LL_DEPTS[$dk][0]) . ' categories"><div class="wrap nk-sub2-in">';
+    $nw = q("c.slug IN ($in) AND p.is_new=1", $slugs, 'p.featured DESC, p.id DESC', 6);
+    if ($nw) {
+        $h .= '<div class="nk-dd"><a href="' . url('new') . '">What\'s New ' . icon('chev', 12) . '</a><div class="nk-mm nk-mm-new"><div><h5>Just In</h5><div class="nk-ji">';
+        foreach (array_slice($nw, 0, 2) as $p) $h .= '<a href="' . url('p/' . $p['slug']) . '">' . nk_img(p_image($p), $p['name'], 120, 150) . '</a>';
+        $h .= '</div></div><div><h5>New Trends</h5><div class="nk-nt">';
+        foreach ((array_slice($nw, 2, 4) ?: array_slice($nw, 0, 4)) as $p) $h .= '<a href="' . url('p/' . $p['slug']) . '">' . nk_img(p_image($p), '', 120, 150) . '<span>' . e($p['name']) . '</span></a>';
+        $h .= '</div></div></div></div>';
+    }
+    $h .= '<div class="nk-dd"><a href="' . url('sale') . '">Sale ' . icon('chev', 12) . '</a><div class="nk-mm nk-mm-l"><a class="hl" href="' . url('sale') . '">Shop All</a>';
+    foreach ($dc as $c) if ((nk_offs()[$c['slug']]['off'] ?? 0) > 0) $h .= '<a href="' . url('c/' . $c['slug']) . '?sort=off">' . e($c['name']) . ' on Sale</a>';
+    $h .= '</div></div>';
+    foreach ($dc as $c) {
+        $h .= '<div class="nk-dd"><a href="' . url('c/' . $c['slug']) . '">' . e($c['name']) . ' ' . icon('chev', 12) . '</a><div class="nk-mm nk-mm-l"><a class="hl" href="' . url('c/' . $c['slug']) . '">Shop All</a>';
+        foreach (LL_SUBS[$c['slug']] ?? [] as $lb => $w) $h .= '<a href="' . e($sq($c['slug'], $w)) . '">' . e($lb) . '</a>';
+        $h .= '<a href="' . url('c/' . $c['slug']) . '?sort=new">New Arrivals</a><a href="' . url('c/' . $c['slug']) . '?sort=popular">Best Sellers</a></div></div>';
+    }
+    return $h . '</div></nav>';
+}
+
 /** Resolve a tile list to [label, link, image, offer] for active products only. */
 function nk_tiles(array $list): array {
     $st = db()->prepare('SELECT p.images, c.slug cs FROM products p JOIN categories c ON c.id=p.category_id WHERE p.slug=? AND p.active=1 AND c.active=1');

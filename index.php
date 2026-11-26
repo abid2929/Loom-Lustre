@@ -291,13 +291,13 @@ case 'd':
   <div class="nk-dhero" style="--bg:<?= e($dp[4]) ?>">
     <div class="nk-dhero-t"><small><?= e(S('shop_name')) ?></small><h1><?= e($dp[0]) ?></h1><p><?= e($dp[1]) ?></p><?php if ($doff >= 5): ?><em>UP TO <?= $doff ?>% OFF</em><?php endif; ?><a class="btn" href="#d-all">Shop now</a></div>
     <?php $few = count($dc) < 3; $dpr = $few ? q('c.slug IN (' . implode(',', array_fill(0, count($dc), '?')) . ')', array_column($dc, 'slug'), 'p.featured DESC, p.sold DESC', 10) : []; ?>
-    <div class="nk-dhero-p"><?php if ($few): foreach (array_slice($dpr, 0, 3) as $i => $p): ?><span><?= nk_img(p_image($p), $p['name'], 600, 750, $i === 0) ?></span><?php endforeach; else: foreach (array_slice($dc, 0, 3) as $i => $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?><span><?= nk_img($im, $c['name'], 600, 750, $i === 0) ?></span><?php endforeach; endif; ?></div>
+    <div class="nk-dhero-p"><?php if ($few): foreach (array_slice($dpr, 0, 3) as $i => $p): ?><span><?= nk_img(p_image($p), $p['name'], 600, 750, $i === 0) ?></span><?php endforeach; else: foreach (array_slice($dc, 0, 3) as $i => $c): $im = p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image']; ?><span><?= nk_img($im, $c['name'], 600, 750, $i === 0) ?></span><?php endforeach; endif; ?></div>
   </div>
   <div class="nk-sub">
     <?php if ($few): foreach ($dpr as $p): $po = $p['old_price'] > $p['price'] ? (int)round(($p['old_price'] - $p['price']) * 100 / $p['old_price']) : 0; ?><a href="<?= url('p/' . $p['slug']) ?>"><b><?= e(preg_replace('~\s*\(.*\)$~', '', $p['name'])) ?></b><?= nk_img(p_image($p), '', 300, 375) ?><small><?= e(nk_off_text($po, 'Shop now')) ?></small></a><?php endforeach; endif; ?>
-    <?php foreach ($dc as $c): if ($few) continue; ?><a href="<?= url('c/' . $c['slug']) ?>"><b><?= e($c['name']) ?></b><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach; ?>
+    <?php foreach ($dc as $c): if ($few) continue; ?><a href="<?= url('c/' . $c['slug']) ?>"><b><?= e($c['name']) ?></b><?= nk_img(p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image'], '', 300, 375) ?><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach; ?>
   </div>
-  <?php foreach ($dc as $i => $c): $pl = q('c.slug=?', [$c['slug']], 'p.featured DESC, p.sold DESC', 8); if (!$pl) continue; ?>
+  <?php foreach ($dc as $i => $c): $pl = nk_dept_products($dk, $c['slug'], 8); if (!$pl) continue; ?>
   <section class="sec"<?= $i === 0 ? ' id="d-all"' : '' ?>>
     <?= section_head($c['name'], $c['tagline'], 'c/' . $c['slug']) ?>
     <?= product_grid($pl, 'grid rail') ?>
@@ -322,7 +322,7 @@ case 'luxe':
 
   <section class="wrap lx-cats"><div class="lx-cats-in">
     <a class="lx-cat0" href="<?= url('collection/luxe-edit') ?>"><b>LUXE</b><small>EDIT</small></a>
-    <?php foreach ($lc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper($c['name'])) ?></small><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?></a><?php endforeach; ?>
+    <?php foreach ($lc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><small><?= e(mb_strtoupper($c['name'])) ?></small><?= nk_img(p_image(nk_dept_products($dk, $c['slug'], 1)[0] ?? []) ?: $c['image'], '', 300, 375) ?></a><?php endforeach; ?>
   </div></section>
 
   <section class="wrap lx-sec"><?php $ban('assets/img/p/eth-red-saree.webp', 'Festive Icons', nk_off_text(max($offs['ethnic']['off'] ?? 0, $offs['jewellery']['off'] ?? 0), ''), 'c/ethnic'); ?></section>
@@ -383,6 +383,8 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
         $qq = trim(mb_substr((string)($_GET['q'] ?? ''), 0, 60));
         $title = $qq === '' ? 'Search' : 'Results for "' . $qq . '"'; $sub = ''; $active = '';
         if ($qq !== '') { $where = 'p.name LIKE ? OR p.short LIKE ? OR p.tags LIKE ? OR c.name LIKE ? OR p.shades LIKE ?'; $l = '%' . $qq . '%'; $args = [$l, $l, $l, $l, $l]; }
+        $scat = preg_replace('~[^a-z0-9-]~', '', (string)($_GET['c'] ?? ''));
+        if ($qq !== '' && $scat !== '') { $where = "($where) AND c.slug=?"; $args[] = $scat; }
         elseif (!defined('LL_DEMO')) $where = '0';
     }
     $sort = (string)($_GET['sort'] ?? '');

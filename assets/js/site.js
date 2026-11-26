@@ -277,8 +277,8 @@
 
   /* ---------- demo search (static preview has no server) ---------- */
   if (LL.demo && /\/search\/?$/.test(location.pathname)) {
-    var qs = (new URLSearchParams(location.search).get('q') || '').trim().toLowerCase(), shown = 0;
-    $$('.grid .card').forEach(function (c) { var ok = !qs || c.textContent.toLowerCase().indexOf(qs) > -1; c.hidden = !ok; if (ok) shown++; });
+    var qs = (new URLSearchParams(location.search).get('q') || '').trim().toLowerCase(), qc = new URLSearchParams(location.search).get('c') || '', shown = 0;
+    $$('.grid .card').forEach(function (c) { var ok = (!qs || c.textContent.toLowerCase().indexOf(qs) > -1) && (!qc || c.getAttribute('data-c') === qc); c.hidden = !ok; if (ok) shown++; });
     var h = $('.list-h h1'); if (h && qs) h.textContent = 'Results for "' + qs + '"';
     var ct = $('.tools .count'); if (ct) ct.textContent = shown + ' product' + (shown === 1 ? '' : 's');
     var si = $('.search input'); if (si) si.value = qs;
