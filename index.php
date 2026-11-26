@@ -162,6 +162,7 @@ case '':
 <?php if ($on('cats')): ?>
 <section class="wrap nk-strip" aria-label="Categories">
   <div class="nk-strip-in">
+    <?php $sw = nk_cat_imgs('westernwear', 3)[2] ?? ''; if ($sw !== ''): ?><a href="<?= url('sale') ?>" class="nk-sale"><span><?= nk_img($sw, '', 300, 360) ?><i>SALE</i></span><b>Sale</b></a><?php endif; ?>
     <?php foreach ($cats as $c): if (($offs[$c['slug']]['n'] ?? 0) === 0) continue; ?>
     <a href="<?= url('c/' . $c['slug']) ?>"><span><?= nk_img($c['image'], '', 300, 360) ?></span><b><?= e($c['name']) ?></b></a>
     <?php endforeach; ?>
@@ -169,12 +170,34 @@ case '':
 </section>
 <?php endif; ?>
 
+<?php if ($on('celeb')): $tl = nk_tiles(LL_CELEB); if ($tl): ?>
+<section class="wrap nk-sec">
+  <h2 class="nk-h"><?= e($T('celeb') ?: 'Celebration-ready Categories') ?></h2>
+  <div class="nk-spot nk-tiles">
+    <?php foreach ($tl as [$lb, $lk, $im, $of]): ?>
+    <a href="<?= url($lk) ?>"><span class="nk-spot-p"><?= nk_img($im, $lb) ?><i><?= e($lb) ?></i></span><b><?= e(nk_off_text($of, 'New styles inside')) ?></b><small>Shop now</small></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; endif; ?>
+
 <?php if ($on('spot')): $sp = array_filter($cats, fn($c) => ($offs[$c['slug']]['n'] ?? 0) > 0); usort($sp, fn($a, $b) => ($offs[$b['slug']]['off'] <=> $offs[$a['slug']]['off']) ?: ($a['sort'] <=> $b['sort'])); $sp = array_slice($sp, 0, 10); if ($sp): ?>
 <section class="wrap nk-sec">
-  <h2 class="nk-h"><?= e($T('spot') ?: 'In the Spotlight') ?></h2>
+  <h2 class="nk-h"><?= e($T('spot') ?: 'Iconic Styles, Unreal Savings') ?></h2>
   <div class="nk-spot">
     <?php foreach ($sp as $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?>
     <a href="<?= url('c/' . $c['slug']) ?>"><span class="nk-spot-p"><?= nk_img($im, $c['name']) ?><i><?= e($c['name']) ?></i></span><b><?= e(nk_off_text($offs[$c['slug']]['off'])) ?></b><small><?= e($c['tagline']) ?></small></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; endif; ?>
+
+<?php if ($on('eid')): $tl = nk_tiles(LL_EID); if ($tl): ?>
+<section class="wrap nk-sec">
+  <h2 class="nk-h"><?= e($T('eid') ?: 'Build Your Eid Wardrobe') ?></h2>
+  <div class="nk-spot nk-tiles">
+    <?php foreach ($tl as [$lb, $lk, $im, $of]): ?>
+    <a href="<?= url($lk) ?>"><span class="nk-spot-p"><?= nk_img($im, $lb) ?><i><?= e($lb) ?></i></span><b><?= e(nk_off_text($of, 'New styles inside')) ?></b><small>Shop now</small></a>
     <?php endforeach; ?>
   </div>
 </section>
@@ -266,10 +289,12 @@ case 'd':
   <nav class="crumbs"><a href="<?= url() ?>">Home</a><?= icon('chev', 14) ?><span><?= e($dp[0]) ?></span></nav>
   <div class="nk-dhero" style="--bg:<?= e($dp[4]) ?>">
     <div class="nk-dhero-t"><small><?= e(S('shop_name')) ?></small><h1><?= e($dp[0]) ?></h1><p><?= e($dp[1]) ?></p><?php if ($doff >= 5): ?><em>UP TO <?= $doff ?>% OFF</em><?php endif; ?><a class="btn" href="#d-all">Shop now</a></div>
-    <div class="nk-dhero-p"><?php foreach (array_slice($dc, 0, 3) as $i => $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?><span><?= nk_img($im, $c['name'], 600, 750, $i === 0) ?></span><?php endforeach; ?></div>
+    <?php $few = count($dc) < 3; $dpr = $few ? q('c.slug IN (' . implode(',', array_fill(0, count($dc), '?')) . ')', array_column($dc, 'slug'), 'p.featured DESC, p.sold DESC', 10) : []; ?>
+    <div class="nk-dhero-p"><?php if ($few): foreach (array_slice($dpr, 0, 3) as $i => $p): ?><span><?= nk_img(p_image($p), $p['name'], 600, 750, $i === 0) ?></span><?php endforeach; else: foreach (array_slice($dc, 0, 3) as $i => $c): $im = nk_cat_imgs($c['slug'], 1)[0] ?? $c['image']; ?><span><?= nk_img($im, $c['name'], 600, 750, $i === 0) ?></span><?php endforeach; endif; ?></div>
   </div>
   <div class="nk-sub">
-    <?php foreach ($dc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><b><?= e($c['name']) ?></b><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach; ?>
+    <?php if ($few): foreach ($dpr as $p): $po = $p['old_price'] > $p['price'] ? (int)round(($p['old_price'] - $p['price']) * 100 / $p['old_price']) : 0; ?><a href="<?= url('p/' . $p['slug']) ?>"><b><?= e(preg_replace('~\s*\(.*\)$~', '', $p['name'])) ?></b><?= nk_img(p_image($p), '', 300, 375) ?><small><?= e(nk_off_text($po, 'Shop now')) ?></small></a><?php endforeach; endif; ?>
+    <?php foreach ($dc as $c): if ($few) continue; ?><a href="<?= url('c/' . $c['slug']) ?>"><b><?= e($c['name']) ?></b><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 300, 375) ?><small><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0, 'Shop now')) ?></small></a><?php endforeach; ?>
   </div>
   <?php foreach ($dc as $i => $c): $pl = q('c.slug=?', [$c['slug']], 'p.featured DESC, p.sold DESC', 8); if (!$pl) continue; ?>
   <section class="sec"<?= $i === 0 ? ' id="d-all"' : '' ?>>

@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 const LL_ST_TO_ADMIN = ['new' => 'pending', 'confirmed' => 'processing', 'shipped' => 'shipped', 'delivered' => 'delivered', 'cancelled' => 'cancelled', 'returned' => 'returned'];
-const LL_SECTIONS = ['cats' => 'Category photo row', 'spot' => 'In the Spotlight', 'styles' => 'Styles To Celebrate In', 'picks' => "Stylists' Picks", 'luxe' => 'Luxe Edit block', 'circles' => 'Find everything circles'];
+const LL_SECTIONS = ['cats' => 'Category photo row', 'celeb' => 'Celebration-ready Categories', 'spot' => 'Unreal Savings (offers)', 'eid' => 'Build Your Eid Wardrobe', 'styles' => 'Styles To Celebrate In', 'picks' => "Stylists' Picks", 'luxe' => 'Luxe Edit block', 'circles' => 'Find everything circles'];
 
 function ll_status_db(string $s): string { $f = array_flip(LL_ST_TO_ADMIN); return $f[$s] ?? 'new'; }
 function ll_is_local(string $s): bool { return (bool)preg_match('~^(assets|uploads)/[a-z0-9_\-/.]+\.(jpe?g|png|webp|gif)$~i', $s) && !str_contains($s, '..'); }

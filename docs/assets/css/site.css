@@ -1006,3 +1006,14 @@ body.lxm .ftr{border-top:1px solid #262022}
 .nk-luxe-big,.nk-luxe-g a,.nk-luxe-g{min-width:0}
 body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{color:#eee}body.lxm .perks-in span{color:#aaa}
 .nk-row,.nk-spot,.lx-row,.nk-strip-in,.nk-circ,.nk-sub,.lx-cats-in{scroll-padding-inline:16px}
+
+/* v1.5: sale tile in the photo row, tile rows */
+.nk-strip .nk-sale span{position:relative}
+.nk-strip .nk-sale i{position:absolute;inset:auto 0 0 0;padding:6px 0;background:var(--brand,#9e1b34);color:#fff;font-style:normal;font-weight:700;font-size:15px;letter-spacing:2px}
+.nk-strip .nk-sale b{color:var(--brand,#9e1b34);font-weight:700}
+.nk-tiles .nk-spot-p i{font-size:22px;line-height:1.1}
+@media (max-width:860px){.nk-tiles .nk-spot-p i{font-size:17px}.nk-strip .nk-sale i{font-size:12px}}
+.nk-nav .nav-more-m hr{grid-column:1/-1;border:0;border-top:1px solid var(--line);margin:4px 0}
+.nk-nav .nav-more-m a.lx{font-weight:600;color:var(--gold);display:flex;align-items:center;gap:6px}
+.ftr-in{grid-template-columns:1.5fr 1fr 1fr 1fr 1.3fr}
+@media (max-width:1000px){.ftr-in{grid-template-columns:1fr 1fr}.ftr-brand{grid-column:1/-1}}

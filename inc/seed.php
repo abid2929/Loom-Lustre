@@ -181,4 +181,45 @@ function ll_seed_fashion(PDO $pdo): void {
     $pdo->exec("UPDATE collections SET image='assets/img/p/eth-sage-saree.webp' WHERE slug='bridal-glow' AND image='assets/img/p/velvet-palette.webp'");
     $pdo->exec("UPDATE collections SET image='assets/img/p/wst-satin-gown.webp' WHERE slug='party-night' AND image='assets/img/p/rainbow-palette.webp'");
     $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('rose-gold-banarasi-silk-saree','colour-pop-chunky-sneakers','cherry-top-handle-bag','pink-block-print-kurti-set','gold-round-sunglasses','terracotta-belted-shirt-dress')");
+    ll_seed_v15($pdo);
+}
+
+// v1.5: Watches and Home, like the Nykaa Fashion store. Only added once.
+function ll_seed_v15(PDO $pdo): void {
+    if ($pdo->query("SELECT 1 FROM categories WHERE slug='watches'")->fetchColumn()) return;
+    $now = date('Y-m-d H:i:s');
+    $ci = $pdo->prepare('INSERT INTO categories(name,slug,tagline,image,sort) VALUES(?,?,?,?,?)');
+    $ids = [];
+    foreach ([['Watches', 'watches', 'Gold, rose gold and leather watches', 'wt-rose-link'], ['Home', 'home', 'Bedding, cushions, lamps and decor', 'hm-blush-bedding']] as $c) {
+        $ci->execute([$c[0], $c[1], $c[2], 'assets/img/p/' . $c[3] . '.webp', 0]); $ids[$c[1]] = (int)$pdo->lastInsertId();
+    }
+    // shop order like the Nykaa Fashion photo row
+    $order = ['westernwear', 'ethnic', 'men', 'kids', 'home', 'footwear', 'bags', 'activewear', 'jewellery', 'sneakers', 'watches', 'eyewear'];
+    $so = $pdo->prepare('UPDATE categories SET sort=? WHERE slug=?');
+    foreach ($order as $i => $sl) $so->execute([$i + 1, $sl]);
+    $P = [
+        ['Rose Gold Minimal Watch', 'watches', 'wt-rose-minimal', 2490, 3290, 'Rose Gold / Taupe', 'Clean white dial with a soft leather strap.', "A slim rose gold watch with a clean white dial and a soft taupe leather strap. Light on the wrist and right for office, campus and dinners.\n\nQuartz movement, 36 mm case, splash resistant.", 1, 1, 1],
+        ['Ivory Leather Strap Watch', 'watches', 'wt-ivory-leather', 2290, 2990, 'Ivory / Gold', 'A minimal gold watch on an ivory strap.', "A minimal gold-tone watch with a cream dial and an ivory leather strap. Simple, elegant and easy to match with sarees and westernwear.\n\nQuartz movement, 38 mm case.", 0, 0, 1],
+        ['Rose Gold Link Bracelet Watch', 'watches', 'wt-rose-link', 3290, 4290, 'Rose Gold', 'Rose gold bracelet watch with a white dial.', "A rose gold link bracelet watch with a bright white dial and slim markers. A lovely gift for Eid, birthdays and weddings.\n\nQuartz movement, 32 mm case, adjustable links.", 1, 1, 0],
+        ['Navy Dial Gold Watch', 'watches', 'wt-navy-gold', 3490, 4490, 'Gold / Navy', 'Deep navy dial on a gold bracelet.', "A gold bracelet watch with a deep navy sunray dial and a small seconds dial. Looks rich with festive and evening outfits.\n\nQuartz movement, 38 mm case.", 1, 0, 0],
+        ['Classic Tan Leather Watch', 'watches', 'wt-classic-tan', 2790, 3590, 'Silver / Tan', 'Everyday watch with a tan leather strap.', "A classic everyday watch with a white dial, gold-tone hands and a tan leather strap. Smart with shirts and suits, easy with tees.\n\nQuartz movement, 40 mm case.", 0, 1, 0],
+        ['Blush Pillow Bedding Set', 'home', 'hm-blush-bedding', 4490, 5990, 'White / Blush', 'Soft white bedding with blush cushions.', "A soft cotton bedding set with a white duvet cover, two pillow covers and blush embroidered cushion covers. Makes any bedroom look calm and fresh.", 1, 1, 1],
+        ['Cloud White Comforter Set', 'home', 'hm-white-comforter', 3990, 4990, 'White', 'Light, airy comforter with pillow covers.', "A light, breathable comforter with two matching pillow covers. Soft enough for summer nights and warm enough for winter.", 0, 1, 0],
+        ['Ikat Cushion Covers (Set of 4)', 'home', 'hm-ikat-cushions', 1290, 1690, 'Multi', 'Bright ikat and zigzag cushion covers.', "Four cotton cushion covers in bright ikat, zigzag and dot prints with hidden zips. Instantly cheers up a sofa or bed.\n\nSize 16 x 16 inch, covers only.", 1, 0, 1],
+        ['Velvet Round Cushions (Set of 3)', 'home', 'hm-velvet-cushions', 1890, 2490, 'Teal, Navy, Magenta', 'Plush jewel-tone velvet cushions.', "Three round velvet cushions in teal, navy and magenta with a pleated centre. Soft, plush and perfect for festive decor.", 0, 0, 0],
+        ['Black Ceramic Table Lamp', 'home', 'hm-pot-lamp', 2490, 3190, 'Black / Amber', 'Glossy ceramic base with a warm shade.', "A rounded black ceramic lamp with an amber fabric shade that gives a warm, cosy glow. Great for bedside tables and living rooms.", 1, 0, 0],
+        ['Pineapple Ceramic Lamp', 'home', 'hm-pineapple-lamp', 1990, 2590, 'Ivory', 'Cute pineapple-shaped bedside lamp.', "An ivory ceramic lamp shaped like a pineapple with a pleated shade. A fun, soft light for bedrooms and reading corners.", 0, 1, 0],
+        ['Nordic Donut Vase Pair', 'home', 'hm-donut-vases', 1490, 1990, 'Cream', 'Two cream ceramic donut vases.', "A pair of matte cream ceramic vases with a modern donut shape. Lovely with fresh or dried flowers on a shelf or table.", 0, 1, 1],
+        ['Copper Ornate Wall Mirror', 'home', 'hm-copper-mirror', 2890, 3790, 'Copper', 'Round mirror with a carved copper frame.', "A round wall mirror with an ornate carved frame in a warm copper finish. Adds light and charm to entrances and bedrooms.\n\nDiameter 60 cm.", 1, 0, 0],
+        ['Ivory Gold Area Rug', 'home', 'hm-fringe-rug', 5490, 6990, 'Ivory / Gold', 'Soft rug with a classic gold pattern.', "A soft woven area rug in ivory with a classic gold medallion pattern and fringe ends. Easy to clean and made for living rooms.\n\nSize 5 x 7 ft.", 0, 0, 0],
+        ['Smoked Glass Vase with Dried Grass', 'home', 'hm-glass-vase', 1190, 1490, 'Smoke Grey', 'Tall smoked glass vase with pampas grass.', "A tall smoked glass bottle vase with a bunch of natural dried grass. Needs no water and looks calm on any shelf.", 0, 0, 1],
+    ];
+    $pi = $pdo->prepare('INSERT INTO products(name,slug,category_id,brand,price,old_price,images,shades,sizes,size,stock,short,description,how_to,featured,bestseller,is_new,sort,sold,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $sizes = ['hm-blush-bedding' => 'Double, King', 'hm-white-comforter' => 'Double, King', 'hm-fringe-rug' => '4 x 6 ft, 5 x 7 ft'];
+    foreach ($P as $i => $p) {
+        $pi->execute([$p[0], slugify($p[0]), $ids[$p[1]], 'Loom & Lustre', $p[3], $p[4], json_encode(['assets/img/p/' . $p[2] . '.webp']), $p[5], $sizes[$p[2]] ?? '', '', 20, $p[6], $p[7], '', $p[8], $p[9], $p[10], 200 + $i, $p[9] ? 40 - $i : 3, $now, $now]);
+    }
+    $ix = $pdo->prepare('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT c.id, p.id FROM collections c, products p WHERE c.slug=? AND p.slug=?');
+    foreach ([['eid-edit', 'navy-dial-gold-watch'], ['eid-edit', 'velvet-round-cushions-set-of-3'], ['wedding-season', 'rose-gold-link-bracelet-watch'], ['office-ready', 'classic-tan-leather-watch'], ['weekend-casual', 'rose-gold-minimal-watch'], ["stylists-picks", 'rose-gold-minimal-watch'], ['luxe-edit', 'copper-ornate-wall-mirror']] as $x) $ix->execute($x);
+    $pdo->exec("UPDATE products SET flash_sale=1 WHERE slug IN ('rose-gold-link-bracelet-watch','blush-pillow-bedding-set')");
 }

@@ -1,11 +1,39 @@
 <?php
 // v1.4 store layout: departments (Women / Men / Kids / Beauty), Categories page, Luxe store.
 const LL_DEPTS = [
-    'women' => ['Women', 'Shop Westernwear, Ethnic wear and More', ['ethnic', 'westernwear', 'footwear', 'bags', 'jewellery', 'eyewear', 'activewear'], 'assets/img/p/wst-shirt-dress.webp', '#e2e0dd'],
-    'men' => ['Men', 'Shop Formals, Casuals and Sneakers', ['men', 'footwear', 'sneakers', 'eyewear'], 'assets/img/p/men-white-shirt.webp', '#f3dcc4'],
+    'women' => ['Women', 'Shop Westernwear, Ethnic wear and More', ['westernwear', 'ethnic', 'footwear', 'bags', 'jewellery', 'watches', 'activewear', 'sneakers', 'eyewear'], 'assets/img/p/wst-shirt-dress.webp', '#e2e0dd'],
+    'men' => ['Men', 'Shop Formals, Casuals and Sneakers', ['men', 'footwear', 'sneakers', 'watches', 'eyewear', 'bags'], 'assets/img/p/men-white-shirt.webp', '#f3dcc4'],
     'kids' => ['Kids', 'Shop for Boys, Girls and Babies', ['kids'], 'assets/img/p/kd-gent-set.webp', '#d8cbc1'],
+    'home' => ['Home', 'Shop Bedding, Cushions, Lamps and Decor', ['home'], 'assets/img/p/hm-blush-bedding.webp', '#e6dfd3'],
     'beauty' => ['Beauty', 'Lipstick, Skincare, Makeup and More', ['lips', 'skincare', 'makeup', 'fragrance', 'nails', 'body'], 'assets/img/p/rose-trio.webp', '#eedfe2'],
 ];
+
+/** Home page photo-tile rows (label, link, product slug for the photo), like the Nykaa Fashion store. */
+const LL_CELEB = [
+    ['Drops & Danglers', 'c/jewellery', 'sapphire-drop-earrings'], ['Evening Gowns', 'c/westernwear', 'plum-satin-evening-gown'],
+    ['Iconic Sneakers', 'c/sneakers', 'colour-pop-chunky-sneakers'], ['Event-ready Heels', 'c/footwear', 'blue-garden-floral-heels'],
+    ['Silk Sarees', 'c/ethnic', 'rose-gold-banarasi-silk-saree'], ['Stylish Handbags', 'c/bags', 'cherry-top-handle-bag'],
+    ['Gold Watches', 'c/watches', 'navy-dial-gold-watch'], ['Anarkali Kurtis', 'c/ethnic', 'indigo-paisley-anarkali-kurti'],
+    ['Sharp Suits', 'c/men', 'navy-slim-fit-suit'], ['Cosy Bedding', 'c/home', 'blush-pillow-bedding-set'],
+];
+const LL_EID = [
+    ['Festive Salwar Sets', 'c/ethnic', 'red-salwar-kameez-with-dupatta'], ['Golden Classic Watches', 'c/watches', 'rose-gold-link-bracelet-watch'],
+    ['Statement Jewellery', 'c/jewellery', 'kundan-gold-bridal-necklace-set'], ['Handwoven Sarees', 'c/ethnic', 'royal-purple-katan-saree'],
+    ['Party Heels', 'c/footwear', 'hot-pink-patent-stilettos'], ['Crafty Handbags', 'c/bags', 'tan-wicker-handbag'],
+    ['Marigold Kurtis', 'c/ethnic', 'marigold-embroidered-kurti'], ['Kids Festive Sets', 'c/kids', 'little-gent-cardigan-set'],
+    ['Festive Home Decor', 'c/home', 'velvet-round-cushions-set-of-3'], ['Eid Glam Lips', 'c/lips', 'velvet-red-matte-lipstick'],
+];
+/** Resolve a tile list to [label, link, image, offer] for active products only. */
+function nk_tiles(array $list): array {
+    $st = db()->prepare('SELECT p.images, c.slug cs FROM products p JOIN categories c ON c.id=p.category_id WHERE p.slug=? AND p.active=1 AND c.active=1');
+    $out = [];
+    foreach ($list as [$label, $link, $slug]) {
+        $st->execute([$slug]); $r = $st->fetch(); if (!$r) continue;
+        $im = p_images($r)[0] ?? ''; if ($im === '') continue;
+        $out[] = [$label, $link, $im, nk_offs()[$r['cs']]['off'] ?? 0];
+    }
+    return $out;
+}
 
 /** Biggest real discount per category slug. */
 function nk_offs(): array {
@@ -47,7 +75,7 @@ function nk_switch(bool $luxe): string {
 function nk_seo_text(): string {
     $n = e(S('shop_name'));
     $h = '<section class="wrap nk-seo"><h2>' . $n . ': Online Fashion &amp; Beauty Shopping in Bangladesh</h2>';
-    $h .= '<p>' . $n . ' brings sarees, kurtis, westernwear, menswear, kidswear, shoes, bags, jewellery and beauty together in one easy online store. Every product is checked by hand, prices are clear and you can pay cash on delivery anywhere in Bangladesh.</p>';
+    $h .= '<p>' . $n . ' brings sarees, kurtis, westernwear, menswear, kidswear, shoes, bags, jewellery, watches, home decor and beauty together in one easy online store. Every product is checked by hand, prices are clear and you can pay cash on delivery anywhere in Bangladesh.</p>';
     foreach (nk_depts() as $k => $d) {
         $links = array_map(fn($c) => '<a href="' . url('c/' . $c['slug']) . '">' . e($c['name']) . '</a>', nk_dept_cats($k));
         $h .= '<h3>' . e($d[0]) . '</h3><p>' . e($d[1]) . '. Explore ' . implode(', ', $links) . ' with new styles added every week. <a href="' . url('d/' . $k) . '">Shop all ' . e(strtolower($d[0])) . '</a>.</p>';

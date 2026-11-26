@@ -95,6 +95,12 @@ function db(): PDO {
         $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v13_fashion','1')");
         if (!$new && $pdo->query("SELECT 1 FROM products WHERE slug='velvet-red-matte-lipstick'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_fashion($pdo); }
     }
+    // v1.5: Watches + Home departments and Nykaa-style home sections
+    if (!$pdo->query("SELECT 1 FROM settings WHERE k='v15_home'")->fetchColumn()) {
+        $pdo->exec("INSERT OR REPLACE INTO settings(k,v) VALUES('v15_home','1')");
+        $pdo->exec("UPDATE settings SET v='Iconic Styles, Unreal Savings' WHERE k='h_spot_t' AND lower(v)='in the spotlight'");
+        if (!$new && $pdo->query("SELECT 1 FROM categories WHERE slug='ethnic'")->fetchColumn()) { require_once __DIR__ . '/seed.php'; ll_seed_v15($pdo); }
+    }
     if ($new) { require_once __DIR__ . '/seed.php'; ll_seed($pdo); $pdo->exec('INSERT OR IGNORE INTO col_items(collection_id, product_id) SELECT collection_id, id FROM products WHERE collection_id > 0'); }
     return $pdo;
 }
@@ -149,7 +155,9 @@ function defaults(): array {
         // homepage sections (Homepage CMS)
         'h_cats_on' => '1', 'h_cats_t' => 'What are you looking for?', 'h_cats_s' => '',
         'h_flash_on' => '1', 'h_flash_t' => 'Flash sale', 'h_flash_s' => 'Hurry, these prices end tonight',
-        'h_spot_on' => '1', 'h_spot_t' => 'In the Spotlight', 'h_spot_s' => 'The biggest offers in every department',
+        'h_celeb_on' => '1', 'h_celeb_t' => 'Celebration-ready Categories',
+        'h_eid_on' => '1', 'h_eid_t' => 'Build Your Eid Wardrobe',
+        'h_spot_on' => '1', 'h_spot_t' => 'Iconic Styles, Unreal Savings', 'h_spot_s' => 'The biggest offers in every department',
         'h_styles_on' => '1', 'h_styles_t' => 'Styles To Celebrate In', 'h_styles_s' => 'Ready-made edits for every occasion',
         'h_picks_on' => '1', 'h_picks_t' => "Stylists' Picks", 'h_picks_s' => 'CHOSEN BY OUR STYLISTS THIS WEEK',
         'h_luxe_on' => '1', 'h_luxe_t' => 'The Luxe Edit', 'h_luxe_s' => 'Silk, gold and fine finishes for the moments that matter.',

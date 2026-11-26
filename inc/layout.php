@@ -120,6 +120,7 @@ function site_header(): void {
     <nav class="nk-nav only-d" aria-label="Departments">
       <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>" class="<?= $a === 'd/' . $k ? 'on' : '' ?>"><?= e($d[0]) ?></a><?php endforeach; ?>
       <details class="nav-more"><summary>More <?= icon('chev', 13) ?></summary><div class="nav-more-m">
+        <a href="<?= url('luxe') ?>" class="lx"><?= icon('gem', 14) ?> Luxe</a><a href="<?= url('new') ?>">Hidden Gems</a><a href="<?= url('c/activewear') ?>">Fit Zone</a><hr>
         <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e($c['name']) ?></a><?php endforeach; ?>
         <a href="<?= url('new') ?>">New In</a><a href="<?= url('sale') ?>" class="sale">Sale</a><a href="<?= url('categories') ?>">All Categories</a><a href="<?= url('track') ?>">Track Order</a>
       </div></details>
@@ -183,7 +184,8 @@ function page_foot(): void {
       <p><?= e(S('about')) ?></p>
       <?php if ($social): ?><div class="social"><?php foreach ($social as $k => $u): ?><a href="<?= e($u) ?>" target="_blank" rel="noopener" aria-label="<?= $k ?>"><?= icon($k, 20) ?></a><?php endforeach; ?></div><?php endif; ?>
     </div>
-    <div><h4>Shop</h4><?php foreach (array_slice($cats, 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?><a href="<?= url('shop') ?>">All products</a><a href="<?= url('sale') ?>">Sale</a></div>
+    <div><h4>Shop</h4><?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><?= e($d[0]) ?></a><?php endforeach; ?><a href="<?= url('luxe') ?>">Luxe</a><a href="<?= url('categories') ?>">All categories</a><a href="<?= url('sale') ?>">Sale</a></div>
+    <div><h4>Top categories</h4><?php foreach (array_slice($cats, 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div>
     <div><h4>Help</h4><a href="<?= url('track') ?>">Track order</a><a href="<?= url('about') ?>#delivery">Delivery &amp; payment</a><a href="<?= url('about') ?>#exchange">Exchange policy</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></div>
     <div><h4>Contact</h4>
       <a href="tel:<?= e(norm_phone(S('phone'))) ?>"><?= icon('phone', 17) ?><?= e(S('phone')) ?></a>
