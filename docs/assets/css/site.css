@@ -1041,3 +1041,19 @@ body.lxm .perks{background:#0d0b0c;border-color:#262022}body.lxm .perks-in b{col
 .nk-disc2::-webkit-scrollbar{display:none}
 .nk-disc2 a{flex:0 0 72px}
 @media (max-width:860px){.nk-acc-g{grid-template-columns:repeat(4,1fr)}.nk-acc-g span{width:58px;height:58px}.nk-acc-g a{font-size:11px}.nk-accd summary,.nk-acc-lx{height:76px}.nk-accd summary img,.nk-acc-lx img{width:76px;height:76px;flex-basis:76px}}
+
+/* v1.5.2 Categories page like the Nykaa Fashion app: full-width department cards + Discover posters */
+.nk-cats-pg{max-width:760px}
+.nk-cats-pg h1{font-size:28px;font-weight:700;margin:0 0 14px}
+.nk-cats-pg .nk-depts{display:flex;flex-direction:column;gap:5px}
+.nk-cats-pg .nk-dept{min-height:0;height:104px}
+.nk-cats-pg .nk-dept img{width:44%;height:100%;object-position:50% 12%}
+.nk-cats-pg .nk-dept-t{padding:0 18px;max-width:64%;gap:2px}
+.nk-cats-pg .nk-dept-t b{font-size:19px;font-weight:700}
+.nk-cats-pg .nk-dept-t small{font-size:13.5px;line-height:1.35;color:#3f3936}
+.nk-cats-pg .nk-k2{font-size:12px;font-weight:700;margin:14px 0 8px}
+.nk-cats-pg .nk-disc{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 8px}
+.nk-cats-pg .nk-disc a{aspect-ratio:3/4}
+.nk-cats-pg .nk-disc b{font-size:17px;padding:10px 6px 34px;letter-spacing:.02em}
+@media (min-width:861px){.nk-cats-pg .nk-dept{height:130px}.nk-cats-pg .nk-dept-t b{font-size:22px}.nk-cats-pg .nk-disc{grid-template-columns:repeat(5,1fr)}}
+@media (max-width:860px){.nk-cats-pg h1{font-size:26px}}

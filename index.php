@@ -260,21 +260,20 @@ case 'categories':
     ?>
 <div class="wrap nk-cats-pg">
   <h1>Categories</h1>
-  <div class="nk-acc">
-    <?php $n = 0; foreach (nk_depts() as $k => $d): $dc = nk_dept_cats($k); ?>
-    <details class="nk-accd" style="--bg:<?= e($d[4]) ?>"<?= $n++ === 0 ? ' open' : '' ?>>
-      <summary><span class="nk-acc-t"><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><?= nk_img($d[3], '', 160, 200) ?><i><?= icon('chev', 16) ?></i></summary>
-      <div class="nk-acc-g">
-        <a href="<?= url('d/' . $k) ?>" class="all"><span><?= icon('grid', 22) ?></span>View all</a>
-        <?php foreach ($dc as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><span><?= nk_img(nk_cat_imgs($c['slug'], 1)[0] ?? $c['image'], '', 120, 120) ?></span><?= e($c['name']) ?></a><?php endforeach; ?>
-      </div>
-    </details>
+  <div class="nk-depts">
+    <?php foreach (nk_depts() as $k => $d): ?>
+    <a class="nk-dept" href="<?= url('d/' . $k) ?>" style="--bg:<?= e($d[4]) ?>"><span class="nk-dept-t"><b><?= e($d[0]) ?></b><small><?= e($d[1]) ?></small></span><?= nk_img($d[3], '', 300, 375) ?></a>
     <?php endforeach; ?>
-    <a class="nk-accd nk-acc-lx" href="<?= url('luxe') ?>"><span class="nk-acc-t"><b>Luxe</b><small>Silk, gold and fine finishes</small></span><?php if ($lx = nk_coll('luxe-edit')): ?><?= nk_img((string)$lx['image'], '', 160, 200) ?><?php endif; ?><i><?= icon('chev', 16) ?></i></a>
   </div>
   <h2 class="nk-k2">Discover</h2>
-  <div class="nk-disc2">
-    <?php foreach (collections() as $c): if ($c['slug'] === 'luxe-edit') continue; ?><a href="<?= url('collection/' . $c['slug']) ?>"><span><?= nk_img((string)$c['image'], '', 120, 120) ?></span><?= e($c['name']) ?></a><?php endforeach; ?>
+  <div class="nk-disc">
+    <?php
+    $disc = [];
+    if ($lx = nk_coll('luxe-edit')) $disc[] = ['Luxe Edit', 'luxe', (string)$lx['image']];
+    $ni = q("p.is_new=1 AND c.slug IN ('westernwear','ethnic','jewellery','bags')", [], 'p.featured DESC, p.id DESC', 1); if ($ni) $disc[] = ['Hidden Gems', 'new', p_image($ni[0])];
+    $fz = nk_cat_imgs('activewear', 1); if ($fz) $disc[] = ['Fit Zone', 'c/activewear', $fz[0]];
+    foreach (['eid-edit', 'wedding-season'] as $cs) if ($c = nk_coll($cs)) $disc[] = [$c['name'], 'collection/' . $cs, (string)$c['image']];
+    foreach ($disc as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
   </div>
 </div>
     <?php

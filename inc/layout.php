@@ -148,7 +148,7 @@ function site_header(): void {
       <a href="<?= url('luxe') ?>"><?= icon('gem', 20) ?>Luxe Store</a>
       <?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><img src="<?= e(img_small($d[3])) ?>" alt="" width="28" height="28"><?= e($d[0]) ?></a><?php endforeach; ?>
       <hr>
-      <?php foreach ($cats as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="28" height="28"><?= e($c['name']) ?></a><?php endforeach; ?>
+      <?php $dn = array_map('strtolower', array_column(nk_depts(), 0)); foreach ($cats as $c): if (in_array(strtolower($c['name']), $dn, true)) continue; ?><a href="<?= url('c/' . $c['slug']) ?>"><img src="<?= e(img_small($c['image'])) ?>" alt="" width="28" height="28"><?= e($c['name']) ?></a><?php endforeach; ?>
       <a href="<?= url('new') ?>"><?= icon('spark', 20) ?>New In</a>
       <a href="<?= url('sale') ?>" class="sale"><?= icon('spark', 20) ?>Sale</a>
       <a href="<?= url('wishlist') ?>"><?= icon('heart', 20) ?>Wishlist</a>
