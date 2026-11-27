@@ -1283,3 +1283,15 @@ body.lxm .lx-cats-pg .nk-dept{border:1px solid #2f2a2b}
   body.lxm .tabbar{grid-template-columns:1.6fr 1fr 1fr 1fr}
   .tabbar>a span{text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:500;white-space:nowrap}
 }
+/* v1.7.2 PC: full width like Nykaa (header edge to edge, content up to 1600px) */
+@media(min-width:1001px){
+  .wrap{max-width:1648px}
+  .hero{max-width:1648px}
+  .hdr-in.wrap{max-width:none;padding:0 48px}
+  .flash-s{max-width:1600px}
+}
+@media(min-width:1440px){
+  .grid{grid-template-columns:repeat(5,1fr);gap:40px 22px}
+  .hdr-in .search{flex:0 1 370px}
+}
+@media(min-width:1700px){.grid{grid-template-columns:repeat(5,1fr)}}
