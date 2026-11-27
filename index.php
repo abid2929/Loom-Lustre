@@ -280,6 +280,27 @@ case 'categories':
     page_foot();
     break;
 
+case 'luxe-categories':
+    ll_lux(true);
+    page_head('Luxe Categories', 'Designer bags, fine jewellery, luxury watches, bridal couture and evening gowns at ' . S('shop_name') . ' Luxe.', '', 'luxe-categories');
+    $lxbg = ['#2a2224', '#26231f', '#1f2326', '#2b1c1f', '#231f29', '#2a2422', '#202524'];
+    ?>
+<div class="wrap nk-cats-pg lx-cats-pg">
+  <h1>Luxe Categories</h1>
+  <div class="nk-depts">
+    <?php foreach (categories() as $i => $c): $lp = q('c.slug=?', [$c['slug']], 'p.featured DESC, p.sold DESC', 1); ?>
+    <a class="nk-dept" href="<?= url('c/' . $c['slug']) ?>" style="--bg:<?= $lxbg[$i % 7] ?>"><span class="nk-dept-t"><b><?= e($c['name']) ?></b><small><?= e((string)$c['tagline']) ?></small></span><?= nk_img($lp ? p_image($lp[0]) : (string)$c['image'], '', 300, 375) ?></a>
+    <?php endforeach; ?>
+  </div>
+  <h2 class="nk-k2">Discover</h2>
+  <div class="nk-disc">
+    <?php foreach ([['Luxe Edit', 'luxe-all', 'assets/img/p/lx-gw-lilac-ball.webp'], ['Bridal Couture', 'c/lx-bridal', 'assets/img/p/lx-br-zardozi-red.webp'], ['Evening Luxe', 'c/lx-gowns', 'assets/img/p/lx-gw-emerald-sequin.webp'], ['Signature Bags', 'c/lx-bags', 'assets/img/p/lx-bag-chestnut-doctor.webp'], ['Fine Jewellery', 'c/lx-jewellery', 'assets/img/p/lx-jw-cascade-drops.webp']] as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
+  </div>
+</div>
+    <?php
+    page_foot();
+    break;
+
 case 'd':
     $dk = $parts[1] ?? ''; $dp = nk_depts()[$dk] ?? null;
     if (!$dp) { not_found(); break; }

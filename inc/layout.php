@@ -107,7 +107,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 }
 
 function brand_mark(): string {
-    return '<a class="brand" href="' . url() . '" aria-label="' . e(S('shop_name')) . ' home"><img src="' . url('assets/img/lady.png') . '" alt="" width="32" height="80"><span class="brand-t"><b>' . e(S('shop_name')) . '</b><small>' . e(S('shop_sub')) . '</small></span></a>';
+    return '<a class="brand" href="' . url() . '" aria-label="' . e(S('shop_name')) . ' home"><img src="' . url('assets/img/lady-full.png') . '" alt="" width="84" height="60"><span class="brand-t"><b>' . e(S('shop_name')) . '</b><small>' . e(S('shop_sub')) . '</small></span></a>';
 }
 
 function site_header(): void {
@@ -183,7 +183,7 @@ function page_foot(): void {
       <p><?= e(S('about')) ?></p>
       <?php if ($social): ?><div class="social"><?php foreach ($social as $k => $u): ?><a href="<?= e($u) ?>" target="_blank" rel="noopener" aria-label="<?= $k ?>"><?= icon($k, 20) ?></a><?php endforeach; ?></div><?php endif; ?>
     </div>
-    <div><h4>Shop</h4><?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><?= e($d[0]) ?></a><?php endforeach; ?><a href="<?= url('luxe') ?>">Luxe</a><a href="<?= url('categories') ?>">All categories</a><a href="<?= url('sale') ?>">Sale</a></div>
+    <div><h4>Shop</h4><?php foreach (nk_depts() as $k => $d): ?><a href="<?= url('d/' . $k) ?>"><?= e($d[0]) ?></a><?php endforeach; ?><a href="<?= url('luxe') ?>">Luxe</a><a href="<?= url(ll_lux() ? 'luxe-categories' : 'categories') ?>">All categories</a><a href="<?= url('sale') ?>">Sale</a></div>
     <div><h4>Top categories</h4><?php $dn = array_map('strtolower', array_column(nk_depts(), 0)); foreach (array_slice(array_values(array_filter($cats, fn($c) => !in_array(strtolower($c['name']), $dn, true))), 0, 8) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>"><?= e($c['name']) ?></a><?php endforeach; ?></div>
     <div><h4>Help</h4><a href="<?= url('track') ?>">Track order</a><a href="<?= url('about') ?>#delivery">Delivery &amp; payment</a><a href="<?= url('about') ?>#exchange">Exchange policy</a><a href="<?= url('about') ?>">About us</a><a href="<?= url('contact') ?>">Contact</a></div>
     <div><h4>Contact</h4>
@@ -202,7 +202,7 @@ function page_foot(): void {
 <nav class="tabbar" aria-label="Quick links">
   <?php $ta = $GLOBALS['ll_active'] ?? ''; ?>
   <div class="tb-sw"><a href="<?= url() ?>" class="<?= ll_lux() ? '' : 'on' ?>"><?= icon('spark', 17) ?><span>Fashion</span></a><a href="<?= url('luxe') ?>" class="<?= ll_lux() ? 'on' : '' ?>"><?= icon('gem', 17) ?><span>Luxe</span></a></div>
-  <a href="<?= url('categories') ?>" class="<?= $ta === 'categories' || str_starts_with($ta, 'c/') || str_starts_with($ta, 'd/') || $ta === 'shop' ? 'on' : '' ?>"><?= icon('cats') ?><span>Categories</span></a>
+  <a href="<?= url(ll_lux() ? 'luxe-categories' : 'categories') ?>" class="<?= $ta === 'categories' || $ta === 'luxe-categories' || str_starts_with($ta, 'c/') || str_starts_with($ta, 'd/') || $ta === 'shop' ? 'on' : '' ?>"><?= icon('cats') ?><span>Categories</span></a>
   <a href="<?= url('sale') ?>" class="<?= $ta === 'sale' ? 'on' : '' ?>"><?= icon('tag') ?><span>Offers</span></a>
   <a href="<?= url('cart') ?>" class="<?= $ta === 'cart' ? 'on' : '' ?>"><?= icon('bag') ?><span>Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
 </nav>

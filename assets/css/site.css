@@ -1267,3 +1267,13 @@ html.dsub-on{overflow:hidden}
 .nk-dd-m li i{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;background:#eceae8;display:grid;place-items:center;font-style:normal}
 .nk-dd-m li img{width:100%;height:100%;object-fit:cover}
 .dsub h2 a{color:inherit}.nk-dd-m p a{color:inherit}
+/* v1.7.1 logo: whole lady with her full dress train (no crop) */
+.brand img{object-fit:contain;max-width:none}
+.brand .brand-t{margin-left:-6px}
+/* Luxe categories page (dark, own lx categories) */
+body.lxm .lx-cats-pg h1,body.lxm .lx-cats-pg .nk-k2{color:#f3ece6}
+body.lxm .lx-cats-pg .nk-dept-t b{color:#fff}body.lxm .lx-cats-pg .nk-dept-t small{color:#cbbfb6}
+body.lxm .lx-cats-pg .nk-dept{border:1px solid #2f2a2b}
+/* phone header: room above and below the logo so it never touches the top */
+@media(max-width:860px){.hdr-in{min-height:64px;padding-top:9px;padding-bottom:7px}.hdr .brand img{height:46px}.hdr .brand-t b{font-size:28px;line-height:1.15}.hdr .brand-t{padding-top:2px}}
+@media(max-width:380px){.hdr .brand img{height:40px}.hdr .brand-t b{font-size:24px}}
