@@ -51,7 +51,7 @@ function render(string $kind, string $arg): string {
 function put(string $file, string $html): void { @mkdir(dirname($file), 0755, true); file_put_contents($file, $html); }
 if (is_dir($out)) { fwrite(STDERR, "docs/ already exists. Move or delete it first, then run again.\n"); exit(1); }
 @mkdir($out);
-$routes = ['', 'shop', 'categories', 'luxe', 'luxe-all', 'luxe-categories', 'd/women', 'd/men', 'd/kids', 'd/home', 'd/beauty', 'new', 'sale', 'search', 'cart', 'checkout', 'wishlist', 'about', 'contact', 'track'];
+$routes = ['', 'shop', 'categories', 'luxe', 'luxe-all', 'luxe-categories', 'luxe-global', 'luxe-ind', 'd/women', 'd/men', 'd/kids', 'd/home', 'd/beauty', 'new', 'sale', 'search', 'cart', 'checkout', 'wishlist', 'about', 'contact', 'track'];
 foreach ($pdo->query('SELECT slug FROM categories WHERE active=1') as $c) $routes[] = 'c/' . $c['slug'];
 foreach ($pdo->query('SELECT slug FROM collections WHERE active=1') as $c) $routes[] = 'collection/' . $c['slug'];
 foreach ($pdo->query('SELECT slug FROM products WHERE active=1') as $p) $routes[] = 'p/' . $p['slug'];

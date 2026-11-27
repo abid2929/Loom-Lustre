@@ -398,9 +398,11 @@ case 'luxe':
     page_foot();
     break;
 
-case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection': case 'luxe-all':
+case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection': case 'luxe-all': case 'luxe-global': case 'luxe-ind':
     $where = ''; $args = []; $title = 'All Products'; $sub = 'Every product in our shop'; $active = 'shop'; $banner = '';
     if ($page === 'luxe-all') { ll_lux(true); $title = 'Luxe Edit'; $sub = 'Every piece in our Luxe store'; $active = 'luxe-all'; }
+    if ($page === 'luxe-global') { ll_lux(true); $title = 'Global Luxe'; $sub = 'Designer bags, watches, sunglasses, heels and gowns'; $active = 'luxe-global'; $where = "c.slug IN ('lx-bags','lx-watches','lx-eyewear','lx-heels','lx-gowns')"; }
+    if ($page === 'luxe-ind') { ll_lux(true); $title = 'IndLuxe'; $sub = 'Bridal couture, silk and fine jewellery'; $active = 'luxe-ind'; $where = "c.slug IN ('lx-bridal','lx-jewellery')"; }
     if ($page === 'c') {
         $st = db()->prepare('SELECT * FROM categories WHERE slug=? AND active=1'); $st->execute([$parts[1] ?? '']); $cat = $st->fetch();
         if (!$cat) { not_found(); break; }

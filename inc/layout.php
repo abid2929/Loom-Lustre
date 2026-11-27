@@ -7,6 +7,8 @@ function icon(string $n, int $s = 22): string {
         'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
         'cats' => '<circle cx="7.5" cy="7.5" r="3.2"/><path d="M16.5 4.2l3.3 3.3-3.3 3.3-3.3-3.3z"/><circle cx="7.5" cy="16.5" r="3.2"/><circle cx="16.5" cy="16.5" r="3.2"/>',
         'tag' => '<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0z"/><circle cx="8" cy="8" r="1.4"/>',
+        'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/>',
+        'lotus' => '<path d="M12 20c-4.5 0-8-2.5-9-6 3 0 5.6 1.2 7 3M12 20c4.5 0 8-2.5 9-6-3 0-5.6 1.2-7 3M12 20c-2.2-1.8-3.3-4.2-3.3-7S9.8 7.8 12 6c2.2 1.8 3.3 4.2 3.3 7S14.2 18.2 12 20zM8.8 11.2C7.6 9.4 6 8.4 4 8c-.2 1.6.1 3.2.9 4.6M15.2 11.2c1.2-1.8 2.8-2.8 4.8-3.2.2 1.6-.1 3.2-.9 4.6"/>',
         'gem' => '<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5"/>',
         'arrow' => '<path d="M4 12h15M14 6l6 6-6 6"/>',
         'bag' => '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
@@ -203,8 +205,12 @@ function page_foot(): void {
   <?php $ta = $GLOBALS['ll_active'] ?? ''; ?>
   <div class="tb-sw"><a href="<?= url() ?>" class="<?= ll_lux() ? '' : 'on' ?>"><?= icon('spark', 17) ?><span>Fashion</span></a><a href="<?= url('luxe') ?>" class="<?= ll_lux() ? 'on' : '' ?>"><?= icon('gem', 17) ?><span>Luxe</span></a></div>
   <a href="<?= url(ll_lux() ? 'luxe-categories' : 'categories') ?>" class="<?= $ta === 'categories' || $ta === 'luxe-categories' || str_starts_with($ta, 'c/') || str_starts_with($ta, 'd/') || $ta === 'shop' ? 'on' : '' ?>"><?= icon('cats') ?><span>Categories</span></a>
+  <?php if (ll_lux()): ?>
+  <a href="<?= url('luxe-global') ?>" class="<?= $ta === 'luxe-global' ? 'on' : '' ?>"><?= icon('globe') ?><span>Global Luxe</span></a>
+  <a href="<?= url('luxe-ind') ?>" class="<?= $ta === 'luxe-ind' ? 'on' : '' ?>"><?= icon('lotus') ?><span>IndLuxe</span></a>
+  <?php else: ?>
   <a href="<?= url('sale') ?>" class="<?= $ta === 'sale' ? 'on' : '' ?>"><?= icon('tag') ?><span>Offers</span></a>
-  <a href="<?= url('cart') ?>" class="<?= $ta === 'cart' ? 'on' : '' ?>"><?= icon('bag') ?><span>Bag</span><i class="cnt" data-cart-count hidden>0</i></a>
+  <?php endif; ?>
 </nav>
 <a class="wa-float" href="<?= e(wa_link('Hi ' . S('shop_name') . ', I need help.')) ?>" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" title="<?= e(S('wa_popup')) ?>"><?= icon('wa', 30) ?></a>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
