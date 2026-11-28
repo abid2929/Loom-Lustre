@@ -86,6 +86,36 @@ if ($a === 'put') {
   audit("saved $c"); out(['ok' => 1]);
 }
 
+/* Download all data: one zip with the database (orders, products, settings, customers), uploaded photos and,
+   with full=1, every website file too. Restore = upload the zip in cPanel and Extract. */
+if ($a === 'backup') {
+  need('backup'); @set_time_limit(600); @ini_set('memory_limit', '512M');
+  if (!class_exists('ZipArchive')) out(['error' => 'This server has no ZIP support. Ask hosting to enable the PHP zip extension.'], 500);
+  $full = ($_GET['full'] ?? '') === '1';
+  $tmpDir = sys_get_temp_dir(); $zf = tempnam($tmpDir, 'llbk'); $db = $tmpDir . '/llbk-' . bin2hex(random_bytes(4)) . '.sqlite';
+  try { $bk = new PDO('sqlite:' . data_dir() . '/shop.sqlite'); $bk->exec('VACUUM INTO ' . $bk->quote($db)); $bk = null; }   // safe copy of the live database
+  catch (Throwable $e) { copy(data_dir() . '/shop.sqlite', $db); }
+  $z = new ZipArchive(); $z->open($zf, ZipArchive::OVERWRITE);
+  $z->addFile($db, 'database/shop.sqlite');
+  $root = realpath(LL_ROOT); $dataReal = realpath(data_dir());
+  $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+  foreach ($it as $f) {
+    $fp = $f->getPathname(); $rel = ltrim(substr($fp, strlen($root)), '/');
+    if ($dataReal && str_starts_with(realpath($fp) ?: $fp, $dataReal)) continue;      // the live db is added above
+    if (preg_match('~^(docs|\.git|data)/|\.sqlite~', $rel)) continue;
+    if (!$full && !str_starts_with($rel, 'uploads/')) continue;
+    $z->addFile($fp, ($full ? 'website/' : '') . $rel);
+  }
+  $info = "Loom & Lustre backup " . date('Y-m-d H:i') . "\n\ndatabase/shop.sqlite = orders, products, categories, customers, settings, admin login.\n"
+    . ($full ? "website/ = every website file (put these in the shop folder in cPanel).\n" : "uploads/ = photos uploaded in the admin.\n")
+    . "\nTo restore the data: put shop.sqlite in the private data folder (" . basename((string)$dataReal) . ") on the server.\n";
+  $z->addFromString('READ-ME.txt', $info); $z->close(); @unlink($db);
+  audit('downloaded ' . ($full ? 'full' : 'data') . ' backup');
+  header_remove('Content-Type'); header('Content-Type: application/zip');
+  header('Content-Disposition: attachment; filename="loomlustre-' . ($full ? 'full' : 'data') . '-backup-' . date('Ymd-Hi') . '.zip"');
+  header('Content-Length: ' . filesize($zf)); readfile($zf); @unlink($zf); exit;
+}
+
 if ($a === 'upload') {
   need('products');
   $f = $_FILES['photo'] ?? null;

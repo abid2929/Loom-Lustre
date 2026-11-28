@@ -15,6 +15,7 @@ const I = {
   gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', store: '<path d="M4 9h16l-1-5H5zM5 9v11h14V9M9 20v-6h6v6"/>', pay: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>',
   sms: '<path d="M4 5h16v11H8l-4 4z"/>', target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  dl: '<path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/>', bk: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', print: '<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>', trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', plus: '<path d="M12 5v14M5 12h14"/>', down: '<path d="m6 9 6 6 6-6"/>', bag: '<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>', coins: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
@@ -128,7 +129,7 @@ function can(p) { if (!ME) return false; if (ME.role === "super") return true; c
 const NAV = [
   ["dashboard", "Dashboard", "dash", "dashboard", "ড্যাশবোর্ড"], ["orders", "Orders", "cart", "orders", "অর্ডার"], ["products", "Products", "box", "products", "প্রোডাক্ট"], ["inventory", "Stock", "stock", "inventory", "স্টক"],
   ["categories", "Categories", "layers", "categories", "ক্যাটাগরি"], ["collections", "Collections", "book", "collections", "কালেকশন"], ["banners", "Banners", "image", "banners", "ব্যানার"], ["cms", "Homepage", "cms", "cms", "হোমপেজ"],
-  ["courier", "Courier", "truck", "courier", "কুরিয়ার"], ["customers", "Customers", "users", "customers", "কাস্টমার"], ["reviews", "Reviews", "star", "reviews", "রিভিউ"], ["reports", "Reports", "chart", "reports", "রিপোর্ট"]
+  ["courier", "Courier", "truck", "courier", "কুরিয়ার"], ["customers", "Customers", "users", "customers", "কাস্টমার"], ["reviews", "Reviews", "star", "reviews", "রিভিউ"], ["reports", "Reports", "chart", "reports", "রিপোর্ট"], ["backup", "Backup", "bk", "backup", "ব্যাকআপ"]
 ];
 const SETTINGS = [["store", "Shop info", "store", "দোকানের তথ্য"], ["delivery", "Delivery charge", "truck", "ডেলিভারি চার্জ"], ["payment", "Payment (bKash/COD)", "pay", "পেমেন্ট"], ["courier", "Steadfast courier", "box", "স্টেডফাস্ট কুরিয়ার"], ["pixel", "Facebook Pixel", "target", "ফেসবুক পিক্সেল"], ["seo", "Google SEO", "globe", "গুগল এসইও"], ["security", "Password", "lock", "পাসওয়ার্ড"]];
 const NL = (en, bn) => `<span class="nt notr">${en}<small>${bn}</small></span>`;
@@ -157,7 +158,7 @@ async function route() {
   const [p, a, b] = (location.hash.slice(1) || "dashboard").split("/");
   drawNav(); window.scrollTo(0, 0);
   const V = $("#view"); V.innerHTML = '<div class="empty">Loading…</div>';
-  const map = { dashboard: Dash, products: Products, product: ProductEdit, categories: Categories, collections: Collections, inventory: Inventory, orders: Orders, courier: Courier, customers: Customers, reviews: Reviews, banners: Banners, cms: CMS, reports: Reports, admins: Admins, settings: Settings };
+  const map = { dashboard: Dash, products: Products, product: ProductEdit, categories: Categories, collections: Collections, inventory: Inventory, orders: Orders, courier: Courier, customers: Customers, reviews: Reviews, banners: Banners, cms: CMS, reports: Reports, admins: Admins, settings: Settings, backup: Backup };
   const fn = map[p] || Dash; try { await fn(V, a, b) } catch (e) { console.error(e); V.innerHTML = `<div class="card card-b">Something went wrong: ${esc(e.message)}</div>` }
 }
 function title(t) { $("#pageTitle").textContent = t; document.title = t + " · Loom & Lustre Admin" }
@@ -355,4 +356,15 @@ async function Reports(V, range) {
     <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Sales by day</h3></div><div class="card-b"><div class="bars">${byDay.map((v, i) => `<div style="height:${v / mx * 100}%" data-t="${days[i]}: ৳${v.toLocaleString("en-IN")}"></div>`).join("")}</div></div></div>
     <div class="grid g2"><div class="card"><div class="card-h"><h3>Top products</h3></div>${top.length ? `<div class="tw"><table class="tbl"><thead><tr><th>Product</th><th>Sold</th><th>Sales</th></tr></thead><tbody>${top.map(([n, p]) => `<tr><td>${esc(n)}</td><td>${p.q}</td><td><b>${tk(p.s)}</b></td></tr>`).join("")}</tbody></table></div>` : '<div class="empty">No sales in this period.</div>'}</div>
     <div class="card"><div class="card-h"><h3>Sales by category</h3></div><div class="card-b">${cats.map(([c, v]) => `<div class="hbar"><span>${esc(c)}</span><i style="width:${v / cmx * 100}%"></i><b>${tk(v)}</b></div>`).join("") || '<div class="empty">No sales in this period.</div>'}</div></div></div>`;
+}
+
+/* ---------- Backup: download all data ---------- */
+function Backup(V) {
+  title("Backup");
+  const demo = DEMO;
+  const card = (full, t, bn, d) => `<div class="card card-b" style="display:grid;gap:10px"><h3 style="margin:0">${t} <small class="notr" style="font-weight:500;color:var(--mu)">· ${bn}</small></h3><p style="margin:0;color:var(--mu)">${d}</p><div><a class="btn" ${demo ? 'onclick="toast(\'Backup works on the real website\');return false" href="#"' : `href="api.php?a=backup${full ? "&full=1" : ""}" download`}>${ic("dl")} Download ${full ? "full site zip" : "data zip"}</a></div></div>`;
+  V.innerHTML = head("Download all data", "ব্যাকআপ: সব তথ্য এক ক্লিকে নামিয়ে রাখুন") + `<div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">` +
+    card(false, "Data backup", "ডাটা ব্যাকআপ", "Orders, products, prices, categories, customers, reviews, settings and every uploaded photo. Small and quick. Do this every week. <span class=notr>প্রতি সপ্তাহে একবার নামিয়ে রাখুন।</span>") +
+    card(true, "Full website backup", "পুরো ওয়েবসাইট", "Everything: the data above plus all website files and product photos, in one zip. Use before a big update or if you move to a new hosting. <span class=notr>বড় আপডেট বা হোস্টিং বদলানোর আগে নিন।</span>") +
+    `</div><div class="card card-b" style="margin-top:16px;color:var(--mu)">Keep the zip safe (Google Drive or your computer). It has your customers' phone numbers, so do not share it. <span class="notr">জিপ ফাইলে কাস্টমারের নম্বর আছে, কাউকে দেবেন না।</span></div>`;
 }
