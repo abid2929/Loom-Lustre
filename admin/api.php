@@ -96,7 +96,7 @@ if ($a === 'upload') {
   $dir = LL_ROOT . '/uploads'; if (!is_dir($dir)) mkdir($dir, 0755, true);
   $name = 'up-' . date('ymd-His') . '-' . bin2hex(random_bytes(3)) . '.' . $ext;
   if (!move_uploaded_file($f['tmp_name'], "$dir/$name")) out(['error' => 'Could not save the image.'], 500);
-  out(['ok' => 1, 'i' => "uploads/$name"]);
+  out(['ok' => 1, 'i' => $ext === 'gif' ? "uploads/$name" : ll_make_sizes("uploads/$name")]);   // fast WebP + phone/card copies
 }
 
 if ($a === 'pull') {   // copy online product photos to this server
@@ -111,12 +111,19 @@ if ($a === 'pull') {   // copy online product photos to this server
       $ext = $info ? ([IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp', IMAGETYPE_GIF => 'gif'][$info[2]] ?? null) : null;
       if (!$ext) { $fail++; continue; }
       $name = 'web-' . $p['id'] . '-' . substr(md5($u), 0, 8) . '.' . $ext; file_put_contents("$dir/$name", $bin);
-      if (isset($tags[$u])) { $tags["uploads/$name"] = $tags[$u]; unset($tags[$u]); }
-      $imgs[$n] = "uploads/$name"; $changed = true; $ok++;
+      $rel = $ext === 'gif' ? "uploads/$name" : ll_make_sizes("uploads/$name");
+      if (isset($tags[$u])) { $tags[$rel] = $tags[$u]; unset($tags[$u]); }
+      $imgs[$n] = $rel; $changed = true; $ok++;
     }
     if ($changed) $pdo->prepare('UPDATE products SET images=?, image_tags=? WHERE id=?')->execute([json_encode(array_values($imgs), JSON_UNESCAPED_SLASHES), json_encode((object)$tags, JSON_UNESCAPED_SLASHES), $p['id']]);
   }
-  out(['ok' => 1, 'new' => $ok, 'have' => $have, 'fail' => $fail]);
+  $fast = 0;   // older uploads (banners, categories, products): add the small phone/card copies once
+  foreach (glob("$dir/*.{jpg,jpeg,png,webp}", GLOB_BRACE) ?: [] as $fp) {
+    $rel = 'uploads/' . basename($fp);
+    if (preg_match('~-(s|t|x)\.webp$~', $rel) || is_file(LL_ROOT . '/' . preg_replace('~\.\w+$~', '-t.webp', $rel))) continue;
+    if (@getimagesize($fp)[0] > 360) { ll_make_sizes($rel, true); $fast++; }
+  }
+  out(['ok' => 1, 'new' => $ok, 'have' => $have, 'fail' => $fail, 'fast' => $fast]);
 }
 
 const STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];

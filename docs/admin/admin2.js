@@ -7,13 +7,13 @@ function cats() { return (DB.categories || []).slice().sort((a, b) => (a.order |
 function findProd(id) { const P = DB.products; for (const k in P) { const j = (P[k] || []).findIndex((x, jj) => (x.id || k + jj) === id); if (j > -1) return { k, j, x: P[k][j] } } return null }
 function newId() { return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }
 async function upFile(file) { const fd = new FormData(); fd.append("photo", file); toast("Uploading…"); const j = await api("upload", null, "", fd); if (j.error) { toast(j.error); return null } toast("Image uploaded ✓"); return j.i }
-async function pullPhotos(b) { b.disabled = true; toast("Copying photos to your server…"); const j = await api("pull", {}); b.disabled = false; toast(j.error || `Done: ${j.new} new, ${j.have} already there, ${j.fail} failed`) }
+async function pullPhotos(b) { b.disabled = true; toast("Copying photos to your server…"); const j = await api("pull", {}); b.disabled = false; toast(j.error || `Done: ${j.new} new, ${j.have} already there, ${j.fail} failed, ${j.fast || 0} made fast`) }
 
 /* ---------- products ---------- */
 async function Products(V) {
   title("Product Management"); await load("products", true); await load("categories");
   let q = "", fc = "", fs = "", fb = "";
-  V.innerHTML = head("All products & catalogue", "Prices, stock, badges and photos", `<button class="btn w s" onclick="pullPhotos(this)" title="Copy online product photos to your own server">${ic("image")} Copy photos to server</button><a class="btn" href="#product/new">${ic("plus")} Add new product</a>`) +
+  V.innerHTML = head("All products & catalogue", "Prices, stock, badges and photos", `<button class="btn w s" onclick="pullPhotos(this)" title="Copy online photos to your own server and make small fast copies for phones">${ic("image")} Copy photos + make fast</button><a class="btn" href="#product/new">${ic("plus")} Add new product</a>`) +
     `<div class="card"><div class="card-h"><div><h3 id="pcount">Products</h3><p>Use the action buttons to edit or delete</p></div><div class="filters"><input id="pq" placeholder="Search name or brand"><select id="pc"><option value="">All categories</option>${cats().map(c => `<option value="${c.k}">${esc(c.name)}</option>`).join("")}</select><select id="ps"><option value="">All stock</option><option value="in">In stock</option><option value="low">Low stock (&lt;10)</option><option value="out">Out of stock</option></select><select id="pb"><option value="">All badges</option><option value="ft">Featured</option><option value="fs">Flash sale</option><option value="nw">New arrival</option><option value="bs">Best seller</option><option value="off">Hidden</option><option value="noprice">No price</option></select></div></div><div id="plist"></div></div>`;
   const draw = () => {
     const L = allProducts().filter(x => (!q || (x.n + " " + x.b).toLowerCase().includes(q)) && (!fc || x._k === fc) && (!fs || (fs === "in" ? (x.st === undefined || x.st === "" || x.st > 0) : fs === "low" ? (x.st !== undefined && x.st !== "" && x.st < 10) : x.st === 0)) && (!fb || (fb === "noprice" ? !x.p : x[fb])));

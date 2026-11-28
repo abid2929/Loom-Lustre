@@ -26,6 +26,8 @@ const BN = {
 "Change stock quickly. Low-stock items (under 10) show in red and in the bell.":"দ্রুত স্টক বদলান। ১০টার কম থাকলে লাল দেখায় এবং বেলে নোটিফিকেশন আসে।",
 "Charges are added at checkout automatically":"চেকআউটে চার্জ নিজে থেকেই যোগ হয়","Check balance":"ব্যালেন্স দেখুন","Choices the customer sees at checkout":"চেকআউটে কাস্টমার যা দেখবে",
 "Collection":"কালেকশন","Colours":"কালার","Copy online product photos to your own server":"অনলাইনের প্রোডাক্ট ছবি আপনার সার্ভারে কপি করুন","Copy photos to server":"ছবি সার্ভারে কপি করুন",
+"Copy photos + make fast":"ছবি কপি + দ্রুত করুন",
+"Copy online photos to your own server and make small fast copies for phones":"অনলাইনের ছবি সার্ভারে কপি করুন আর ফোনের জন্য ছোট দ্রুত কপি বানান",
 "Courier automation (Steadfast)":"কুরিয়ার অটোমেশন (Steadfast)","Courier settings":"কুরিয়ার সেটিং","Courier Hub":"কুরিয়ার হাব","Courier Automation":"কুরিয়ার অটোমেশন","Create order":"অর্ডার তৈরি করুন","Current password":"বর্তমান পাসওয়ার্ড",
 "Customer":"কাস্টমার","Customer name & area":"কাস্টমারের নাম ও এলাকা","Customer name *":"কাস্টমারের নাম *","Customer pays the rider":"কাস্টমার রাইডারকে টাকা দেবে","Customer reviews":"কাস্টমার রিভিউ","Customer Reviews":"কাস্টমার রিভিউ","Customers":"কাস্টমার",
 "DEMO ADMIN: opens without a password and uses sample orders. Changes are saved only in this browser. On your real site (cPanel) the admin needs a login.":"ডেমো অ্যাডমিন: পাসওয়ার্ড ছাড়া খোলে, নমুনা অর্ডার দেখায়। পরিবর্তন শুধু এই ব্রাউজারে থাকে। আসল সাইটে (cPanel) লগইন লাগবে।",
@@ -141,7 +143,8 @@ const BNR = [
   [/^(\d+) outside Dhaka$/, (m, n) => n + "টা ঢাকার বাইরে"],
   [/^events, (\d+) accepted by Meta$/, (m, n) => "টা ইভেন্ট, Meta গ্রহণ করেছে " + n + "টা"],
   [/^Courier did not answer \((.*)$/, (m, a) => "কুরিয়ার উত্তর দেয়নি (" + a],
-  [/^Server error (.*)$/, (m, a) => "সার্ভার সমস্যা " + a]
+  [/^Server error (.*)$/, (m, a) => "সার্ভার সমস্যা " + a],
+  [/^Done: (\d+) new, (\d+) already there, (\d+) failed, (\d+) made fast$/, (m, a, b, c, d) => `হয়েছে: ${a}টি নতুন, ${b}টি আগেই ছিল, ${c}টি হয়নি, ${d}টি দ্রুত করা হলো`]
 ];
 function trS(s) {
   if (PV_LANG !== "bn" || !s) return s;

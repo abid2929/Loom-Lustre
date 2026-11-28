@@ -167,7 +167,7 @@ case '':
     // Same order and names as the Nykaa Fashion row (lingerie skipped).
     foreach (['westernwear' => ['Westernwear', ''], 'ethnic' => ['Indianwear', ''], 'men' => ['Men', ''], 'footwear' => ['Footwear', 'assets/img/p/fw-pink-stilettos.webp'], 'bags' => ['Bags', 'assets/img/p/bag-woven-tote.webp'], 'kids' => ['Kids', ''], 'activewear' => ['Activewear', ''], 'jewellery' => ['Jewellery', ''], 'sneakers' => ['Sneakers', ''], 'watches' => ['Watches', ''], 'home' => ['Home', '']] as $sl => [$nm, $im]):
         if (!isset($cby[$sl]) || ($offs[$sl]['n'] ?? 0) === 0) continue; $im = nk_tile_img($sl, ($im !== '' && is_file(LL_ROOT . '/' . $im)) ? $im : $cby[$sl]['image']); ?>
-    <a href="<?= url('c/' . $sl) ?>"><span><?= nk_img($im, '', 300, 360) ?></span><b><?= e($nm) ?></b></a>
+    <a href="<?= url('c/' . $sl) ?>"><span><?= nk_img($im, '', 300, 360, false, ' sizes="(max-width:860px) 80px, 125px"') ?></span><b><?= e($nm) ?></b></a>
     <?php endforeach; ?>
   </div>
 </section>
@@ -211,7 +211,7 @@ case '':
   <h2 class="nk-h"><?= e($T('styles') ?: 'Styles To Celebrate In') ?></h2>
   <div class="nk-row nk-styles">
     <?php foreach ($st as $c): $ims = nk_cat_imgs($c['slug'], 2); ?>
-    <a href="<?= url('c/' . $c['slug']) ?>"><span class="nk-sty"><span class="nk-sty-in"><?= nk_img($ims[1], '', 160, 200) ?></span><b><?= e($c['name']) ?></b><span class="nk-sty-p"><?= nk_img($ims[0], $c['name']) ?></span></span><em><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0)) ?></em></a>
+    <a href="<?= url('c/' . $c['slug']) ?>"><span class="nk-sty"><span class="nk-sty-in"><?= nk_img($ims[1], '', 160, 200, false, ' sizes="(max-width:860px) 60px, 80px"') ?></span><b><?= e($c['name']) ?></b><span class="nk-sty-p"><?= nk_img($ims[0], $c['name']) ?></span></span><em><?= e(nk_off_text($offs[$c['slug']]['off'] ?? 0)) ?></em></a>
     <?php endforeach; ?>
   </div>
 </section>
@@ -420,7 +420,7 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
         if ($qq !== '') { $where = 'p.name LIKE ? OR p.short LIKE ? OR p.tags LIKE ? OR c.name LIKE ? OR p.shades LIKE ?'; $l = '%' . $qq . '%'; $args = [$l, $l, $l, $l, $l]; }
         $scat = preg_replace('~[^a-z0-9-]~', '', (string)($_GET['c'] ?? ''));
         if ($qq !== '' && $scat !== '') { $where = "($where) AND c.slug=?"; $args[] = $scat; }
-        elseif (!defined('LL_DEMO')) $where = '0';
+        elseif ($qq === '' && !defined('LL_DEMO')) $where = '0';
     }
     $sort = (string)($_GET['sort'] ?? '');
     $orders = ['' => ['Recommended', 'p.featured DESC, p.sort, p.id DESC'], 'popular' => ['Most popular', 'p.sold DESC'], 'low' => ['Price: low to high', 'p.price ASC'], 'high' => ['Price: high to low', 'p.price DESC'], 'new' => ['Newest first', 'p.id DESC'], 'off' => ['Biggest discount', '(p.old_price - p.price) * 1.0 / MAX(p.old_price,1) DESC']];
@@ -428,6 +428,12 @@ case 'shop': case 'c': case 'new': case 'sale': case 'search': case 'collection'
     $max = (int)($_GET['max'] ?? 0);
     if ($max > 0) { $where = ($where ? "($where) AND " : '') . 'p.price <= ?'; $args[] = $max; }
     $list = q($where, $args, $orders[$sort][1]);
+    if ($page === 'search' && $qq !== '' && $list) {   // whole-word matches first ("set" finds sets, not "sunset"); name matches on top
+        $rx = '~(?<![\p{L}\p{N}])' . preg_quote(mb_strtolower($qq), '~') . '~u';
+        $hit = fn($r) => preg_match($rx, mb_strtolower($r['name'])) ? 2 : (preg_match($rx, mb_strtolower($r['short'] . ' ' . $r['tags'] . ' ' . $r['cat_name'] . ' ' . $r['shades'])) ? 1 : 0);
+        $wl = array_values(array_filter($list, fn($r) => $hit($r) > 0));
+        if ($wl) { if ($sort === '') usort($wl, fn($x, $y) => $hit($y) <=> $hit($x)); $list = $wl; }
+    }
     page_head($title, $sub, '', $active);
     $cats = categories();
     if (ll_lux()) {

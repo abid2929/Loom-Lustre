@@ -46,6 +46,7 @@ function icon(string $n, int $s = 22): string {
 }
 
 function page_head(string $title, string $desc = '', string $image = '', string $active = ''): void {
+    ob_start('ll_img_filter');
     $name = S('shop_name');
     $full = $title === '' ? (S('meta_title') !== '' ? S('meta_title') : $name . ' | ' . S('shop_sub') . ' Shop in Bangladesh') : $title . ' | ' . $name;
     track_visit((string)($GLOBALS['route'] ?? ''));
@@ -92,9 +93,8 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 <link rel="apple-touch-icon" href="<?= url('assets/img/apple-touch-icon.png') ?>">
 <link rel="manifest" href="<?= url('assets/site.webmanifest') ?>">
 <?php if (!empty($GLOBALS['ll_preload'])): [$pa, $pb] = $GLOBALS['ll_preload']; ?><link rel="preload" as="image" href="<?= e($pa) ?>"<?php if ($pb !== $pa): ?> imagesrcset="<?= e($pa) ?> 900w, <?= e($pb) ?> 2000w" imagesizes="(max-width:860px) 75vw, 100vw"<?php endif; ?> fetchpriority="high">
-<?php endif; ?><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<?php endif; ?><link rel="preload" href="<?= url('assets/fonts/jost-n.woff2') ?>" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= url('assets/fonts/cormorant-garamond-n.woff2') ?>" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="<?= url('assets/css/site.css') ?>?v=<?= $cssv ?>">
 <?php if (S('pixel_id') !== ''): ?>
 <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','<?= e(S('pixel_id')) ?>');fbq('track','PageView');</script>
@@ -109,7 +109,7 @@ function page_head(string $title, string $desc = '', string $image = '', string 
 }
 
 function brand_mark(): string {
-    return '<a class="brand" href="' . url() . '" aria-label="' . e(S('shop_name')) . ' home"><img src="' . url('assets/img/lady-full.png') . '" alt="" width="84" height="60"><span class="brand-t"><b>' . e(S('shop_name')) . '</b><small>' . e(S('shop_sub')) . '</small></span></a>';
+    return '<a class="brand" href="' . url() . '"><img src="' . url('assets/img/lady-full.webp') . '" alt="" width="84" height="60"><span class="brand-t"><b>' . e(S('shop_name')) . '</b><small>' . e(S('shop_sub')) . '</small></span></a>';
 }
 
 function site_header(): void {
@@ -122,10 +122,11 @@ function site_header(): void {
     <button class="icon-btn only-m" data-open="drawer" aria-label="Menu"><?= icon('menu') ?></button>
     <?= brand_mark() ?>
     <nav class="nk-nav only-d" aria-label="Departments">
-      <?php if (ll_lux()): foreach (array_slice(categories(), 0, 5) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; else: ?><?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="nk-dd-a<?= $cd === $k ? ' on' : '' ?>"><?= e($d[0]) ?></a><div class="nk-dd-m"><p><a href="<?= url('d/' . $k) ?>"><b><?= e($d[0]) ?></b></a><small><?= e($d[1]) ?></small></p><ul><?= nk_dept_items($k) ?></ul></div><?php endforeach; ?><?php endif; ?>
+      <a href="<?= url(ll_lux() ? 'luxe' : '') ?>" class="nk-home<?= $a === 'home' || $a === 'luxe' ? ' on' : '' ?>">Home</a>
+      <?php if (ll_lux()): foreach (array_slice(categories(), 0, 5) as $c): ?><a href="<?= url('c/' . $c['slug']) ?>" class="<?= $a === 'c/' . $c['slug'] ? 'on' : '' ?>"><?= e(preg_replace('~^(Designer|Fine|Luxury|Evening) | Couture$~', '', $c['name'])) ?></a><?php endforeach; else: ?><?php $cd = nk_cur_dept($a); foreach (nk_depts() as $k => $d): if ($a === 'luxe' && $k === 'beauty') continue; ?><a href="<?= url('d/' . $k) ?>" class="nk-dd-a<?= $cd === $k && $a !== 'home' ? ' on' : '' ?>"><?= e($k === 'home' ? 'Home Decor' : $d[0]) ?></a><div class="nk-dd-m"><p><a href="<?= url('d/' . $k) ?>"><b><?= e($d[0]) ?></b></a><small><?= e($d[1]) ?></small></p><ul><?= nk_dept_items($k) ?></ul></div><?php endforeach; ?><?php endif; ?>
 <?php if (!ll_lux()): ?>
-      <div class="nk-more"><a href="<?= url('categories') ?>">More <?= icon('chev', 13) ?></a><div class="nk-more-m">
-        <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, $t, 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
+      <div class="nk-more"><a href="<?= url('categories') ?>">More<span class="vh"> categories</span> <?= icon('chev', 13) ?></a><div class="nk-more-m">
+        <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, '', 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
       </div></div><?php endif; ?>
     </nav>
     <form class="search" action="<?= url('search') ?>" role="search">
@@ -219,12 +220,17 @@ function page_foot(): void {
 </body>
 </html>
 <?php
+    if (ob_get_level() > 0) ob_end_flush();
 }
 
 /** <img> with a sharp large copy for big / high-density screens and a small copy for phones. */
 function img_tag(string $path, string $alt, string $sizes, bool $lazy = true, string $cls = ''): string {
     $full = img_url($path); $small = img_small($path);
-    $set = $small !== $full ? ' srcset="' . e($small) . ' 600w, ' . e($full) . ' 1200w" sizes="' . $sizes . '"' : '';
+    $t = preg_replace('~-s\.(webp|jpe?g|png)$~i', '-t.$1', $small);
+    $tw = $t !== $small && is_file(LL_ROOT . '/' . substr($t, strlen(url('')))) ? e($t) . ' 360w, ' : '';
+    $x = preg_replace('~-t\.\w+$~', '-x.webp', $t);
+    if ($tw !== '' && is_file(LL_ROOT . '/' . substr($x, strlen(url(''))))) $tw = e($x) . ' 160w, ' . $tw;
+    $set = $small !== $full ? ' srcset="' . $tw . e($small) . ' 600w, ' . e($full) . ' 1200w" sizes="' . ($lazy ? 'auto, ' : '') . $sizes . '"' : '';
     return '<img' . ($cls ? ' class="' . $cls . '"' : '') . ' src="' . e($small) . '"' . $set . ' alt="' . e($alt) . '" width="600" height="750"' . ($lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"') . '>';
 }
 

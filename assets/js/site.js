@@ -319,7 +319,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && do
 /* sideways rows: drag with the mouse + arrow buttons on PC (like Nykaa) */
 (function () {
   if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
-  var sel = '.nk-strip-in,.nk-row,.nk-circ,.nk-sub,.lx-cats-in,.lx-row,.nk-spot,.nk-disc2,.lxl-chips';
+  var sel = '.nk-strip-in,.nk-row,.nk-circ,.nk-sub,.lx-cats-in,.lx-row,.nk-spot,.nk-disc2,.lxl-chips,.chips';
   document.querySelectorAll(sel).forEach(function (r) {
     if (r.closest('.drawer,.dsub')) return;
     var w = document.createElement('div'); w.className = 'hs-wrap';
@@ -338,3 +338,5 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && do
     r.addEventListener('dragstart', function (e) { e.preventDefault(); });
   });
 })();
+/* chip rows: bring the selected chip into view */
+document.querySelectorAll('.chips a.on,.lxl-chips a.on').forEach(function (a) { var r = a.parentNode; if (r.scrollWidth > r.clientWidth) r.scrollLeft = a.offsetLeft - r.offsetLeft - (r.clientWidth - a.offsetWidth) / 2; });

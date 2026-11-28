@@ -238,6 +238,8 @@ function img_small(string $p): string {
     if ($p !== '' && !preg_match('~^https?://~', $p)) {
         $s = preg_replace('~\.(webp|jpe?g|png)$~i', '-s.$1', $p);
         if ($s !== $p && is_file(LL_ROOT . '/' . $s)) return url($s);
+        $s = preg_replace('~\.(jpe?g|png)$~i', '-s.webp', $p);
+        if ($s !== $p && is_file(LL_ROOT . '/' . $s)) return url($s);
     }
     return img_url($p);
 }
@@ -375,4 +377,74 @@ function track_visit(string $path, string $kind = 'view'): void {
         db()->prepare('INSERT INTO visits(vid,ip,path,kind,ref,day,t) VALUES(?,?,?,?,?,?,?)')->execute([$vid, client_ip(), mb_substr($path, 0, 160), $kind, $ref, date('Y-m-d'), time()]);
         if (random_int(1, 200) === 1) db()->prepare('DELETE FROM visits WHERE t<?')->execute([time() - 86400 * 90]);
     } catch (Throwable $e) {}
+}
+
+/** Page output filter: give every local catalogue image a srcset (-t 300w, -s 600w, full 1200w) so phones download small copies. */
+function ll_img_filter(string $html): string {
+    $base = url('');
+    // An image inside a link/button whose text already says the same thing gets alt="" (no double read-out).
+    $html = preg_replace_callback('~<(a|button)\b[^>]*>(?:(?!</?\1\b).)*?</\1>~is', function ($m) {
+        if (stripos($m[0], '<img') === false) return $m[0];
+        $text = mb_strtolower(trim(preg_replace('~\s+~u', ' ', html_entity_decode(strip_tags($m[0])))));
+        if ($text === '') return $m[0];
+        return preg_replace_callback('~(<img\b[^>]*\salt=")([^"]+)(")~i', fn($i) => str_contains($text, mb_strtolower(trim(html_entity_decode($i[2])))) ? $i[1] . $i[3] : $i[0], $m[0]);
+    }, $html) ?? $html;
+    // Photos in the first screen (hero + the next 3 sections) load at once, not lazy, so the page paints fast.
+    if (($mp = stripos($html, '<main')) !== false) {
+        $end = $mp; for ($i = 0; $i < 4 && $end !== false; $i++) $end = stripos($html, '<section', $end + 1);
+        $end = $end === false ? strlen($html) : $end;
+        $top = preg_replace_callback('~(slide-p">)?<img\b[^>]*>~i', fn($m) => !empty($m[1]) ? $m[0] : str_replace([' loading="lazy"', ' decoding="async"'], '', $m[0]), substr($html, $mp, $end - $mp));
+        $html = substr($html, 0, $mp) . $top . substr($html, $end);
+    }
+    return preg_replace_callback('~<img\b[^>]*>~i', function ($m) use ($base) {
+        $tag = $m[0];
+        if (stripos($tag, 'srcset=') !== false || !preg_match('~\ssrc="([^"]+)"~', $tag, $s)) return $tag;
+        $src = html_entity_decode($s[1]);
+        if (strpos($src, $base) !== 0 || !preg_match('~^(.*?)(-s|-t|-x)?\.(webp|jpe?g|png)$~i', substr($src, strlen($base)), $p)) return $tag;
+        [$all, $stem, $suf, $ext] = $p;
+        $f = fn($x) => is_file(LL_ROOT . '/' . $x) ? $x : '';
+        $t = $f("$stem-t.$ext") ?: $f("$stem-t.webp"); if ($t === '') return $tag;
+        $set = [$base . $t . ' 360w'];
+        if (($xs = $f("$stem-x.webp")) !== '') array_unshift($set, $base . "$xs 160w");
+        if (($sm = $f("$stem-s.$ext") ?: $f("$stem-s.webp")) !== '') $set[] = $base . "$sm 600w";
+        if ($suf === '' || ($f("$stem.$ext") !== '' && preg_match('~width="(\d+)"~', $tag, $w) && (int)$w[1] >= 1000)) {
+            $sz = @getimagesize(LL_ROOT . "/$stem.$ext"); if ($sz && $sz[0] > 300) $set[] = $base . "$stem.$ext {$sz[0]}w";
+        }
+        $w = preg_match('~width="(\d+)"~', $tag, $wm) ? (int)$wm[1] : 600;
+        $lazy = stripos($tag, 'loading="lazy"') !== false;
+        $sizes = $w <= 160 ? $w . 'px' : ($lazy ? 'auto, ' : '') . '(max-width:860px) 50vw, 25vw';
+        if (preg_match('~\ssizes="~', $tag)) return preg_replace('~^<img\b~i', '<img srcset="' . e(implode(', ', $set)) . '"', $tag);
+        return preg_replace('~^<img\b~i', '<img srcset="' . e(implode(', ', $set)) . '" sizes="' . $sizes . '"', $tag);
+    }, $html);
+}
+
+/**
+ * Admin photo helper: shrink a photo on this server to a sharp WebP (max 1600px wide) plus a 600px card copy (-s)
+ * and a 300px phone copy (-t). Returns the new relative path, or the old one if the server cannot convert.
+ */
+function ll_make_sizes(string $rel, bool $keepName = false): string {
+    $abs = LL_ROOT . '/' . $rel;
+    if (!function_exists('imagewebp') || !is_file($abs) || !($info = @getimagesize($abs))) return $rel;
+    if ($info[0] * $info[1] > 40000000) return $rel;
+    @ini_set('memory_limit', '512M');
+    $im = match ($info[2]) { IMAGETYPE_JPEG => @imagecreatefromjpeg($abs), IMAGETYPE_PNG => @imagecreatefrompng($abs), IMAGETYPE_WEBP => @imagecreatefromwebp($abs), default => false };
+    if (!$im) return $rel;
+    if ($info[2] === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
+        $o = (int)(@exif_read_data($abs)['Orientation'] ?? 1);
+        $r = [3 => 180, 6 => -90, 8 => 90][$o] ?? 0; if ($r) { $n = imagerotate($im, $r, 0); if ($n) { imagedestroy($im); $im = $n; } }
+    }
+    if (!imageistruecolor($im)) imagepalettetotruecolor($im);
+    imagealphablending($im, false); imagesavealpha($im, true);
+    $stem = preg_replace('~\.(webp|jpe?g|png)$~i', '', $rel);
+    $w = imagesx($im); $h = imagesy($im);
+    $save = function (int $max, string $file, int $q) use ($im, $w, $h) {
+        if ($w > $max) { $nh = (int)round($h * $max / $w); $c = imagecreatetruecolor($max, $nh); imagealphablending($c, false); imagesavealpha($c, true); imagecopyresampled($c, $im, 0, 0, 0, 0, $max, $nh, $w, $h); } else $c = $im;
+        $ok = imagewebp($c, LL_ROOT . '/' . $file, $q); if ($c !== $im) imagedestroy($c); return $ok;
+    };
+    $main = $keepName ? $rel : "$stem.webp";
+    if (!$keepName && !$save(1600, $main, 84)) { imagedestroy($im); return $rel; }
+    if ($w > 360) { $save(600, "$stem-s.webp", 80); $save(360, "$stem-t.webp", 72); $save(160, "$stem-x.webp", 72); }
+    imagedestroy($im);
+    if (!$keepName && $main !== $rel) @unlink($abs);
+    return $main;
 }
