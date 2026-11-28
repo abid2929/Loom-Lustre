@@ -1323,12 +1323,9 @@ body.lxm .lx-cats-pg .nk-dept{border:1px solid #2f2a2b}
 @media(min-width:1001px) and (max-width:1080px){.nk-nav>a,.nk-more>a{padding:0 5px;font-size:13px}.hdr-in .search{flex-basis:130px}}
 body.lxm .nk-more-m{background:#141112;border:1px solid #2f2a2b;box-shadow:0 18px 40px rgba(0,0,0,.6)}
 @media(max-width:1280px){.nk-more-m{left:auto;right:-240px;grid-template-columns:repeat(5,130px)}}
-/* categories page PC: no empty box. 5 cards = 2 big on top + 3 below; any odd count = last card full width */
+/* categories page PC (owner layout): Home full width on top, then Women + Men, then Kids + Beauty; odd leftover = full width */
 @media (min-width:861px){
-  .nk-cats-pg .nk-depts>.nk-dept:last-child:nth-child(odd){grid-column:1/-1}
-  .nk-cats-pg .nk-depts:has(>.nk-dept:nth-child(5):last-child){grid-template-columns:repeat(6,1fr)}
-  .nk-cats-pg .nk-depts:has(>.nk-dept:nth-child(5):last-child)>.nk-dept{grid-column:span 2}
-  .nk-cats-pg .nk-depts:has(>.nk-dept:nth-child(5):last-child)>.nk-dept:nth-child(-n+2){grid-column:span 3}
-  .nk-cats-pg .nk-depts:has(>.nk-dept:nth-child(5):last-child)>.nk-dept:nth-child(n+3) .nk-dept-t{max-width:58%}
-  .nk-cats-pg .nk-depts:has(>.nk-dept:nth-child(5):last-child)>.nk-dept:nth-child(n+3) img{width:min(48%,230px)}
+  .nk-cats-pg .nk-depts>.nk-dept[href$="/d/home"]{order:-1;grid-column:1/-1}
+  .nk-cats-pg .nk-depts:not(:has(>.nk-dept[href$="/d/home"]))>.nk-dept:last-child:nth-child(odd){grid-column:1/-1}
 }
+@media (min-width:861px){.nk-cats-pg .nk-depts>.nk-dept[href$="/d/home"] img{width:min(40%,460px)}}
