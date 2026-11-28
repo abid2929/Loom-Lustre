@@ -39,14 +39,17 @@ if ($a === 'login') {
   $ip = client_ip();
   $q = $pdo->prepare('SELECT COUNT(*) FROM logins WHERE ip=? AND ok=0 AND t>?'); $q->execute([$ip, date('Y-m-d H:i:s', time() - 900)]);
   if ((int)$q->fetchColumn() >= 8) out(['error' => 'Too many tries. Close the browser and try again later.'], 429);
+  if (!admins() && $un === '') $un = 'admin';   // password-only sign in: the first admin is "admin"
   if (!admins()) {   // first run: create the super admin
-    if (!preg_match('/^[a-z0-9_.]{3,30}$/', $un) || strlen($pw) < 8) out(['error' => 'Username 3+ letters, password 8+ characters.'], 400);
+    if (!preg_match('/^[a-z0-9_.]{3,30}$/', $un) || strlen($pw) < 8) out(['error' => 'Password must be 8+ characters.'], 400);
     $pdo->prepare('INSERT INTO admins(username,name,pass,role,active,created) VALUES(?,?,?,?,1,?)')->execute([$un, ll_clean($b['name'] ?? 'Super Admin', 60) ?: 'Super Admin', password_hash($pw, PASSWORD_DEFAULT), 'super', date('Y-m-d H:i:s')]);
   }
-  $q = $pdo->prepare('SELECT * FROM admins WHERE username=? AND active=1'); $q->execute([$un]); $u = $q->fetch();
-  $ok = $u && password_verify($pw, (string)$u['pass']);
+  $u = null;
+  if ($un === '') { foreach ($pdo->query('SELECT * FROM admins WHERE active=1') as $x) if (password_verify($pw, (string)$x['pass'])) { $u = $x; break; } }   // password only
+  else { $q = $pdo->prepare('SELECT * FROM admins WHERE username=? AND active=1'); $q->execute([$un]); $u = $q->fetch() ?: null; if ($u && !password_verify($pw, (string)$u['pass'])) $u = null; }
+  $ok = (bool)$u; if ($u) $un = $u['username'];
   $pdo->prepare('INSERT INTO logins(username,ok,ip,t) VALUES(?,?,?,?)')->execute([$un, $ok ? 1 : 0, $ip, date('Y-m-d H:i:s')]);
-  if (!$ok) { usleep(700000); out(['error' => 'Wrong username or password.'], 403); }
+  if (!$ok) { usleep(700000); out(['error' => 'Wrong password.'], 403); }
   session_regenerate_id(true);
   $_SESSION['u'] = ['u' => $u['username'], 'name' => $u['name'] ?: $u['username'], 'role' => isset(ROLES[$u['role']]) ? $u['role'] : 'staff'];
   $_SESSION['csrf'] = bin2hex(random_bytes(16));
@@ -229,6 +232,7 @@ if ($a === 'user_save') {
   if (!preg_match('/^[a-z0-9_.]{3,30}$/', $un) || !isset(ROLES[$role])) out(['error' => 'Username 3+ letters (a-z, 0-9) and a role.'], 400);
   $q = $pdo->prepare('SELECT * FROM admins WHERE username=?'); $q->execute([$un]); $ex = $q->fetch();
   if (!$ex && strlen($pw) < 8) out(['error' => 'New admin needs an 8+ character password.'], 400);
+  if ($pw !== '') foreach (admins() as $o) if ($o['username'] !== $un && password_verify($pw, (string)$o['pass'])) out(['error' => 'Another admin already uses this password. Please choose a different one.'], 400);
   if ($pw !== '' && strlen($pw) < 8) out(['error' => 'Password must be 8+ characters.'], 400);
   $name = ll_clean($b['name'] ?? $un, 60) ?: $un;
   if (!$ex) $pdo->prepare('INSERT INTO admins(username,name,pass,role,active,created) VALUES(?,?,?,?,?,?)')->execute([$un, $name, password_hash($pw, PASSWORD_DEFAULT), $role, empty($b['on']) ? 0 : 1, date('Y-m-d H:i:s')]);
@@ -249,6 +253,7 @@ if ($a === 'pass') {
   $q = $pdo->prepare('SELECT * FROM admins WHERE username=?'); $q->execute([me()['u']]); $mine = $q->fetch();
   if (!$mine || !password_verify($old, (string)$mine['pass'])) out(['error' => 'Current password is wrong.'], 403);
   if (strlen($new) < 8) out(['error' => 'New password must be 8+ characters.'], 400);
+  foreach (admins() as $o) if ($o['username'] !== me()['u'] && password_verify($new, (string)$o['pass'])) out(['error' => 'Another admin already uses this password. Please choose a different one.'], 400);
   $pdo->prepare('UPDATE admins SET pass=? WHERE id=?')->execute([password_hash($new, PASSWORD_DEFAULT), $mine['id']]);
   audit('changed own password'); out(['ok' => 1]);
 }
