@@ -8,7 +8,7 @@
 <link rel="icon" href="../assets/img/favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=2.3">
+<link rel="stylesheet" href="admin.css?v=2.4">
 </head>
 <body>
 
@@ -27,7 +27,7 @@
 
 <div id="app" class="app" hidden>
  <aside class="side" id="side">
-  <a class="brand" href="#dashboard"><img src="../assets/img/lady-full.png" alt="" style="object-fit:contain;padding:2px"><span><b class="notr">Loom <em>&amp;</em> Lustre</b><small>Beauty Shop Admin Panel</small></span></a>
+  <a class="brand" href="#dashboard"><img src="../assets/img/lady-full.webp" alt="" style="object-fit:contain;padding:2px"><span><b class="notr">Loom <em>&amp;</em> Lustre</b><small>Shop Admin · দোকান পরিচালনা</small></span></a>
   <nav id="nav"></nav>
   <div class="me"><div><b id="meName">Admin</b><small id="meRole">Super Admin</small></div><button class="ic" title="Log out" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></button></div>
  </aside>
@@ -37,7 +37,6 @@
    <button class="ic menu" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <h1 id="pageTitle">Dashboard</h1>
    <button class="lang-btn" id="langBtn" onclick="setLang(PV_LANG==='bn'?'en':'bn')" title="Language">EN</button>
-   <button class="ai-btn" onclick="askAI()"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18 9.5l-4.2 1.8L12 16l-1.8-4.7L6 9.5l4.2-1.8z"/></svg>Ask AI<i></i></button>
    <div class="bell-wrap"><button class="ic bell" onclick="toggleBell()" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg><b id="bellN" hidden>0</b></button><div class="bell-pop" id="bellPop" hidden></div></div>
   </header>
   <main id="view" class="view"></main>
@@ -55,10 +54,10 @@
 <div class="modal" id="modal" hidden><div class="modal-bg" onclick="closeModal()"></div><div class="modal-box" id="modalBox"></div></div>
 <div class="toast" id="toast"></div>
 <script>window.PV_PREFIX = "lld"; /* demo storage name: give every shop its own (e.g. "cgd", "llx", "jbz") */</script>
-<script src="bn.js?v=2.3"></script>
+<script src="bn.js?v=2.4"></script>
 <script>document.getElementById("langBtn").textContent=PV_LANG==="bn"?"EN":"বাংলা"</script>
-<script src="admin.js?v=2.3"></script>
-<script src="admin2.js?v=2.3"></script>
+<script src="admin.js?v=2.4"></script>
+<script src="admin2.js?v=2.4"></script>
 <script src="pwd-eye.js?v=1"></script>
 </body>
 </html>

@@ -126,20 +126,21 @@ function can(p) { if (!ME) return false; if (ME.role === "super") return true; c
 
 /* ---------- navigation ---------- */
 const NAV = [
-  ["dashboard", "Dashboard Overview", "dash", "dashboard"], ["products", "Product Management", "box", "products"], ["categories", "Categories", "layers", "categories"], ["collections", "Catalog Collections", "book", "collections"],
-  ["inventory", "Inventory & Stock", "stock", "inventory"], ["orders", "Orders", "cart", "orders"], ["courier", "Courier Hub", "truck", "courier"], ["customers", "Customers", "users", "customers"],
-  ["reviews", "Customer Reviews", "star", "reviews"], ["banners", "Hero Banners", "image", "banners"], ["cms", "Homepage CMS", "cms", "cms"], ["reports", "Reports & Analytics", "chart", "reports"], ["admins", "Admin & Roles", "shield", "users"]
+  ["dashboard", "Dashboard", "dash", "dashboard", "ড্যাশবোর্ড"], ["orders", "Orders", "cart", "orders", "অর্ডার"], ["products", "Products", "box", "products", "প্রোডাক্ট"], ["inventory", "Stock", "stock", "inventory", "স্টক"],
+  ["categories", "Categories", "layers", "categories", "ক্যাটাগরি"], ["collections", "Collections", "book", "collections", "কালেকশন"], ["banners", "Banners", "image", "banners", "ব্যানার"], ["cms", "Homepage", "cms", "cms", "হোমপেজ"],
+  ["courier", "Courier", "truck", "courier", "কুরিয়ার"], ["customers", "Customers", "users", "customers", "কাস্টমার"], ["reviews", "Reviews", "star", "reviews", "রিভিউ"], ["reports", "Reports", "chart", "reports", "রিপোর্ট"]
 ];
-const SETTINGS = [["store", "General Store", "store"], ["delivery", "Delivery & Shipping", "truck"], ["payment", "Payment Settings", "pay"], ["courier", "Courier Automation", "box"], ["sms", "SMS Notifications", "sms"], ["pixel", "Meta Pixel & CAPI", "target"], ["seo", "Google SEO Meta", "globe"], ["security", "Password & Security", "lock"]];
+const SETTINGS = [["store", "Shop info", "store", "দোকানের তথ্য"], ["delivery", "Delivery charge", "truck", "ডেলিভারি চার্জ"], ["payment", "Payment (bKash/COD)", "pay", "পেমেন্ট"], ["courier", "Steadfast courier", "box", "স্টেডফাস্ট কুরিয়ার"], ["pixel", "Facebook Pixel", "target", "ফেসবুক পিক্সেল"], ["seo", "Google SEO", "globe", "গুগল এসইও"], ["security", "Password", "lock", "পাসওয়ার্ড"]];
+const NL = (en, bn) => `<span class="nt notr">${en}<small>${bn}</small></span>`;
 function drawNav() {
   const pend = (DB.orders || []).filter(o => o.status === "pending").length;
   const route = location.hash.slice(1) || "dashboard";
-  let h = NAV.filter(n => can(n[3])).map(n => `<a class="nv${route.split("/")[0] === n[0] || (n[0] === "products" && route.startsWith("product")) ? " on" : ""}" href="#${n[0]}">${ic(n[2])}${n[1]}${n[0] === "orders" && pend ? `<span class="bd">${pend}</span>` : ""}${n[0] === "courier" ? '<span class="live">LIVE</span>' : ""}</a>`).join("");
+  let h = NAV.filter(n => can(n[3])).map(n => `<a class="nv${route.split("/")[0] === n[0] || (n[0] === "products" && route.startsWith("product")) ? " on" : ""}" href="#${n[0]}">${ic(n[2])}${NL(n[1], n[4])}${n[0] === "orders" && pend ? `<span class="bd">${pend}</span>` : ""}</a>`).join("");
   if (can("settings") || true) {
     const open = route.startsWith("settings");
-    h += `<div class="grp${open ? " open" : ""}"><button class="nv${open ? " on" : ""}" onclick="this.parentNode.classList.toggle('open')">${ic("gear")}Site Settings<span class="chev">${ic("down", "width:15px;height:15px")}</span></button><div class="sub">${SETTINGS.filter(s => s[0] === "security" || can("settings")).map(s => `<a class="nv${route === "settings/" + s[0] ? " on" : ""}" href="#settings/${s[0]}">${ic(s[2], "width:16px;height:16px")}${s[1]}${s[0] === "pixel" ? '<span class="live" style="background:#14532d">CAPI</span>' : ""}</a>`).join("")}</div></div>`;
+    h += `<div class="grp${open ? " open" : ""}"><button class="nv${open ? " on" : ""}" onclick="this.parentNode.classList.toggle('open')">${ic("gear")}${NL("Settings", "সেটিংস")}<span class="chev">${ic("down", "width:15px;height:15px")}</span></button><div class="sub">${SETTINGS.filter(s => s[0] === "security" || can("settings")).map(s => `<a class="nv${route === "settings/" + s[0] ? " on" : ""}" href="#settings/${s[0]}">${ic(s[2], "width:16px;height:16px")}${NL(s[1], s[3])}</a>`).join("")}</div></div>`;
   }
-  h += `<a class="nv store" href="../" target="_blank">${ic("ext")}View Live Store</a>`;
+  h += `<a class="nv store" href="../" target="_blank">${ic("ext")}${NL("View shop", "দোকান দেখুন")}</a>`;
   $("#nav").innerHTML = h;
   $$("#tabbar a[data-r]").forEach(t => t.classList.toggle("on", route.split("/")[0] === t.dataset.r));
   const tb = $("#tbN"); if (tb) { tb.hidden = !pend; tb.textContent = pend }

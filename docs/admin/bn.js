@@ -1,5 +1,5 @@
 /* Loom & Lustre admin (shared with PetVerse): Bangla language layer. Default is Bangla; the EN button in the top bar switches to English. */
-const PV_LANG = (() => { try { return localStorage.getItem("pv_lang") || "bn" } catch (e) { return "bn" } })();
+const PV_LANG = (() => { try { return localStorage.getItem("pv_lang") || "en" } catch (e) { return "en" } })();
 const BN = {
 "First time: set the admin password (8+ characters).":"প্রথমবার: অ্যাডমিন পাসওয়ার্ড দিন (৮+ অক্ষর)।","Save password & sign in":"পাসওয়ার্ড সেভ করে ঢুকুন","Wrong password.":"পাসওয়ার্ড ভুল।","Another admin already uses this password. Please choose a different one.":"এই পাসওয়ার্ড আরেকজন অ্যাডমিন ব্যবহার করছেন। অন্য পাসওয়ার্ড দিন।",
 "\"Cat food tab\" categories show as tabs inside Cat Food; others get their own section.":"\"ক্যাট ফুড ট্যাব\" ক্যাটাগরি Cat Food এর ভেতরে ট্যাব হিসেবে দেখায়; বাকিগুলো হোমপেজে আলাদা সেকশন পায়।",
