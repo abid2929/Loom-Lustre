@@ -127,6 +127,10 @@ function site_header(): void {
 <?php if (!ll_lux()): ?>
       <div class="nk-more"><a href="<?= url('categories') ?>">More<span class="vh"> categories</span> <?= icon('chev', 13) ?></a><div class="nk-more-m">
         <?php foreach (nk_discover() as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, '', 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
+      </div></div><?php else: $lxm = array_map(fn($c) => [$c['name'], 'c/' . $c['slug'], $c['image']], array_slice(categories(), 5));
+        $lxm[] = ['Global Luxe', 'luxe-global', 'assets/img/p/lx-gw-lilac-ball.webp']; $lxm[] = ['IndLuxe', 'luxe-ind', 'assets/img/p/lx-br-maroon-velvet.webp']; $lxm[] = ['All Luxe', 'luxe-categories', 'assets/img/p/lx-hl-violet.webp']; ?>
+      <div class="nk-more"><a href="<?= url('luxe-categories') ?>">More<span class="vh"> luxe categories</span> <?= icon('chev', 13) ?></a><div class="nk-more-m">
+        <?php foreach ($lxm as [$t, $lk, $im]): ?><a href="<?= url($lk) ?>"><?= nk_img($im, '', 300, 400) ?><b><?= e($t) ?></b></a><?php endforeach; ?>
       </div></div><?php endif; ?>
     </nav>
     <form class="search" action="<?= url('search') ?>" role="search">
